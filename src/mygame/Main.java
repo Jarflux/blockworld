@@ -37,10 +37,8 @@ public class Main extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleInitApp() {
-        //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.jpg"));
-        fBlockMat = new Material(assetManager,
-          "Common/MatDefs/Misc/Unshaded.j3md");  // create a simple material
+        fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.jpg"));
         fBlockMat.setColor("Color", ColorRGBA.Green);
         //fBlockMat.getAdditionalRenderState().setWireframe(true);
 
@@ -51,7 +49,7 @@ public class Main extends SimpleApplication implements ActionListener {
 
         // We re-use the flyby camera for rotation, while positioning is handled by physics
         viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
-        flyCam.setMoveSpeed(100);
+        flyCam.setMoveSpeed(.01f);
         setUpKeys();
         setUpLight();
 

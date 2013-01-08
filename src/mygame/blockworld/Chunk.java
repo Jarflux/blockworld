@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class Chunk {
     
-    public static final int CHUNK_SIZE = 2;
+    public static final int CHUNK_SIZE = 8;
     protected Geometry[][][] fBlocks = new Geometry[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     protected Node fChunkRoot;
