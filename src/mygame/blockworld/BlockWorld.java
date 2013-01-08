@@ -130,7 +130,10 @@ public class BlockWorld {
     }
     
     public void removeBlock(int x, int y, int z) {
-        getChunk(x, y, z, true).removeBlock(x, y, z);
+        Chunk cnk = getChunk(x, y, z, false);
+        if(cnk != null) {
+            cnk.removeBlock(x, y, z);
+        }
     }
     
     public boolean addBlock(Geometry block, int x, int y, int z) {

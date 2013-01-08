@@ -103,10 +103,12 @@ public class Chunk {
         xC = Math.abs(x % CHUNK_SIZE);
         yC = Math.abs(y % CHUNK_SIZE);
         zC = Math.abs(z % CHUNK_SIZE);
+        System.out.println("Removing block");
         if(fBlocks[xC][yC][zC] != null) {
             fChunkRoot.detachChild(fBlocks[xC][yC][zC]);
             blockRemoved(fBlocks[xC][yC][zC], x, y, z);
             fBlocks[xC][yC][zC] = null;
+            System.out.println("Block removed");
         }
     }
     
