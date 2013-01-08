@@ -75,7 +75,7 @@ public class Main extends SimpleApplication implements ActionListener {
         player.setJumpSpeed(20);
         player.setFallSpeed(30);
         player.setGravity(30);
-        player.setPhysicsLocation(new Vector3f(0, 103, 0));
+        player.setPhysicsLocation(new Vector3f(0, 3, 0));
 
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
