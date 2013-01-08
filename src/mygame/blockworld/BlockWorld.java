@@ -80,7 +80,7 @@ public class BlockWorld {
         for(int x = xC; x < xC + Chunk.CHUNK_SIZE; x++) {
             for(int y = yC; y < yC + Chunk.CHUNK_SIZE; y++) {
                 for(int z = zC; z < zC + Chunk.CHUNK_SIZE; z++) {
-                    if( y < 100 && y > 100-3 ){
+                    if( y < 0 && y > -2 ){
                         Geometry block = createBlock(x, y, z);
                         cnk.addBlock(block, x, y, z);
                     }   
@@ -90,9 +90,13 @@ public class BlockWorld {
     }
     
     public Chunk getChunk(int x, int y, int z, boolean createChunk) {
-        int xC = x / Chunk.CHUNK_SIZE;
-        int yC = y / Chunk.CHUNK_SIZE;
-        int zC = z / Chunk.CHUNK_SIZE;
+        double fx = x;
+        double fy = y;
+        double fz = z;
+        int xC = (int) Math.floor(fx / Chunk.CHUNK_SIZE);
+        int yC = (int) Math.floor(fy / Chunk.CHUNK_SIZE);
+        int zC = (int) Math.floor(fz / Chunk.CHUNK_SIZE);
+        
         Chunk cnk = null;
         Map<Integer, Map<Integer, Chunk>> mYZ = null;
         Map<Integer, Chunk> mZ = null;
@@ -104,7 +108,7 @@ public class BlockWorld {
             }                                                
         }
       
-        if(cnk == null){                                 // Chunk met juiste x, y , z bestaat niet
+        if(cnk == null){              // Chunk met juiste x, y , z bestaat niet
            cnk = new Chunk(fRootNode, fPhysicsState, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
            fillChunk(cnk, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
            cnk.addChunkListener(fGeneralListener);
@@ -122,6 +126,7 @@ public class BlockWorld {
     }
     
     public Geometry get(int x, int y, int z) {
+        System.out.println("Get: x = " + x + ", y = " + y + ", z = " + z);
         Chunk cnk = getChunk(x, y, z, false);
         if(cnk != null) {
             return cnk.get(x, y, z);
