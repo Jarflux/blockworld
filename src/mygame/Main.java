@@ -48,7 +48,7 @@ public class Main extends SimpleApplication implements ActionListener {
         fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.jpg"));
         fBlockMat.setColor("Color", ColorRGBA.Green);
         //fBlockMat.getAdditionalRenderState().setWireframe(true);
-
+        
         fTestMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.jpg"));
         fTestMat.setColor("Color", ColorRGBA.Red);
@@ -70,9 +70,9 @@ public class Main extends SimpleApplication implements ActionListener {
         // The CharacterControl offers extra settings for
         // size, stepheight, jumping, falling, and gravity.
         // We also put the player in its starting position.
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(1f, 2f, 1);
-        player = new CharacterControl(capsuleShape, 0.05f);
-        player.setJumpSpeed(20);
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.5f, 1.7f, 1);
+        player = new CharacterControl(capsuleShape, 1.05f);
+        player.setJumpSpeed(10);
         player.setFallSpeed(30);
         player.setGravity(30);
         player.setPhysicsLocation(new Vector3f(0, 103, 0));
@@ -139,7 +139,7 @@ public class Main extends SimpleApplication implements ActionListener {
           down = value;
         } else if (binding.equals("Jump")) {
           player.jump();
-        } else if (binding.equals("RemoveBlock")) {
+        } else if (binding.equals("RemoveBlock") && value) {
             // 1. Reset results list.
             CollisionResults results = new CollisionResults();
             // 2. Aim the ray from cam loc to cam direction.
