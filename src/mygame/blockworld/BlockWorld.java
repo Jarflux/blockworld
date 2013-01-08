@@ -4,6 +4,7 @@
  */
 package mygame.blockworld;
 
+import com.jme3.bullet.BulletAppState;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
@@ -23,16 +24,27 @@ public class BlockWorld {
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     private ChunkListener fGeneralListener = new ChunkListener() {
 
-        public void blockAdded(Geometry block, int x, int y, int z) {
+        public void blockAdded(Chunk chunk, Geometry block, int x, int y, int z) {
             for(ChunkListener listener : fListeners) {
-                listener.blockAdded(block, x, y, z);
+                listener.blockAdded(chunk, block, x, y, z);
             }
         }
 
-        public void blockRemoved(Geometry block, int x, int y, int z) {
+        public void blockRemoved(Chunk chunk, Geometry block, int x, int y, int z) {
             for(ChunkListener listener : fListeners) {
-                listener.blockRemoved(block, x, y, z);
+                listener.blockRemoved(chunk, block, x, y, z);
             }
+        }
+    };
+    
+    private ChunkListener fPhysicsUpdater = new ChunkListener() {
+
+        public void blockAdded(Chunk chunk, Geometry block, int x, int y, int z) {
+            chunk.updatePhysicsMesh();
+        }
+
+        public void blockRemoved(Chunk chunk, Geometry block, int x, int y, int z) {
+            chunk.updatePhysicsMesh();
         }
     };
     
@@ -47,10 +59,13 @@ public class BlockWorld {
     protected Map<Integer, Map<Integer, Map<Integer, Chunk>>> fChunks = new HashMap<Integer, Map<Integer, Map<Integer, Chunk>>>();
     protected Node fRootNode;
     protected Material fBlockMat;
+    protected BulletAppState fPhysicsState;
 
-    public BlockWorld(Node fRootNode, Material fBlockMat) {
-        this.fRootNode = fRootNode;
-        this.fBlockMat = fBlockMat;
+    public BlockWorld(Node rootNode, Material blockMat, BulletAppState physicsState) {
+        this.fRootNode = rootNode;
+        this.fBlockMat = blockMat;
+        this.fPhysicsState = physicsState;
+        fListeners.add(fPhysicsUpdater);
     }
     
     private Geometry createBlock(int x, int y, int z) {
@@ -90,7 +105,7 @@ public class BlockWorld {
         }
       
         if(cnk == null){                                 // Chunk met juiste x, y , z bestaat niet
-           cnk = new Chunk(fRootNode, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
+           cnk = new Chunk(fRootNode, fPhysicsState, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
            fillChunk(cnk, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
            cnk.addChunkListener(fGeneralListener);
            if(mZ == null){                            

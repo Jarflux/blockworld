@@ -13,7 +13,7 @@ import java.util.EventListener;
  */
 public interface ChunkListener extends EventListener {
     
-    void blockAdded(Geometry block, int x, int y, int z);
-    void blockRemoved(Geometry block, int x, int y, int z);
+    void blockAdded(Chunk chunk, Geometry block, int x, int y, int z);
+    void blockRemoved(Chunk chunk, Geometry block, int x, int y, int z);
     
 }

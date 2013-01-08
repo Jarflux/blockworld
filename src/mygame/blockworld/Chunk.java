@@ -4,6 +4,10 @@
  */
 package mygame.blockworld;
 
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.collision.shapes.CollisionShape;
+import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import java.util.LinkedList;
@@ -21,10 +25,29 @@ public class Chunk {
     protected Node fChunkRoot;
     protected Node fRootNode;
     protected boolean fVisible = false;
-    
-    public Chunk(Node rootNode, int xC, int yC, int zC) {
+    protected BulletAppState fPhysicsState;
+    protected RigidBodyControl fChunkPhysics = null;
+    protected boolean fChunkNeedsPhysicsUpdate = true;
+
+    public Chunk(Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
         fChunkRoot = new Node("Chunk:" + xC + "." + yC + "." + zC);
         fRootNode = rootNode;
+        fPhysicsState = physicsState;
+    }
+    
+    public void updatePhysicsMesh() {
+        if(!isVisible()) {
+            fChunkNeedsPhysicsUpdate = true;
+            return;
+        }
+        if(fChunkPhysics != null) {
+            fChunkRoot.removeControl(fChunkPhysics);
+        }
+        CollisionShape chunkShape =
+            CollisionShapeFactory.createMeshShape((Node) fChunkRoot);
+        fChunkPhysics = new RigidBodyControl(chunkShape, 0);
+        fChunkRoot.addControl(fChunkPhysics);
+        fChunkNeedsPhysicsUpdate = false;
     }
     
     public void addChunkListener(ChunkListener listener) {
@@ -37,8 +60,10 @@ public class Chunk {
     
     public void showChunk() {
         if(!fVisible) {
-            fRootNode.attachChild(fChunkRoot);
             fVisible = true;
+            fRootNode.attachChild(fChunkRoot);
+            updatePhysicsMesh();
+            fPhysicsState.getPhysicsSpace().add(fChunkPhysics);
         }
     }
     
@@ -55,13 +80,13 @@ public class Chunk {
     
     protected void blockAdded(Geometry block, int x, int y, int z) {
         for(ChunkListener listener : fListeners) {
-            listener.blockAdded(block, x, y, z);
+            listener.blockAdded(this, block, x, y, z);
         }
     }
     
     protected void blockRemoved(Geometry block, int x, int y, int z) {
         for(ChunkListener listener : fListeners) {
-            listener.blockRemoved(block, x, y, z);
+            listener.blockRemoved(this, block, x, y, z);
         }
     }
     
