@@ -75,7 +75,7 @@ public class Main extends SimpleApplication implements ActionListener {
         player.setJumpSpeed(20);
         player.setFallSpeed(30);
         player.setGravity(30);
-        player.setPhysicsLocation(new Vector3f(0, 3, 0));
+        player.setPhysicsLocation(new Vector3f(0, 103, 0));
 
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
@@ -116,8 +116,8 @@ public class Main extends SimpleApplication implements ActionListener {
         inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
         inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_W));
         inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
-        inputManager.addMapping("RemoveBlock", new KeyTrigger(KeyInput.KEY_SPACE));
-        //inputManager.addMapping("RemoveBlock", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+        inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addMapping("RemoveBlock", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         inputManager.addListener(this, "RemoveBlock");
         inputManager.addListener(this, "Left");
         inputManager.addListener(this, "Right");
