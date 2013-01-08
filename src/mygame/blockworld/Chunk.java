@@ -15,14 +15,15 @@ import java.util.List;
  */
 public class Chunk {
     
-    public static final int CHUNK_SIZE = 16;
+    public static final int CHUNK_SIZE = 2;
     protected Geometry[][][] fBlocks = new Geometry[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
-    protected Node fChunkRoot = new Node();
+    protected Node fChunkRoot;
     protected Node fRootNode;
     protected boolean fVisible = false;
     
-    public Chunk(Node rootNode) {
+    public Chunk(Node rootNode, int xC, int yC, int zC) {
+        fChunkRoot = new Node("Chunk:" + xC + "." + yC + "." + zC);
         fRootNode = rootNode;
     }
     
@@ -43,7 +44,7 @@ public class Chunk {
     
     public void hideChunk() {
         if(fVisible) {
-            fRootNode.attachChild(fChunkRoot);
+            fRootNode.detachChild(fChunkRoot);
             fVisible = false;
         }
     }

@@ -6,8 +6,11 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.BlockWorldViewport;
+import mygame.blockworld.Chunk;
 
 /**
  * test
@@ -28,10 +31,16 @@ public class Main extends SimpleApplication {
     public void simpleInitApp() {
         fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         fBlockMat.setColor("Color", ColorRGBA.Blue);
+        fBlockMat.getAdditionalRenderState().setWireframe(true);
         
         fBlockWorld = new BlockWorld(rootNode, fBlockMat);
-        fBlockWorldView = new BlockWorldViewport(fBlockWorld);
-        cam.setLocation(new Vector3f(0, 0, 1));
+        //fBlockWorldView = new BlockWorldViewport(fBlockWorld);
+        //cam.setLocation(new Vector3f(10, 10, 10));
+        //cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_X);
+        
+        fBlockWorld.getChunk(0, 0, 0, true).showChunk();
+        fBlockWorld.getChunk(2, 0, 0, true).showChunk();
+        fBlockWorld.getChunk(2, 2, 0, true).showChunk();
         
         /** Must add a light to make the lit object visible! */
         DirectionalLight sun = new DirectionalLight();
@@ -43,7 +52,18 @@ public class Main extends SimpleApplication {
     @Override
     public void simpleUpdate(float tpf) {
         Vector3f camPos = cam.getLocation();
-        fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.z), Math.round(camPos.y));
+        //fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.z), Math.round(camPos.y));
+        Chunk cnk = fBlockWorld.getChunk(0, 2, 0, true);
+        if(!cnk.isVisible()) {
+            cnk.showChunk();
+        }else{
+            cnk.hideChunk();
+        }
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     @Override

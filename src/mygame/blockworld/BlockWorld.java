@@ -56,16 +56,17 @@ public class BlockWorld {
     }
     
     private Geometry createBlock(int x, int y, int z) {
-        Box b = new Box(new Vector3f(x, y, z), 1, 1, 1);
+        System.out.println("Created block at: " + x + "," + y + "," + z);
+        Box b = new Box(new Vector3f(x, y, z), .5f, .5f, .5f);
         Geometry geom = new Geometry("Box", b);
         geom.setMaterial(fBlockMat);
         return geom;
     }
     
-    private void fillChunk(Chunk cnk) {
-        for(int x = 0; x < Chunk.CHUNK_SIZE; x++) {
-            for(int y = 0; y < Chunk.CHUNK_SIZE; y++) {
-                for(int z = 0; z < Chunk.CHUNK_SIZE; z++) {
+    private void fillChunk(Chunk cnk, int xC, int yC, int zC) {
+        for(int x = xC; x < xC + Chunk.CHUNK_SIZE; x++) {
+            for(int y = yC; y < yC + Chunk.CHUNK_SIZE; y++) {
+                for(int z = zC; z < zC + Chunk.CHUNK_SIZE; z++) {
                     Geometry block = createBlock(x, y, z);
                     cnk.addBlock(block, x, y, z);
                 }
@@ -89,11 +90,11 @@ public class BlockWorld {
         }
         Chunk cnk = mZ.get(zC);
         if(cnk == null && createChunk) {
-            cnk = new Chunk(fRootNode);
+            cnk = new Chunk(fRootNode, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
             cnk.addChunkListener(fGeneralListener);
-            if(zC < 0) {
-                fillChunk(cnk);
-            }
+            //if(zC < 0) {
+                fillChunk(cnk, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
+            //}
             mZ.put(zC, cnk);
         }
         return cnk;

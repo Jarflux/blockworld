@@ -33,17 +33,17 @@ public class BlockWorldViewport {
         if( (x / Chunk.CHUNK_SIZE != fX / Chunk.CHUNK_SIZE) ||
                 (y / Chunk.CHUNK_SIZE != fY / Chunk.CHUNK_SIZE) ||
                 (z / Chunk.CHUNK_SIZE != fZ / Chunk.CHUNK_SIZE) ) {
-            /*for(Chunk cnk : fShown) {
+            for(Chunk cnk : fShown) {
                 cnk.hideChunk();
             }
-            fShown.clear();*/
+            fShown.clear();
             int xC = x / Chunk.CHUNK_SIZE;
             int yC = y / Chunk.CHUNK_SIZE;
             int zC = z / Chunk.CHUNK_SIZE;
             for(int i = xC-VIEW_WIDTH; i <= xC+VIEW_WIDTH; i++) {
                 for(int j = yC-VIEW_LENGTH; j <= yC+VIEW_LENGTH; j++) {
                     for(int k = zC-VIEW_HEIGHT; k <= zC+VIEW_HEIGHT; k++) {
-                        Chunk cnk = fWorld.getChunk(i*16, j*16, k*16, (k < 10));
+                        Chunk cnk = fWorld.getChunk(i*Chunk.CHUNK_SIZE, j*Chunk.CHUNK_SIZE, k*Chunk.CHUNK_SIZE, (k < 0));
                         if(cnk != null) {
                             cnk.showChunk();
                             fShown.add(cnk);
