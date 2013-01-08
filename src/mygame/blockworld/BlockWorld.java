@@ -65,8 +65,10 @@ public class BlockWorld {
         for(int x = xC; x < xC + Chunk.CHUNK_SIZE; x++) {
             for(int y = yC; y < yC + Chunk.CHUNK_SIZE; y++) {
                 for(int z = zC; z < zC + Chunk.CHUNK_SIZE; z++) {
-                    Geometry block = createBlock(x, y, z);
-                    cnk.addBlock(block, x, y, z);
+                    if( y < 0 ){
+                        Geometry block = createBlock(x, y, z);
+                        cnk.addBlock(block, x, y, z);
+                    }   
                 }
             }
         }
@@ -76,24 +78,30 @@ public class BlockWorld {
         int xC = x / Chunk.CHUNK_SIZE;
         int yC = y / Chunk.CHUNK_SIZE;
         int zC = z / Chunk.CHUNK_SIZE;
-        Map<Integer, Map<Integer, Chunk>> mYZ = fChunks.get(xC);
-        if(mYZ == null) {
-            mYZ = new HashMap<Integer, Map<Integer, Chunk>>();
-            fChunks.put(xC, mYZ);
+        Chunk cnk = null;
+        Map<Integer, Map<Integer, Chunk>> mYZ = null;
+        Map<Integer, Chunk> mZ = null;
+        mYZ = fChunks.get(xC);  // zoek chunks met juiste X
+        if(mYZ != null){
+            mZ = mYZ.get(yC);  // zoek chunks met juiste X en Y 
+            if(mZ != null){
+                cnk = mZ.get(zC);  // zoek chunks met juiste Z                                              
+            }                                                
         }
-        Map<Integer, Chunk> mZ = mYZ.get(yC);
-        if(mZ == null) {
-            mZ = new HashMap<Integer, Chunk>();
-            mYZ.put(yC, mZ);
-        }
-        Chunk cnk = mZ.get(zC);
-        if(cnk == null && createChunk) {
-            cnk = new Chunk(fRootNode, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
-            cnk.addChunkListener(fGeneralListener);
-            if(zC < 0) {
-                fillChunk(cnk, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
-            }
-            mZ.put(zC, cnk);
+      
+        if(cnk == null){                                 // Chunk met juiste x, y , z bestaat niet
+           cnk = new Chunk(fRootNode, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
+           fillChunk(cnk, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
+           cnk.addChunkListener(fGeneralListener);
+           if(mZ == null){                            
+               mZ = new HashMap<Integer, Chunk>();
+           }
+           mZ.put(zC, cnk);
+           if(mYZ == null){
+               mYZ = new HashMap<Integer, Map<Integer, Chunk>>();         
+           }
+           mYZ.put(yC, mZ);
+           fChunks.put(xC, mYZ);
         }
         return cnk;
     }
