@@ -27,7 +27,6 @@ public class Chunk {
     protected boolean fVisible = false;
     protected BulletAppState fPhysicsState;
     protected RigidBodyControl fChunkPhysics = null;
-    protected boolean fChunkNeedsPhysicsUpdate = true;
 
     public Chunk(Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
         fChunkRoot = new Node("Chunk:" + xC + "." + yC + "." + zC);
@@ -37,17 +36,17 @@ public class Chunk {
     
     public void updatePhysicsMesh() {
         if(!isVisible()) {
-            fChunkNeedsPhysicsUpdate = true;
             return;
         }
         if(fChunkPhysics != null) {
             fChunkRoot.removeControl(fChunkPhysics);
+            fPhysicsState.getPhysicsSpace().remove(fChunkPhysics);
         }
         CollisionShape chunkShape =
             CollisionShapeFactory.createMeshShape((Node) fChunkRoot);
         fChunkPhysics = new RigidBodyControl(chunkShape, 0);
         fChunkRoot.addControl(fChunkPhysics);
-        fChunkNeedsPhysicsUpdate = false;
+        fPhysicsState.getPhysicsSpace().add(fChunkPhysics);
     }
     
     public void addChunkListener(ChunkListener listener) {
@@ -60,16 +59,17 @@ public class Chunk {
     
     public void showChunk() {
         if(!fVisible) {
-            fVisible = true;
             fRootNode.attachChild(fChunkRoot);
+            fVisible = true;
             updatePhysicsMesh();
-            fPhysicsState.getPhysicsSpace().add(fChunkPhysics);
         }
     }
     
     public void hideChunk() {
         if(fVisible) {
             fRootNode.detachChild(fChunkRoot);
+            fChunkRoot.removeControl(fChunkPhysics);
+            fPhysicsState.getPhysicsSpace().remove(fChunkPhysics);
             fVisible = false;
         }
     }
@@ -103,12 +103,10 @@ public class Chunk {
         xC = Math.abs(x % CHUNK_SIZE);
         yC = Math.abs(y % CHUNK_SIZE);
         zC = Math.abs(z % CHUNK_SIZE);
-        System.out.println("Removing block");
         if(fBlocks[xC][yC][zC] != null) {
             fChunkRoot.detachChild(fBlocks[xC][yC][zC]);
             blockRemoved(fBlocks[xC][yC][zC], x, y, z);
             fBlocks[xC][yC][zC] = null;
-            System.out.println("Block removed");
         }
     }
     
