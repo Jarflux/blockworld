@@ -75,7 +75,7 @@ public class Main extends SimpleApplication implements ActionListener {
         player.setJumpSpeed(10);
         player.setFallSpeed(30);
         player.setGravity(30);
-        player.setPhysicsLocation(new Vector3f(0, 3, 0));
+        player.setPhysicsLocation(new Vector3f(0, 103, 0));
 
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
@@ -118,7 +118,9 @@ public class Main extends SimpleApplication implements ActionListener {
         inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
         inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
         inputManager.addMapping("RemoveBlock", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
+        inputManager.addMapping("AddBlock", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         inputManager.addListener(this, "RemoveBlock");
+        inputManager.addListener(this, "AddBlock");
         inputManager.addListener(this, "Left");
         inputManager.addListener(this, "Right");
         inputManager.addListener(this, "Up");
@@ -148,17 +150,46 @@ public class Main extends SimpleApplication implements ActionListener {
             rootNode.collideWith(ray, results);
             // 5. Use the results (we mark the hit object)
             if (results.size() > 0) {
-              // The closest collision point is what was truly hit:
-              CollisionResult closest = results.getClosestCollision();
-              closest.getGeometry().setMaterial(fTestMat);
-              Vector3f contact = closest.getGeometry().getModelBound().getCenter();
-              System.out.println("Vector: x = " + contact.x + ", y = " + contact.y + ", z = " + contact.z);
-              if(fBlockWorld.get(Math.round(contact.x), Math.round(contact.y), Math.round(contact.z)) == null) {
-                  System.out.println("Not found");
-              }else{
-                  System.out.println("Found");
-              }
-              fBlockWorld.removeBlock(Math.round(contact.x), Math.round(contact.y), Math.round(contact.z));
+                // The closest collision point is what was truly hit:
+                CollisionResult closest = results.getClosestCollision();
+                closest.getGeometry().setMaterial(fTestMat);
+                Vector3f contact = closest.getGeometry().getModelBound().getCenter();
+                System.out.println("Vector: x = " + contact.x + ", y = " + contact.y + ", z = " + contact.z);
+                if (fBlockWorld.get(Math.round(contact.x), Math.round(contact.y), Math.round(contact.z)) == null) {
+                    System.out.println("Not found");
+                } else {
+                    System.out.println("Found");
+                }
+                fBlockWorld.removeBlock(Math.round(contact.x), Math.round(contact.y), Math.round(contact.z));
+            }
+        }else if(binding.equals("AddBlock") && value) {
+            // 1. Reset results list.
+            CollisionResults results = new CollisionResults();
+            // 2. Aim the ray from cam loc to cam direction.
+            Ray ray = new Ray(cam.getLocation(), cam.getDirection());
+            // 3. Collect intersections between Ray and Shootables in results list.
+            rootNode.collideWith(ray, results);
+            // 5. Use the results (we mark the hit object)
+            if (results.size() > 0) {
+                // The closest collision point is what was truly hit:
+                Vector3f punt = results.getClosestCollision().getContactPoint();
+                Vector3f center = results.getClosestCollision().getGeometry().getModelBound().getCenter();
+                Vector3f dir = punt.subtract(center);
+                dir.mult(2);
+                System.out.println( "Vector x:" + dir.x +", y:" + dir.y + ", z:" + dir.z);
+                if((Math.abs(dir.x)) > (Math.abs(dir.y))){
+                    if((Math.abs(dir.x)) > (Math.abs(dir.z))){
+                        fBlockWorld.addBlock(Math.round(center.x + (dir.x)), Math.round(center.y), Math.round(center.z));
+                    }else{
+                        fBlockWorld.addBlock(Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z)));
+                    }
+                }else{
+                    if((Math.abs(dir.y)) > (Math.abs(dir.z))){
+                        fBlockWorld.addBlock(Math.round(center.x), Math.round(center.y + (dir.y)), Math.round(center.z));
+                    }else{
+                        fBlockWorld.addBlock(Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z)));
+                    }
+                }       
             }
         }
       }

@@ -80,7 +80,7 @@ public class BlockWorld {
         for(int x = xC; x < xC + Chunk.CHUNK_SIZE; x++) {
             for(int y = yC; y < yC + Chunk.CHUNK_SIZE; y++) {
                 for(int z = zC; z < zC + Chunk.CHUNK_SIZE; z++) {
-                    if( y < 0 && y > -5 ){
+                    if( y < 100 && y > 100-5 ){
                         Geometry block = createBlock(x, y, z);
                         cnk.addBlock(block, x, y, z);
                     }   
@@ -139,6 +139,11 @@ public class BlockWorld {
         if(cnk != null) {
             cnk.removeBlock(x, y, z);
         }
+    }
+    
+    public boolean addBlock(int x, int y, int z) {
+        Geometry block = createBlock(x,y,z);
+        return getChunk(x, y, z, true).addBlock(block, x, y, z);
     }
     
     public boolean addBlock(Geometry block, int x, int y, int z) {
