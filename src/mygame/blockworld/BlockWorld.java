@@ -4,9 +4,7 @@
  */
 package mygame.blockworld;
 
-import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
@@ -92,9 +90,9 @@ public class BlockWorld {
         if(cnk == null && createChunk) {
             cnk = new Chunk(fRootNode, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
             cnk.addChunkListener(fGeneralListener);
-            //if(zC < 0) {
+            if(zC < 0) {
                 fillChunk(cnk, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
-            //}
+            }
             mZ.put(zC, cnk);
         }
         return cnk;
