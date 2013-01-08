@@ -17,8 +17,8 @@ public class BlockWorldViewport {
     protected List<Chunk> fShown = new LinkedList<Chunk>();
     int fX, fY, fZ;
     
-    public static final int VIEW_WIDTH = 0;
-    public static final int VIEW_LENGTH = 0;
+    public static final int VIEW_WIDTH = 1;
+    public static final int VIEW_LENGTH = 1;
     public static final int VIEW_HEIGHT = 1;
     
     public BlockWorldViewport(BlockWorld world) {

@@ -34,13 +34,9 @@ public class Main extends SimpleApplication {
         fBlockMat.getAdditionalRenderState().setWireframe(true);
         
         fBlockWorld = new BlockWorld(rootNode, fBlockMat);
-        //fBlockWorldView = new BlockWorldViewport(fBlockWorld);
-        //cam.setLocation(new Vector3f(10, 10, 10));
-        //cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_X);
-        
-        fBlockWorld.getChunk(0, 0, 0, true).showChunk();
-        fBlockWorld.getChunk(2, 0, 0, true).showChunk();
-        fBlockWorld.getChunk(2, 2, 0, true).showChunk();
+        fBlockWorldView = new BlockWorldViewport(fBlockWorld);
+        cam.setLocation(new Vector3f(0, 0, 3));
+        cam.lookAt(Vector3f.ZERO, Vector3f.UNIT_X);
         
         /** Must add a light to make the lit object visible! */
         DirectionalLight sun = new DirectionalLight();
@@ -52,18 +48,7 @@ public class Main extends SimpleApplication {
     @Override
     public void simpleUpdate(float tpf) {
         Vector3f camPos = cam.getLocation();
-        //fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.z), Math.round(camPos.y));
-        Chunk cnk = fBlockWorld.getChunk(0, 2, 0, true);
-        if(!cnk.isVisible()) {
-            cnk.showChunk();
-        }else{
-            cnk.hideChunk();
-        }
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.y), Math.round(camPos.z));
     }
 
     @Override
