@@ -164,14 +164,28 @@ public class Chunk {
         if(fChunkMesh != null) {
             fRootNode.detachChild(fChunkMesh);
         }
-        fChunkMesh = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, 
-                createVisualMesh(fXC, fYC, fZC));
+        Mesh mesh = createVisualMesh(fXC, fYC, fZC);
+        if(mesh == null) {
+            fChunkMesh = null;
+            System.out.println("Empty chunk");
+            return;
+        }
+        fChunkMesh = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, mesh);
         fChunkMesh.setMaterial(fWorld.getBlockMat());
+        Vector3f center = mesh.getBound().getCenter();
+        System.out.println("Showing chunk, center: " + center.x + ", " + center.y + ", " + center.z);
         fRootNode.attachChild(fChunkMesh);
     }
     
     protected void updatePhysicsMesh() {
         if(!isVisible()) {
+            return;
+        }
+        if(fChunkMesh == null) {
+            if(fChunkPhysics != null) {
+                fPhysicsState.getPhysicsSpace().remove(fChunkPhysics);
+            }
+            fChunkPhysics = null;
             return;
         }
         if(fChunkPhysics != null) {
@@ -195,6 +209,7 @@ public class Chunk {
     
     public void showChunk() {
         if(!fVisible) {
+            System.out.println("Showing chunk: " + fXC + ", " + fYC + ", " + fZC);
             fVisible = true;
             updateVisualMesh();
             updatePhysicsMesh();
@@ -239,7 +254,7 @@ public class Chunk {
         for(int x = fXC; x < fXC + Chunk.CHUNK_SIZE; x++) {
             for(int y = fYC; y < fYC + Chunk.CHUNK_SIZE; y++) {
                 for(int z = fZC; z < fZC + Chunk.CHUNK_SIZE; z++) {
-                    addBlock(new Integer(1), x, y, z);  
+                    addBlock(1, x, y, z);  
                 }
             }
         }

@@ -93,21 +93,26 @@ public class Main extends SimpleApplication implements ActionListener {
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, bulletAppState);
         //fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         
-        Chunk cnk = fBlockWorld.getChunk(0, 0, 0, true);
-        /*cnk.addBlock(1, 2, 3, 1);
-        cnk.addBlock(1, 2, 4, 1);
-        cnk.addBlock(1, 3, 2, 1);
-        cnk.addBlock(1, 3, 3, 1);
-        cnk.addBlock(1, 3, 4, 1);
-        cnk.addBlock(1, 3, 5, 1);
-        cnk.addBlock(1, 4, 2, 1);
-        cnk.addBlock(1, 4, 3, 1);
-        cnk.addBlock(1, 4, 4, 1);
-        cnk.addBlock(1, 4, 5, 1);
-        cnk.addBlock(1, 5, 3, 1);
-        cnk.addBlock(1, 5, 4, 1);*/
-        cnk.fillChunk();
-        cnk.showChunk();
+        Chunk cnk0 = fBlockWorld.getChunk(0, 0, 0, true);
+        /*cnk0.addBlock(1, 2, 3, 1);
+        cnk0.addBlock(1, 2, 4, 1);
+        cnk0.addBlock(1, 3, 2, 1);
+        cnk0.addBlock(1, 3, 3, 1);
+        cnk0.addBlock(1, 3, 4, 1);
+        cnk0.addBlock(1, 3, 5, 1);
+        cnk0.addBlock(1, 4, 2, 1);
+        cnk0.addBlock(1, 4, 3, 1);
+        cnk0.addBlock(1, 4, 4, 1);
+        cnk0.addBlock(1, 4, 5, 1);
+        cnk0.addBlock(1, 5, 3, 1);
+        cnk0.addBlock(1, 5, 4, 1);*/
+        cnk0.fillChunk();
+        
+        Chunk cnk1 = fBlockWorld.getChunk(8, 0, 0, true);
+        cnk1.fillChunk();
+        
+        cnk0.showChunk();
+        cnk1.showChunk();
       }
 
 
