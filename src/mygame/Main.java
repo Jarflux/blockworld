@@ -1,6 +1,7 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.audio.AudioNode;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
@@ -47,6 +48,8 @@ public class Main extends SimpleApplication implements ActionListener {
     private BlockWorldViewport fBlockWorldView;
     private BulletAppState bulletAppState;
     private CharacterControl player;
+    private AudioNode audio_nature;
+    private AudioNode audio_removeBlock;
     private BitmapText hudPosition;
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false;
@@ -99,7 +102,7 @@ public class Main extends SimpleApplication implements ActionListener {
 
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, bulletAppState);
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
-
+        setUpdAudio();
         setUpHud();
     }
 
@@ -115,6 +118,21 @@ public class Main extends SimpleApplication implements ActionListener {
         rootNode.addLight(dl);
     }
 
+    private void setUpdAudio(){
+        audio_removeBlock = new AudioNode(assetManager, "Sound/Effects/RemoveBlock.ogg", false);
+        audio_removeBlock.setLooping(false);
+        audio_removeBlock.setVolume(1);
+        rootNode.attachChild(audio_removeBlock);
+ 
+        
+        audio_nature = new AudioNode(assetManager, "Sound/Environment/Nature.ogg", false);
+        audio_nature.setLooping(true);  // activate continuous playing
+        audio_nature.setPositional(true);
+        audio_nature.setLocalTranslation(Vector3f.ZERO.clone());
+        audio_nature.setVolume(3);
+        rootNode.attachChild(audio_nature);
+        audio_nature.play(); // play continuously!
+    }
     /**
      * We over-write some navigational key mappings here, so we can add
      * physics-controlled walking and jumping:
@@ -174,6 +192,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 Vector3f contactPoint = closest.getContactPoint();
                 Vector3f contactNormal = closest.getContactNormal();
                 fBlockWorld.removeBlock(Math.round(contactPoint.x - contactNormal.x * .5f), Math.round(contactPoint.y - contactNormal.y * .5f), Math.round(contactPoint.z - contactNormal.z * .5f));
+                audio_removeBlock.playInstance();
             }
         } else if (binding.equals("AddBlock") && value) {
             // 1. Reset results list.
@@ -189,6 +208,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 Vector3f contactPoint = closest.getContactPoint();
                 Vector3f contactNormal = closest.getContactNormal();
                 fBlockWorld.addBlock(1, Math.round(contactPoint.x + contactNormal.x * .5f), Math.round(contactPoint.y + contactNormal.y * .5f), Math.round(contactPoint.z + contactNormal.z * .5f));
+                audio_removeBlock.playInstance();
                 /*
                 Vector3f punt = results.getClosestCollision().getContactPoint();
                 Vector3f center = results.getClosestCollision().getGeometry().getModelBound().getCenter();
@@ -246,6 +266,7 @@ public class Main extends SimpleApplication implements ActionListener {
         player.setWalkDirection(walkDirection);
         Vector3f camPos = player.getPhysicsLocation();
         cam.setLocation(camPos);
+        listener.setLocation(cam.getLocation());
         fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.y), Math.round(camPos.z));
     }
 
