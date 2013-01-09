@@ -63,7 +63,7 @@ public class Chunk {
                 for(int k = fZC; k < fZC + Chunk.CHUNK_SIZE; k++) {
                     if(fWorld.get(i, j, k) != null) {
                         //Check top
-                        if(fWorld.get(i, j+1, k) == null) {
+                        if(fWorld.getChunk(i, j+1, k, true).get(i, j+1, k) == null) {
                             vertices.add(new Vector3f(i-.5f, j+.5f, k-.5f));
                             vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
@@ -74,7 +74,7 @@ public class Chunk {
                             index = index + 4;
                         }
                         //Check bottem
-                        if(fWorld.get(i, j-1, k) == null) {
+                        if(fWorld.getChunk(i, j-1, k, true).get(i, j-1, k) == null) {
                             vertices.add(new Vector3f(i-.5f, j-.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
@@ -85,7 +85,7 @@ public class Chunk {
                             index = index + 4;
                         }
                         //Check right
-                        if(fWorld.get(i+1, j, k) == null) {
+                        if(fWorld.getChunk(i+1, j, k, true).get(i+1, j, k) == null) {
                             vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
@@ -96,7 +96,7 @@ public class Chunk {
                             index = index + 4;
                         }
                         //Check left
-                        if(fWorld.get(i-1, j, k) == null) {
+                        if(fWorld.getChunk(i-1, j, k, true).get(i-1, j, k) == null) {
                             vertices.add(new Vector3f(i-.5f, j-.5f, k-.5f));
                             vertices.add(new Vector3f(i-.5f, j-.5f, k+.5f));
                             vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
@@ -107,7 +107,7 @@ public class Chunk {
                             index = index + 4;
                         }
                         //Check back
-                        if(fWorld.get(i, j, k+1) == null) {
+                        if(fWorld.getChunk(i, j, k+1, true).get(i, j, k+1) == null) {
                             vertices.add(new Vector3f(i-.5f, j-.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
@@ -118,7 +118,7 @@ public class Chunk {
                             index = index + 4;
                         }
                         //Check front
-                        if(fWorld.get(i, j, k-1) == null) {
+                        if(fWorld.getChunk(i, j, k-1, true).get(i, j, k-1) == null) {
                             vertices.add(new Vector3f(i-.5f, j-.5f, k-.5f));
                             vertices.add(new Vector3f(i-.5f, j+.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
