@@ -6,13 +6,14 @@ package mygame.blockworld;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  *
- * @author Nathan
+ * @author Nathan & Ben
  */
 public class BlockWorldViewport {
-
+    private static final Logger logger = Logger.getLogger(BlockWorldViewport.class.getName());
     protected BlockWorld fWorld;
     protected List<Chunk> fShown = new LinkedList<Chunk>();
     int fX, fY, fZ;

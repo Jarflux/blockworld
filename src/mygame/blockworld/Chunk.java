@@ -12,13 +12,15 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  *
- * @author Nathan
+ * @author Nathan & Ben
  */
 public class Chunk {
     
+    private static final Logger logger = Logger.getLogger(Chunk.class.getName());
     public static final int CHUNK_SIZE = 8;
     protected Geometry[][][] fBlocks = new Geometry[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
