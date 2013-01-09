@@ -56,7 +56,7 @@ public class Main extends SimpleApplication implements ActionListener {
         //fBlockMat.setColor("Diffuse",ColorRGBA.White);
         //fBlockMat.setFloat("Shininess", 5f); // [1,128]    
         
-        fBlockMat.getAdditionalRenderState().setWireframe(true);
+        //fBlockMat.getAdditionalRenderState().setWireframe(true);
         
         fTestMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.jpg"));
@@ -94,7 +94,7 @@ public class Main extends SimpleApplication implements ActionListener {
         //fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         
         Chunk cnk = fBlockWorld.getChunk(0, 0, 0, true);
-        cnk.addBlock(1, 2, 3, 1);
+        /*cnk.addBlock(1, 2, 3, 1);
         cnk.addBlock(1, 2, 4, 1);
         cnk.addBlock(1, 3, 2, 1);
         cnk.addBlock(1, 3, 3, 1);
@@ -105,7 +105,8 @@ public class Main extends SimpleApplication implements ActionListener {
         cnk.addBlock(1, 4, 4, 1);
         cnk.addBlock(1, 4, 5, 1);
         cnk.addBlock(1, 5, 3, 1);
-        cnk.addBlock(1, 5, 4, 1);
+        cnk.addBlock(1, 5, 4, 1);*/
+        cnk.fillChunk();
         cnk.showChunk();
       }
 

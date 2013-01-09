@@ -63,9 +63,9 @@ public class Chunk {
                         //Check top
                         if(fWorld.get(i, j+1, k) == null) {
                             vertices.add(new Vector3f(i-.5f, j+.5f, k-.5f));
-                            vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
-                            vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
+                            vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
+                            vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
                             addTextureCoords(texCoord);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
@@ -74,9 +74,9 @@ public class Chunk {
                         //Check bottem
                         if(fWorld.get(i, j-1, k) == null) {
                             vertices.add(new Vector3f(i-.5f, j-.5f, k-.5f));
-                            vertices.add(new Vector3f(i-.5f, j-.5f, k+.5f));
-                            vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));
+                            vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
+                            vertices.add(new Vector3f(i-.5f, j-.5f, k+.5f));
                             addTextureCoords(texCoord);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
@@ -136,10 +136,12 @@ public class Chunk {
         Mesh mesh = new Mesh();
         Vector3f[] verticesSimpleType = new Vector3f[vertices.size()];
         Vector2f[] texCoordSimpleType = new Vector2f[vertices.size()];
-        int[] indexesSimpleType = new int[vertices.size()];
+        int[] indexesSimpleType = new int[indexes.size()];
         for(int i = 0; i < vertices.size(); i++) {
             verticesSimpleType[i] = vertices.get(i);
             texCoordSimpleType[i] = texCoord.get(i);
+        }
+        for(int i = 0; i < indexes.size(); i++) {
             indexesSimpleType[i] = indexes.get(i);
         }
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(verticesSimpleType));
@@ -231,6 +233,16 @@ public class Chunk {
         yC = Math.abs(y % CHUNK_SIZE);
         zC = Math.abs(z % CHUNK_SIZE);
         return fBlocks[xC][yC][zC];
+    }
+    
+    public void fillChunk() {
+        for(int x = fXC; x < fXC + Chunk.CHUNK_SIZE; x++) {
+            for(int y = fYC; y < fYC + Chunk.CHUNK_SIZE; y++) {
+                for(int z = fZC; z < fZC + Chunk.CHUNK_SIZE; z++) {
+                    addBlock(new Integer(1), x, y, z);  
+                }
+            }
+        }
     }
     
     public void removeBlock(int x, int y, int z) {

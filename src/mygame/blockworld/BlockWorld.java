@@ -69,18 +69,6 @@ public class BlockWorld {
         fListeners.add(fPhysicsUpdater);
     }
     
-    private void fillChunk(Chunk cnk, int xC, int yC, int zC) {
-        for(int x = xC; x < xC + Chunk.CHUNK_SIZE; x++) {
-            for(int y = yC; y < yC + Chunk.CHUNK_SIZE; y++) {
-                for(int z = zC; z < zC + Chunk.CHUNK_SIZE; z++) {
-                    if( y < 0 && y > -5 ){
-                        cnk.addBlock(new Integer(1), x, y, z);
-                    }   
-                }
-            }
-        }
-    }
-    
     public Chunk getChunk(int x, int y, int z, boolean createChunk) {
         double fx = x;
         double fy = y;
@@ -100,9 +88,11 @@ public class BlockWorld {
             }                                                
         }
       
-        if(cnk == null){              // Chunk met juiste x, y , z bestaat niet
+        if(cnk == null && createChunk){              // Chunk met juiste x, y , z bestaat niet
            cnk = new Chunk(this, fRootNode, fPhysicsState, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
-           fillChunk(cnk, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
+           if(yC < 0 && yC > -2) {
+               cnk.fillChunk();
+           }
            cnk.addChunkListener(fGeneralListener);
            if(mZ == null){                            
                mZ = new HashMap<Integer, Chunk>();
