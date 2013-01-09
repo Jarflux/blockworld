@@ -121,13 +121,13 @@ public class Main extends SimpleApplication implements ActionListener {
     }
 
     private void setUpdAudio(){
-        audio_removeBlock = new AudioNode(assetManager, "Sound/Effects/RemoveBlock.ogg", false);
+        audio_removeBlock = new AudioNode(assetManager, "Sounds/Effects/RemoveBlock.ogg", false);
         audio_removeBlock.setLooping(false);
         audio_removeBlock.setVolume(1);
         rootNode.attachChild(audio_removeBlock);
  
         
-        audio_nature = new AudioNode(assetManager, "Sound/Environment/Nature.ogg", false);
+        audio_nature = new AudioNode(assetManager, "Sounds/Environment/Nature.ogg", false);
         audio_nature.setLooping(true);  // activate continuous playing
         audio_nature.setPositional(true);
         audio_nature.setLocalTranslation(Vector3f.ZERO.clone());
