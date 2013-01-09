@@ -30,7 +30,6 @@ public class BlockWorldViewport {
     }
     
     public void updatePosition(int x, int y, int z) {
-        //System.out.println("X = " + x + ", Y = " + y + ", Z = " + z);
         if( (x / Chunk.CHUNK_SIZE != fX / Chunk.CHUNK_SIZE) ||
                 (y / Chunk.CHUNK_SIZE != fY / Chunk.CHUNK_SIZE) ||
                 (z / Chunk.CHUNK_SIZE != fZ / Chunk.CHUNK_SIZE) ) {

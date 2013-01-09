@@ -79,12 +79,12 @@ public class Main extends SimpleApplication implements ActionListener {
         // The CharacterControl offers extra settings for
         // size, stepheight, jumping, falling, and gravity.
         // We also put the player in its starting position.
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.5f, 1.7f, 1);
-        player = new CharacterControl(capsuleShape, 1.05f);
-        player.setJumpSpeed(10);
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.5f, 1.65f, 1);
+        player = new CharacterControl(capsuleShape, 0.5f);
+        player.setJumpSpeed(8);
         player.setFallSpeed(30);
         player.setGravity(30);
-        player.setPhysicsLocation(new Vector3f(0, 103, 0));
+        player.setPhysicsLocation(new Vector3f(0, 3, 0));
 
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
@@ -225,9 +225,11 @@ public class Main extends SimpleApplication implements ActionListener {
     public void simpleUpdate(float tpf) {
         Vector3f playerPosition = player.getPhysicsLocation();
         DecimalFormat df = new DecimalFormat("0.000");
-        hudPosition.setText("Position:\n X:" + df.format(playerPosition.x) + "\n Y:" + df.format(playerPosition.y) + " Z:\n" + df.format(playerPosition.z));
-        Vector3f camDir = cam.getDirection().clone().multLocal(0.6f);
-        Vector3f camLeft = cam.getLeft().clone().multLocal(0.4f);
+        hudPosition.setText("Position:\nz:" + df.format(playerPosition.x) + "\nz:" + df.format(playerPosition.y) + "\nz:" + df.format(playerPosition.z));
+        Vector3f camDir = cam.getDirection().clone().multLocal(0.1f);
+        Vector3f camLeft = cam.getLeft().clone().multLocal(0.065f);
+        camDir.y = 0;
+        camLeft.y = 0;
         walkDirection.set(0, 0, 0);
         if (left) {
             walkDirection.addLocal(camLeft);
@@ -269,6 +271,6 @@ public class Main extends SimpleApplication implements ActionListener {
 
     public void startLogging() {
         Logger.getLogger("").setLevel(Level.SEVERE);
-        Logger.getLogger(Main.class.getName()).setLevel(Level.ALL);
+        //Logger.getLogger(Main.class.getName()).setLevel(Level.ALL);
     }
 }
