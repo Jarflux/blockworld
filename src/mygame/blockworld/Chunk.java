@@ -8,7 +8,6 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
-import com.jme3.input.controls.ActionListener;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
@@ -20,6 +19,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
+import mygame.MathUtil;
 
 /**
  *
@@ -245,9 +245,9 @@ public class Chunk {
     
     public Integer get(int x, int y, int z) {
         int xC, yC, zC;
-        xC = Math.abs(x % CHUNK_SIZE);
-        yC = Math.abs(y % CHUNK_SIZE);
-        zC = Math.abs(z % CHUNK_SIZE);
+        xC = MathUtil.PosMod(x, CHUNK_SIZE);
+        yC = MathUtil.PosMod(y, CHUNK_SIZE);
+        zC = MathUtil.PosMod(z, CHUNK_SIZE);
         return fBlocks[xC][yC][zC];
     }
     
@@ -263,9 +263,9 @@ public class Chunk {
     
     public void removeBlock(int x, int y, int z) {
         int xC, yC, zC;
-        xC = Math.abs(x % CHUNK_SIZE);
-        yC = Math.abs(y % CHUNK_SIZE);
-        zC = Math.abs(z % CHUNK_SIZE);
+        xC = MathUtil.PosMod(x, CHUNK_SIZE);
+        yC = MathUtil.PosMod(y, CHUNK_SIZE);
+        zC = MathUtil.PosMod(z, CHUNK_SIZE);
         if(fBlocks[xC][yC][zC] != null) {
             fBlocks[xC][yC][zC] = null;
             blockRemoved(fBlocks[xC][yC][zC], x, y, z);
@@ -274,9 +274,9 @@ public class Chunk {
     
     public boolean addBlock(Integer block, int x, int y, int z) {
         int xC, yC, zC;
-        xC = Math.abs(x % CHUNK_SIZE);
-        yC = Math.abs(y % CHUNK_SIZE);
-        zC = Math.abs(z % CHUNK_SIZE);
+        xC = MathUtil.PosMod(x, CHUNK_SIZE);
+        yC = MathUtil.PosMod(y, CHUNK_SIZE);
+        zC = MathUtil.PosMod(z, CHUNK_SIZE);
         if(fBlocks[xC][yC][zC] != null) {
             return false;
         }else{

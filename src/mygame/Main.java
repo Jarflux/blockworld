@@ -16,19 +16,15 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.shape.Box;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.BlockWorldViewport;
-import mygame.blockworld.Chunk;
 
 /**
  * test
@@ -89,8 +85,8 @@ public class Main extends SimpleApplication implements ActionListener {
         // The CharacterControl offers extra settings for
         // size, stepheight, jumping, falling, and gravity.
         // We also put the player in its starting position.
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.5f, 1.65f, 1);
-        player = new CharacterControl(capsuleShape, 0.5f);
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.25f, .75f, 1);
+        player = new CharacterControl(capsuleShape, 0.25f);
         player.setJumpSpeed(8);
         player.setFallSpeed(30);
         player.setGravity(30);
@@ -245,7 +241,7 @@ public class Main extends SimpleApplication implements ActionListener {
     public void simpleUpdate(float tpf) {
         Vector3f playerPosition = player.getPhysicsLocation();
         DecimalFormat df = new DecimalFormat("0.000");
-        hudPosition.setText("Position:\nz:" + df.format(playerPosition.x) + "\nz:" + df.format(playerPosition.y) + "\nz:" + df.format(playerPosition.z));
+        hudPosition.setText("Position:\nx:" + df.format(playerPosition.x) + "\ny:" + df.format(playerPosition.y) + "\nz:" + df.format(playerPosition.z));
         Vector3f camDir = cam.getDirection().clone().multLocal(0.1f);
         Vector3f camLeft = cam.getLeft().clone().multLocal(0.065f);
         camDir.y = 0;
@@ -265,6 +261,7 @@ public class Main extends SimpleApplication implements ActionListener {
         }
         player.setWalkDirection(walkDirection);
         Vector3f camPos = player.getPhysicsLocation();
+        camPos.y = camPos.y + .75f;
         cam.setLocation(camPos);
         listener.setLocation(cam.getLocation());
         fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.y), Math.round(camPos.z));

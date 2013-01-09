@@ -4,6 +4,7 @@
  */
 package mygame.blockworld;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -33,10 +34,8 @@ public class BlockWorldViewport {
         if( (x / Chunk.CHUNK_SIZE != fX / Chunk.CHUNK_SIZE) ||
                 (y / Chunk.CHUNK_SIZE != fY / Chunk.CHUNK_SIZE) ||
                 (z / Chunk.CHUNK_SIZE != fZ / Chunk.CHUNK_SIZE) ) {
-            for(Chunk cnk : fShown) {
-                cnk.hideChunk();
-            }
-            fShown.clear();
+            List<Chunk> previousChunks = fShown;
+            fShown = new ArrayList<Chunk>(VIEW_HEIGHT * VIEW_LENGTH * VIEW_WIDTH);
             int xC = x / Chunk.CHUNK_SIZE;
             int yC = y / Chunk.CHUNK_SIZE;
             int zC = z / Chunk.CHUNK_SIZE;
@@ -45,7 +44,9 @@ public class BlockWorldViewport {
                     for(int k = zC-VIEW_HEIGHT; k <= zC+VIEW_HEIGHT; k++) {
                         Chunk cnk = fWorld.getChunk(i*Chunk.CHUNK_SIZE, j*Chunk.CHUNK_SIZE, k*Chunk.CHUNK_SIZE, true);
                         if(cnk != null) {
-                            cnk.showChunk();
+                            if(!previousChunks.remove(cnk)) {
+                                cnk.showChunk();
+                            }
                             fShown.add(cnk);
                         }
                     }
