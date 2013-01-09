@@ -38,12 +38,35 @@ public class BlockWorld {
     private ChunkListener fPhysicsUpdater = new ChunkListener() {
 
         public void blockAdded(Chunk chunk, Integer block, int x, int y, int z) {
-            chunk.update();
+            update(chunk, block, x, y, z);
         }
 
         public void blockRemoved(Chunk chunk, Integer block, int x, int y, int z) {
-            chunk.update();
+            update(chunk, block, x, y, z);
         }
+        
+        private void update(Chunk chunk, Integer block, int x, int y, int z) {
+            chunk.update();
+            if(x % Chunk.CHUNK_SIZE == 0) {
+                getChunk(x-1, y, z, true).update();
+            }
+            if(x % Chunk.CHUNK_SIZE == Chunk.CHUNK_SIZE - 1) {
+                getChunk(x+1, y, z, true).update();
+            }
+            if(y % Chunk.CHUNK_SIZE == 0) {
+                getChunk(x, y-1, z, true).update();
+            }
+            if(y % Chunk.CHUNK_SIZE == Chunk.CHUNK_SIZE - 1) {
+                getChunk(x, y+1, z, true).update();
+            }
+            if(z % Chunk.CHUNK_SIZE == 0) {
+                getChunk(x, y, z-1, true).update();
+            }
+            if(z % Chunk.CHUNK_SIZE == Chunk.CHUNK_SIZE - 1) {
+                getChunk(x, y, z+1, true).update();
+            }
+        }
+        
     };
 
     public void addChunkListener(ChunkListener listener) {
