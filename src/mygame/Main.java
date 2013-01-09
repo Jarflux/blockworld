@@ -173,9 +173,9 @@ public class Main extends SimpleApplication implements ActionListener {
             if (results.size() > 0) {
                 // The closest collision point is what was truly hit:
                 CollisionResult closest = results.getClosestCollision();
-                closest.getGeometry().setMaterial(fTestMat);
-                Vector3f contact = closest.getGeometry().getModelBound().getCenter();
-                fBlockWorld.removeBlock(Math.round(contact.x), Math.round(contact.y), Math.round(contact.z));
+                Vector3f contactPoint = closest.getContactPoint();
+                Vector3f contactNormal = closest.getContactNormal();
+                fBlockWorld.removeBlock(Math.round(contactPoint.x - contactNormal.x * .5f), Math.round(contactPoint.y - contactNormal.y * .5f), Math.round(contactPoint.z - contactNormal.z * .5f));
             }
         } else if (binding.equals("AddBlock") && value) {
             // 1. Reset results list.
@@ -187,6 +187,11 @@ public class Main extends SimpleApplication implements ActionListener {
             // 5. Use the results (we mark the hit object)
             if (results.size() > 0) {
                 // The closest collision point is what was truly hit:
+                CollisionResult closest = results.getClosestCollision();
+                Vector3f contactPoint = closest.getContactPoint();
+                Vector3f contactNormal = closest.getContactNormal();
+                fBlockWorld.addBlock(1, Math.round(contactPoint.x + contactNormal.x * .5f), Math.round(contactPoint.y + contactNormal.y * .5f), Math.round(contactPoint.z + contactNormal.z * .5f));
+                /*
                 Vector3f punt = results.getClosestCollision().getContactPoint();
                 Vector3f center = results.getClosestCollision().getGeometry().getModelBound().getCenter();
                 Vector3f dir = punt.subtract(center);
@@ -213,7 +218,7 @@ public class Main extends SimpleApplication implements ActionListener {
                         logger.log(Level.INFO, "New Block x = {0}, y = {1}, z = {2}", new Object[]{Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2))});
                         fBlockWorld.addBlock(1, Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2)));
                     }
-                }
+                }*/
             }
         }
     }

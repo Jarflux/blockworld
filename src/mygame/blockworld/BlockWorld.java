@@ -90,7 +90,7 @@ public class BlockWorld {
       
         if(cnk == null && createChunk){              // Chunk met juiste x, y , z bestaat niet
            cnk = new Chunk(this, fRootNode, fPhysicsState, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
-           if(yC < 0 && yC > -2) {
+           if(yC < 0) {
                cnk.fillChunk();
            }
            cnk.addChunkListener(fGeneralListener);

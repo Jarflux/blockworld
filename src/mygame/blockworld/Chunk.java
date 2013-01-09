@@ -267,8 +267,8 @@ public class Chunk {
         yC = Math.abs(y % CHUNK_SIZE);
         zC = Math.abs(z % CHUNK_SIZE);
         if(fBlocks[xC][yC][zC] != null) {
-            blockRemoved(fBlocks[xC][yC][zC], x, y, z);
             fBlocks[xC][yC][zC] = null;
+            blockRemoved(fBlocks[xC][yC][zC], x, y, z);
         }
     }
     
