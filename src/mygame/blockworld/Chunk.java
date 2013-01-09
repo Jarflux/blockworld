@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 public class Chunk {
     
     private static final Logger logger = Logger.getLogger(Chunk.class.getName());
-    public static final int CHUNK_SIZE = 8;
+    public static final int CHUNK_SIZE = 16;
     protected Integer[][][] fBlocks = new Integer[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     protected Geometry fChunkMesh = null;

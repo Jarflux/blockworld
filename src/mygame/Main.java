@@ -15,10 +15,13 @@ import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.shape.Box;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,7 +43,6 @@ public class Main extends SimpleApplication implements ActionListener {
     }
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private Material fBlockMat;
-    private Material fTestMat;
     private BlockWorld fBlockWorld;
     private BlockWorldViewport fBlockWorldView;
     private BulletAppState bulletAppState;
@@ -48,7 +50,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private BitmapText hudPosition;
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false;
-
+    
     @Override
     public void simpleInitApp() {
         fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -63,10 +65,6 @@ public class Main extends SimpleApplication implements ActionListener {
         //fBlockMat.setFloat("Shininess", 5f); // [1,128]    
         
         //fBlockMat.getAdditionalRenderState().setWireframe(true);
-
-        fTestMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.jpg"));
-        fTestMat.setColor("Color", ColorRGBA.Red);
 
         /**
          * Set up Physics
@@ -122,9 +120,9 @@ public class Main extends SimpleApplication implements ActionListener {
      * physics-controlled walking and jumping:
      */
     private void setUpKeys() {
-        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_A));
+        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_Q));
         inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
-        inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_W));
+        inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_Z));
         inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
         inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
         inputManager.addMapping("RemoveBlock", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
