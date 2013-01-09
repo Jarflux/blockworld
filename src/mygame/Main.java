@@ -91,9 +91,9 @@ public class Main extends SimpleApplication implements ActionListener {
         //bulletAppState.getPhysicsSpace().add(player);
         
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, bulletAppState);
-        //fBlockWorldView = new BlockWorldViewport(fBlockWorld);
+        fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         
-        Chunk cnk0 = fBlockWorld.getChunk(0, 0, 0, true);
+        //Chunk cnk0 = fBlockWorld.getChunk(0, 0, 0, true);
         /*cnk0.addBlock(1, 2, 3, 1);
         cnk0.addBlock(1, 2, 4, 1);
         cnk0.addBlock(1, 3, 2, 1);
@@ -106,13 +106,13 @@ public class Main extends SimpleApplication implements ActionListener {
         cnk0.addBlock(1, 4, 5, 1);
         cnk0.addBlock(1, 5, 3, 1);
         cnk0.addBlock(1, 5, 4, 1);*/
-        cnk0.fillChunk();
+        /*cnk0.fillChunk();
         
-        Chunk cnk1 = fBlockWorld.getChunk(8, 0, 0, true);
+        Chunk cnk1 = fBlockWorld.getChunk(-8, 0, 0, true);
         cnk1.fillChunk();
         
         cnk0.showChunk();
-        cnk1.showChunk();
+        cnk1.showChunk();*/
       }
 
 
@@ -195,8 +195,9 @@ public class Main extends SimpleApplication implements ActionListener {
         player.setWalkDirection(walkDirection);
         Vector3f camPos = player.getPhysicsLocation();
         cam.setLocation(camPos);
-        fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.y), Math.round(camPos.z));
         */
+        Vector3f camPos = cam.getLocation();
+        fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.y), Math.round(camPos.z));
     }
     
     /** A centred plus sign to help the player aim. */

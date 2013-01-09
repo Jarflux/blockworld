@@ -51,14 +51,14 @@ public class Chunk {
         texCoord.add(new Vector2f(0,1));
     }
     
-    private Mesh createVisualMesh(int xC, int yC, int zC) {
+    private Mesh createVisualMesh() {
         List<Vector3f> vertices = new ArrayList<Vector3f>();
         List<Vector2f> texCoord = new ArrayList<Vector2f>();
         List<Integer> indexes = new ArrayList<Integer>();
         int index = 0;
-        for(int i = xC * Chunk.CHUNK_SIZE; i < (xC + 1) * Chunk.CHUNK_SIZE; i++) {
-            for(int j = yC * Chunk.CHUNK_SIZE; j < (yC + 1) * Chunk.CHUNK_SIZE; j++) {
-                for(int k = zC * Chunk.CHUNK_SIZE; k < (zC + 1) * Chunk.CHUNK_SIZE; k++) {
+        for(int i = fXC; i < fXC + Chunk.CHUNK_SIZE; i++) {
+            for(int j = fYC; j < fYC + Chunk.CHUNK_SIZE; j++) {
+                for(int k = fZC; k < fZC + Chunk.CHUNK_SIZE; k++) {
                     if(fWorld.get(i, j, k) != null) {
                         //Check top
                         if(fWorld.get(i, j+1, k) == null) {
@@ -164,7 +164,7 @@ public class Chunk {
         if(fChunkMesh != null) {
             fRootNode.detachChild(fChunkMesh);
         }
-        Mesh mesh = createVisualMesh(fXC, fYC, fZC);
+        Mesh mesh = createVisualMesh();
         if(mesh == null) {
             fChunkMesh = null;
             System.out.println("Empty chunk");
@@ -211,17 +211,19 @@ public class Chunk {
         if(!fVisible) {
             System.out.println("Showing chunk: " + fXC + ", " + fYC + ", " + fZC);
             fVisible = true;
-            updateVisualMesh();
-            updatePhysicsMesh();
+            update();
         }
     }
     
     public void hideChunk() {
         if(fVisible) {
-            fRootNode.detachChild(fChunkMesh);
-            fChunkMesh.removeControl(fChunkPhysics);
-            fPhysicsState.getPhysicsSpace().remove(fChunkPhysics);
-            fChunkMesh = null;
+            if(fChunkMesh != null) {
+                fRootNode.detachChild(fChunkMesh);
+                if(fChunkPhysics != null) {
+                    fChunkMesh.removeControl(fChunkPhysics);
+                    fPhysicsState.getPhysicsSpace().remove(fChunkPhysics);
+                }
+            }
             fVisible = false;
         }
     }
