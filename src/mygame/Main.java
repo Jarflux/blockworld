@@ -121,7 +121,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private void setUpdAudio(){
         audio_removeBlock = new AudioNode(assetManager, "Sounds/Effects/RemoveBlock2.ogg", false);
         audio_removeBlock.setLooping(false);
-        audio_removeBlock.setVolume(1);
+        audio_removeBlock.setVolume(.1f);
         rootNode.attachChild(audio_removeBlock);
  
         
