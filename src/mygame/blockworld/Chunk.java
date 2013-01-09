@@ -167,13 +167,11 @@ public class Chunk {
         Mesh mesh = createVisualMesh();
         if(mesh == null) {
             fChunkMesh = null;
-            System.out.println("Empty chunk");
             return;
         }
         fChunkMesh = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, mesh);
         fChunkMesh.setMaterial(fWorld.getBlockMat());
         Vector3f center = mesh.getBound().getCenter();
-        System.out.println("Showing chunk, center: " + center.x + ", " + center.y + ", " + center.z);
         fRootNode.attachChild(fChunkMesh);
     }
     
@@ -209,7 +207,6 @@ public class Chunk {
     
     public void showChunk() {
         if(!fVisible) {
-            System.out.println("Showing chunk: " + fXC + ", " + fYC + ", " + fZC);
             fVisible = true;
             update();
         }
