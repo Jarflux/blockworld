@@ -4,7 +4,6 @@
  */
 package mygame.blockworld;
 
-import com.jme3.scene.Geometry;
 import java.util.EventListener;
 
 /**
@@ -13,7 +12,7 @@ import java.util.EventListener;
  */
 public interface ChunkListener extends EventListener {
     
-    void blockAdded(Chunk chunk, Geometry block, int x, int y, int z);
-    void blockRemoved(Chunk chunk, Geometry block, int x, int y, int z);
+    void blockAdded(Chunk chunk, Integer block, int x, int y, int z);
+    void blockRemoved(Chunk chunk, Integer block, int x, int y, int z);
     
 }

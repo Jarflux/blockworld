@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.BlockWorldViewport;
+import mygame.blockworld.Chunk;
 
 /**
  * test
@@ -52,7 +53,15 @@ public class Main extends SimpleApplication implements ActionListener {
     public void simpleInitApp() {
         fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.jpg"));
-        fBlockMat.setColor("Color", ColorRGBA.Green);
+        //fBlockMat.setColor("Color", ColorRGBA.Green);
+        
+        //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        //fBlockMat.setTexture("DiffuseMap", assetManager.loadTexture("Textures/grass.jpg"));
+        //fBlockMat.setBoolean("UseMaterialColors",true);    
+        //fBlockMat.setColor("Specular",ColorRGBA.White);
+        //fBlockMat.setColor("Diffuse",ColorRGBA.White);
+        //fBlockMat.setFloat("Shininess", 5f); // [1,128]    
+        
         //fBlockMat.getAdditionalRenderState().setWireframe(true);
 
         fTestMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
