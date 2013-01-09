@@ -154,7 +154,7 @@ public class Chunk {
     
     public void update() {
         updateVisualMesh();
-        //updatePhysicsMesh();
+        updatePhysicsMesh();
     }
     
     protected void updateVisualMesh() {
