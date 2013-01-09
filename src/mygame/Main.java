@@ -102,18 +102,6 @@ public class Main extends SimpleApplication implements ActionListener {
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, bulletAppState);
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
 
-        /**
-         * Must add a light to make the lit object visible!
-         */
-        AmbientLight al = new AmbientLight();
-        al.setColor(ColorRGBA.White.mult(1.3f));
-        rootNode.addLight(al);
-
-        DirectionalLight dl = new DirectionalLight();
-        dl.setColor(ColorRGBA.White);
-        dl.setDirection(new Vector3f(2.8f, -2.8f, -2.8f).normalizeLocal());
-        rootNode.addLight(dl);
-
         setUpHud();
     }
 
@@ -209,21 +197,21 @@ public class Main extends SimpleApplication implements ActionListener {
                     if ((Math.abs(dir.x)) > (Math.abs(dir.z))) {
                         logger.log(Level.INFO, "Biggest x:= {0}, ", new Object[]{dir.x});
                         logger.log(Level.INFO, "New Block x = {0}, y = {1}, z = {2}", new Object[]{Math.round(center.x + (dir.x * 2)), Math.round(center.y), Math.round(center.z)});
-                        fBlockWorld.addBlock(Math.round(center.x + (dir.x * 2)), Math.round(center.y), Math.round(center.z));
+                        fBlockWorld.addBlock(1, Math.round(center.x + (dir.x * 2)), Math.round(center.y), Math.round(center.z));
                     } else {
                         logger.log(Level.INFO, "Biggest z:= {0}, ", new Object[]{dir.z});
                         logger.log(Level.INFO, "New Block x = {0}, y = {1}, z = {2}", new Object[]{Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2))});
-                        fBlockWorld.addBlock(Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2)));
+                        fBlockWorld.addBlock(1, Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2)));
                     }
                 } else {
                     if ((Math.abs(dir.y)) > (Math.abs(dir.z))) {
                         logger.log(Level.INFO, "Biggest y:= {0}, ", new Object[]{dir.y});
                         logger.log(Level.INFO, "New Block x = {0}, y = {1}, z = {2}", new Object[]{Math.round(center.x), Math.round(center.y + (dir.y * 2)), Math.round(center.z)});
-                        fBlockWorld.addBlock(Math.round(center.x), Math.round(center.y + (dir.y * 2)), Math.round(center.z));
+                        fBlockWorld.addBlock(1, Math.round(center.x), Math.round(center.y + (dir.y * 2)), Math.round(center.z));
                     } else {
                         logger.log(Level.INFO, "Biggest z:= {0}, ", new Object[]{dir.z});
                         logger.log(Level.INFO, "New Block x = {0}, y = {1}, z = {2}", new Object[]{Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2))});
-                        fBlockWorld.addBlock(Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2)));
+                        fBlockWorld.addBlock(1, Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2)));
                     }
                 }
             }
