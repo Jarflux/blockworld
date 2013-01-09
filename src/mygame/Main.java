@@ -21,6 +21,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.BlockWorldViewport;
+import mygame.blockworld.Chunk;
 
 /**
  * test
@@ -55,7 +56,7 @@ public class Main extends SimpleApplication implements ActionListener {
         //fBlockMat.setColor("Diffuse",ColorRGBA.White);
         //fBlockMat.setFloat("Shininess", 5f); // [1,128]    
         
-        //fBlockMat.getAdditionalRenderState().setWireframe(true);
+        fBlockMat.getAdditionalRenderState().setWireframe(true);
         
         fTestMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.jpg"));
@@ -68,8 +69,8 @@ public class Main extends SimpleApplication implements ActionListener {
 
         // We re-use the flyby camera for rotation, while positioning is handled by physics
         viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
-        flyCam.setMoveSpeed(.01f);
-        setUpKeys();
+        //flyCam.setMoveSpeed(.01f);
+        //setUpKeys();
         setUpLight();
         initCrossHairs();
 
@@ -78,30 +79,34 @@ public class Main extends SimpleApplication implements ActionListener {
         // The CharacterControl offers extra settings for
         // size, stepheight, jumping, falling, and gravity.
         // We also put the player in its starting position.
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.5f, 1.7f, 1);
+        /*CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.5f, 1.7f, 1);
         player = new CharacterControl(capsuleShape, 1.05f);
         player.setJumpSpeed(10);
         player.setFallSpeed(30);
         player.setGravity(30);
         player.setPhysicsLocation(new Vector3f(0, 3, 0));
-
+*/
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
-        bulletAppState.getPhysicsSpace().add(player);
+        //bulletAppState.getPhysicsSpace().add(player);
         
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, bulletAppState);
-        fBlockWorldView = new BlockWorldViewport(fBlockWorld);
+        //fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         
-        /** Must add a light to make the lit object visible! */
-        AmbientLight al = new AmbientLight();
-        al.setColor(ColorRGBA.White.mult(1.3f));
-        rootNode.addLight(al);
-
-        DirectionalLight dl = new DirectionalLight();
-        dl.setColor(ColorRGBA.White);
-        dl.setDirection(new Vector3f(2.8f, -2.8f, -2.8f).normalizeLocal());
-        rootNode.addLight(dl);
-        
+        Chunk cnk = fBlockWorld.getChunk(0, 0, 0, true);
+        cnk.addBlock(1, 2, 3, 1);
+        cnk.addBlock(1, 2, 4, 1);
+        cnk.addBlock(1, 3, 2, 1);
+        cnk.addBlock(1, 3, 3, 1);
+        cnk.addBlock(1, 3, 4, 1);
+        cnk.addBlock(1, 3, 5, 1);
+        cnk.addBlock(1, 4, 2, 1);
+        cnk.addBlock(1, 4, 3, 1);
+        cnk.addBlock(1, 4, 4, 1);
+        cnk.addBlock(1, 4, 5, 1);
+        cnk.addBlock(1, 5, 3, 1);
+        cnk.addBlock(1, 5, 4, 1);
+        cnk.showChunk();
       }
 
 
@@ -173,6 +178,7 @@ public class Main extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleUpdate(float tpf) {
+        /*
         Vector3f camDir = cam.getDirection().clone().multLocal(0.6f);
         Vector3f camLeft = cam.getLeft().clone().multLocal(0.4f);
         walkDirection.set(0, 0, 0);
@@ -184,6 +190,7 @@ public class Main extends SimpleApplication implements ActionListener {
         Vector3f camPos = player.getPhysicsLocation();
         cam.setLocation(camPos);
         fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.y), Math.round(camPos.z));
+        */
     }
     
     /** A centred plus sign to help the player aim. */
