@@ -7,10 +7,19 @@ package mygame.blockworld;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.material.Material;
 import com.jme3.scene.Node;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import jme3tools.optimize.TextureAtlas;
 import mygame.MathUtil;
@@ -100,6 +109,10 @@ public class BlockWorld {
     }
 
     public Chunk getChunk(int x, int y, int z, boolean createChunk) {
+        return getChunk(x, y, z, createChunk, true);
+    }
+    
+    public Chunk getChunk(int x, int y, int z, boolean createChunk, boolean generateChunk) {
         double fx = x;
         double fy = y;
         double fz = z;
@@ -120,9 +133,9 @@ public class BlockWorld {
       
         if(cnk == null && createChunk){              // Chunk met juiste x, y , z bestaat niet
            cnk = new Chunk(this, fRootNode, fPhysicsState, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
-           ///if(yC < 0) {
+           if(generateChunk) {
                cnk.fillChunk();
-           //}
+           }
            cnk.addChunkListener(fGeneralListener);
            if(mZ == null){                            
                mZ = new HashMap<Integer, Chunk>();
@@ -156,6 +169,41 @@ public class BlockWorld {
         return getChunk(x, y, z, true).addBlock(block, x, y, z);
     }
 
-    
+    public void saveWorld(String fileName) {
+        try {
+            File file = new File(fileName);
+            file.createNewFile();
+            BufferedWriter fileWriter = new BufferedWriter(new FileWriter(file));
+            for(Map<Integer, Map<Integer, Chunk>> mYZ : fChunks.values()) {
+                for(Map<Integer, Chunk> mZ : mYZ.values()) {
+                    for(Chunk cnk : mZ.values()) {
+                        cnk.save(fileWriter);
+                    }
+                }
+            }
+            fileWriter.close();
+        } catch (IOException ex) {
+            Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void loadWorld(String fileName) {
+        try {
+            File file = new File(fileName);
+            if(file.exists()) {
+                BufferedReader fileReader = new BufferedReader(new FileReader(file));
+                while(fileReader.ready()) {
+                    String line = fileReader.readLine();
+                    int xC = line.charAt(0);
+                    int yC = line.charAt(1);
+                    int zC = line.charAt(2);
+                    getChunk(xC, yC, zC, true, false).load(fileReader);
+                }
+                fileReader.close();
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
 }

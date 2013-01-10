@@ -67,7 +67,6 @@ public class Main extends SimpleApplication implements ActionListener {
         Texture text = assetManager.loadTexture("Textures/terrain.png");
         //text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
-        System.out.println("Texture height: " + text.getImage().getHeight() + ", width: " + text.getImage().getWidth());
         fBlockMat.setTexture("ColorMap", text);
         fBlockMat.setBoolean("SeparateTexCoord", true);
         //fBlockMat.setColor("Color", ColorRGBA.Green);
@@ -208,6 +207,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 Vector3f contactNormal = closest.getContactNormal();
                 fBlockWorld.addBlock(2, Math.round(contactPoint.x + contactNormal.x * .5f), Math.round(contactPoint.y + contactNormal.y * .5f), Math.round(contactPoint.z + contactNormal.z * .5f));
                 audio_removeBlock.playInstance();
+            }
                 /*
                 Vector3f punt = results.getClosestCollision().getContactPoint();
                 Vector3f center = results.getClosestCollision().getGeometry().getModelBound().getCenter();
@@ -236,7 +236,10 @@ public class Main extends SimpleApplication implements ActionListener {
                         fBlockWorld.addBlock(1, Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2)));
                     }
                 }*/
-            }
+        } else if (binding.equals("Save") && value) {
+            fBlockWorld.saveWorld("world.dat");
+        } else if (binding.equals("Load") && value) {
+            fBlockWorld.loadWorld("world.dat");
         }
     }
 

@@ -32,6 +32,10 @@ public class Input implements InputListener{
         im.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
         im.addMapping("RemoveBlock", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         im.addMapping("AddBlock", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
+        im.addMapping("Save", new KeyTrigger(KeyInput.KEY_F9));
+        im.addMapping("Load", new KeyTrigger(KeyInput.KEY_F10));
+        im.addListener(listener, "Save");
+        im.addListener(listener, "Load");
         im.addListener(listener, "RemoveBlock");
         im.addListener(listener, "AddBlock");
         im.addListener(listener, "Left");

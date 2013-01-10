@@ -15,6 +15,9 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -290,6 +293,44 @@ public class Chunk {
             fBlocks[xC][yC][zC] = block;
             blockAdded(block, x, y, z);
             return true;
+        }
+    }
+
+    void save(BufferedWriter fileWriter) throws IOException {
+        fileWriter.write(fXC);
+        fileWriter.write(fYC);
+        fileWriter.write(fZC);
+        fileWriter.write('\n');
+        for(int i = 0; i < CHUNK_SIZE; i++) {
+            for(int j = 0; j < CHUNK_SIZE; j++) {
+                for(int k = 0; k < CHUNK_SIZE; k++) {
+                    if(fBlocks[i][j][k] != null) {
+                        fileWriter.write(fBlocks[i][j][k]);
+                    }else{
+                        fileWriter.write(-1);
+                    }
+                }
+            }
+            fileWriter.write('\n');
+        }
+    }
+    
+    void load(BufferedReader fileReader) throws IOException {
+        for(int i = 0; i < CHUNK_SIZE; i++) {
+            String line = fileReader.readLine();
+            for(int j = 0; j < CHUNK_SIZE; j++) {
+                for(int k = 0; k < CHUNK_SIZE; k++) {
+                    int block = line.charAt(j * CHUNK_SIZE + k);
+                    if(block == 65535) {
+                        fBlocks[i][j][k] = null;
+                    }else{
+                        fBlocks[i][j][k] = block;
+                    }
+                }
+            }
+        }
+        if(isVisible()) {
+            update();
         }
     }
     
