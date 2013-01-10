@@ -232,7 +232,7 @@ public class Main extends SimpleApplication implements ActionListener {
                     }
                 }*/
         } else if (binding.equals("Save") && value) {
-            fBlockWorld.saveWorld("Worlds/world0S.dat");
+            fBlockWorld.saveWorld("Worlds/world0.dat");
         } else if (binding.equals("Load") && value) {
             fBlockWorld.loadWorld("Worlds/world0.dat");
         }
