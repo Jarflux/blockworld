@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.BlockWorldViewport;
+import mygame.blockworld.Input;
 
 /**
  * test
@@ -118,8 +119,7 @@ public class Main extends SimpleApplication implements ActionListener {
         audio_removeBlock = new AudioNode(assetManager, "Sounds/Effects/RemoveBlock.ogg", false);
         audio_removeBlock.setLooping(false);
         audio_removeBlock.setVolume(.1f);
-        rootNode.attachChild(audio_removeBlock);
- 
+        rootNode.attachChild(audio_removeBlock); 
         
         audio_nature = new AudioNode(assetManager, "Sounds/Environment/Nature.ogg", false);
         audio_nature.setLooping(true);  // activate continuous playing
@@ -134,20 +134,8 @@ public class Main extends SimpleApplication implements ActionListener {
      * physics-controlled walking and jumping:
      */
     private void setUpKeys() {
-        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_Q));
-        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_D));
-        inputManager.addMapping("Up", new KeyTrigger(KeyInput.KEY_Z));
-        inputManager.addMapping("Down", new KeyTrigger(KeyInput.KEY_S));
-        inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
-        inputManager.addMapping("RemoveBlock", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-        inputManager.addMapping("AddBlock", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
-        inputManager.addListener(this, "RemoveBlock");
-        inputManager.addListener(this, "AddBlock");
-        inputManager.addListener(this, "Left");
-        inputManager.addListener(this, "Right");
-        inputManager.addListener(this, "Up");
-        inputManager.addListener(this, "Down");
-        inputManager.addListener(this, "Jump");
+        Input input = new Input();
+        input.setUpKeys(inputManager, this, input.qwerty);
     }
 
     private void setUpHud() {

@@ -40,15 +40,12 @@ public class Noise {
                     jSign = -1;
                 }
                 v1 = vectors[i][j];
-                v2 = vectors[chunkSize-1][j];
-                v3 = vectors[i][chunkSize-1];
-                v4 = vectors[chunkSize-1][chunkSize-1];
-                //v2 = vectors[i + (1 * iSign)][j];
-                //v3 = vectors[i][j + (1 * jSign)];
-                //v4 = vectors[i + (1 * iSign)][j + (1 * jSign)];
+                v2 = vectors[i + (1 * iSign)][j];
+                v3 = vectors[i][j + (1 * jSign)];
+                v4 = vectors[i + (1 * iSign)][j + (1 * jSign)];
                 
-                float diffX = 0.25f;
-                float diffY = 0.25f;       
+                float diffX = 0.3f;
+                float diffY = 0.3f;       
                 float fadedX = (6 * (float)Math.pow(diffX,5)) - (15 * (float)Math.pow(diffX,4)) + (10 * (float)Math.pow(diffX,3));
                 float fadedY = (6 * (float)Math.pow(diffY,5)) - (15 * (float)Math.pow(diffY,4)) + (10 * (float)Math.pow(diffY,3));
                 float interpolated1 = interpolate(v1.dot(v1), v1.dot(v3) , fadedX);
