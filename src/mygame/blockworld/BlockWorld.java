@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import jme3tools.optimize.TextureAtlas;
 import mygame.MathUtil;
 
 /**
@@ -79,15 +80,21 @@ public class BlockWorld {
     protected Map<Integer, Map<Integer, Map<Integer, Chunk>>> fChunks = new HashMap<Integer, Map<Integer, Map<Integer, Chunk>>>();
     protected Node fRootNode;
     protected Material fBlockMat;
+    protected TextureAtlas fAtlas;
+
+    public TextureAtlas getAtlas() {
+        return fAtlas;
+    }
 
     public Material getBlockMat() {
         return fBlockMat;
     }
     protected BulletAppState fPhysicsState;
 
-    public BlockWorld(Node rootNode, Material blockMat, BulletAppState physicsState) {
+    public BlockWorld(Node rootNode, Material blockMat, TextureAtlas atlas, BulletAppState physicsState) {
         this.fRootNode = rootNode;
         this.fBlockMat = blockMat;
+        this.fAtlas = atlas;
         this.fPhysicsState = physicsState;
         fListeners.add(fPhysicsUpdater);
     }

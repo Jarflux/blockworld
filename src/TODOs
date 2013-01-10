@@ -1,10 +1,9 @@
 TODO's New Feature:
 - Implement random landscape generator (Ben)
 - Implement cave generator (Ben) (look at perlin noise)
-- Adding block-types (Nathan)
-- Add splash & menu screens
-- Load & save world
-- Change key-bindings
+- Add splash & menu screens (Nathan)
+- Load & save world (Nathan)
+- Change key-bindings (Nathan)
 - Implement lightning & shadows, and light sources from sun, moon?, blocks, (yet to be implemented) objects, ...
 - Implement "mini"-cubes
 - Add objects (like a flower, a football, ...) (idea: objects are build out of very tiny cubs?)

@@ -8,11 +8,7 @@ import com.jme3.bullet.control.CharacterControl;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
-import com.jme3.input.KeyInput;
-import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
-import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -20,9 +16,11 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
+import com.jme3.texture.Texture;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jme3tools.optimize.TextureAtlas;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.BlockWorldViewport;
 import mygame.blockworld.Input;
@@ -42,6 +40,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private Material fBlockMat;
     private BlockWorld fBlockWorld;
+    private TextureAtlas fAtlas;
     private BlockWorldViewport fBlockWorldView;
     private BulletAppState bulletAppState;
     private CharacterControl player;
@@ -54,7 +53,18 @@ public class Main extends SimpleApplication implements ActionListener {
     @Override
     public void simpleInitApp() {
         fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.jpg"));
+        /*fAtlas = new TextureAtlas(256,256);
+        fAtlas.addTexture(assetManager.loadTexture("Textures/wood.png"), "ColorMap"); 
+        fAtlas.addTexture(assetManager.loadTexture("Textures/dirt.png"), "ColorMap"); 
+        fAtlas.addTexture(assetManager.loadTexture("Textures/grass.png"), "ColorMap");
+        fBlockMat.setTexture("ColorMap", fAtlas.getAtlasTexture("ColorMap"));
+        */
+        Texture text = assetManager.loadTexture("Textures/terrain.png");
+        //text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        text.setMagFilter(Texture.MagFilter.Nearest);
+        System.out.println("Texture height: " + text.getImage().getHeight() + ", width: " + text.getImage().getWidth());
+        fBlockMat.setTexture("ColorMap", text);
+        fBlockMat.setBoolean("SeparateTexCoord", true);
         //fBlockMat.setColor("Color", ColorRGBA.Green);
         
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
@@ -88,17 +98,16 @@ public class Main extends SimpleApplication implements ActionListener {
         // We also put the player in its starting position.
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.25f, .75f, 1);
         player = new CharacterControl(capsuleShape, 0.25f);
-        player.setJumpSpeed(8);
+        player.setJumpSpeed(10);
         player.setFallSpeed(30);
-        player.setGravity(0);
-        player.setPhysicsLocation(new Vector3f(0, 5, 0));
+        player.setGravity(30);
+        player.setPhysicsLocation(new Vector3f(0, 20, 0));
 
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
         bulletAppState.getPhysicsSpace().add(player);
 
-        fBlockWorld = new BlockWorld(rootNode, fBlockMat, bulletAppState);
-        //fBlockWorld.getChunk(5,0,5, true).showChunk();
+        fBlockWorld = new BlockWorld(rootNode, fBlockMat, fAtlas, bulletAppState);
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         setUpdAudio();
         setUpHud();
@@ -192,7 +201,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 CollisionResult closest = results.getClosestCollision();
                 Vector3f contactPoint = closest.getContactPoint();
                 Vector3f contactNormal = closest.getContactNormal();
-                fBlockWorld.addBlock(1, Math.round(contactPoint.x + contactNormal.x * .5f), Math.round(contactPoint.y + contactNormal.y * .5f), Math.round(contactPoint.z + contactNormal.z * .5f));
+                fBlockWorld.addBlock(2, Math.round(contactPoint.x + contactNormal.x * .5f), Math.round(contactPoint.y + contactNormal.y * .5f), Math.round(contactPoint.z + contactNormal.z * .5f));
                 audio_removeBlock.playInstance();
                 /*
                 Vector3f punt = results.getClosestCollision().getContactPoint();
