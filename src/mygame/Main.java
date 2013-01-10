@@ -90,14 +90,15 @@ public class Main extends SimpleApplication implements ActionListener {
         player = new CharacterControl(capsuleShape, 0.25f);
         player.setJumpSpeed(8);
         player.setFallSpeed(30);
-        player.setGravity(30);
-        player.setPhysicsLocation(new Vector3f(0, 15, 0));
+        player.setGravity(0);
+        player.setPhysicsLocation(new Vector3f(0, 5, 0));
 
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
         bulletAppState.getPhysicsSpace().add(player);
 
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, bulletAppState);
+        //fBlockWorld.getChunk(5,0,5, true).showChunk();
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         setUpdAudio();
         setUpHud();

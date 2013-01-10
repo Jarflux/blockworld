@@ -149,6 +149,7 @@ public class BlockWorld {
         return getChunk(x, y, z, true).addBlock(block, x, y, z);
     }
 
-    
-    
+    //void int getHeigth(int x, int y) {
+    //    return 0;
+    //}
 }
