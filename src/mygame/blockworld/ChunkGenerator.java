@@ -24,7 +24,9 @@ public class ChunkGenerator {
             for (int z = cnk.fZC; z < cnk.fZC + cnk.CHUNK_SIZE; z++) {
                 float calculatedHeight = (noise.getMap()[x-cnk.fXC][z-cnk.fZC])* plateau;
                 for (int y = cnk.fYC; y < cnk.fYC + cnk.CHUNK_SIZE; y++) {       
-                    if (y < calculatedHeight) {
+                    if (y < Math.round(calculatedHeight)-1) {
+                        cnk.addBlock(0, x, y, z);
+                    }else if(y == Math.round(calculatedHeight)-1) {
                         cnk.addBlock(1, x, y, z);
                     }
                 }

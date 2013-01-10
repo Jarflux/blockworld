@@ -63,9 +63,12 @@ public class Main extends SimpleApplication implements ActionListener {
         fAtlas.addTexture(assetManager.loadTexture("Textures/grass.png"), "ColorMap");
         fBlockMat.setTexture("ColorMap", fAtlas.getAtlasTexture("ColorMap"));
         */
-        Texture text = assetManager.loadTexture("Textures/grass.png");
+        Texture text = assetManager.loadTexture("Textures/terrain.png");
+        //text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        text.setMagFilter(Texture.MagFilter.Nearest);
         System.out.println("Texture height: " + text.getImage().getHeight() + ", width: " + text.getImage().getWidth());
         fBlockMat.setTexture("ColorMap", text);
+        fBlockMat.setBoolean("SeparateTexCoord", true);
         //fBlockMat.setColor("Color", ColorRGBA.Green);
         
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
@@ -215,7 +218,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 CollisionResult closest = results.getClosestCollision();
                 Vector3f contactPoint = closest.getContactPoint();
                 Vector3f contactNormal = closest.getContactNormal();
-                fBlockWorld.addBlock(1, Math.round(contactPoint.x + contactNormal.x * .5f), Math.round(contactPoint.y + contactNormal.y * .5f), Math.round(contactPoint.z + contactNormal.z * .5f));
+                fBlockWorld.addBlock(2, Math.round(contactPoint.x + contactNormal.x * .5f), Math.round(contactPoint.y + contactNormal.y * .5f), Math.round(contactPoint.z + contactNormal.z * .5f));
                 audio_removeBlock.playInstance();
                 /*
                 Vector3f punt = results.getClosestCollision().getContactPoint();

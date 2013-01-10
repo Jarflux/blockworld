@@ -46,15 +46,20 @@ public class Chunk {
         fPhysicsState = physicsState;
     }
     
-    private void addTextureCoords(List<Vector2f> texCoord) {
-        /*texCoord.add(new Vector2f(0f/16f+.02f,0f/16f+.02f));
-        texCoord.add(new Vector2f(1f/16f-.02f,0f/16f+.02f));
-        texCoord.add(new Vector2f(1f/16f-.02f,1f/16f-.02f));
-        texCoord.add(new Vector2f(0f/16f+.02f,1f/16f-.02f));*/
-        texCoord.add(new Vector2f(0,0));
-        texCoord.add(new Vector2f(1,0));
-        texCoord.add(new Vector2f(1,1));
-        texCoord.add(new Vector2f(0,1));
+    private void addTextureCoords(List<Vector2f> texCoord, int texId, boolean swap) {
+        float texIdX = texId % 16;
+        float texIdY = (texId - texIdX) / 16;
+        if(swap) {
+            texCoord.add(new Vector2f(texIdX/16f,texIdY/16f));
+            texCoord.add(new Vector2f(texIdX/16f,(texIdY+1f)/16f));
+            texCoord.add(new Vector2f((texIdX+1f)/16f,(texIdY+1f)/16f));
+            texCoord.add(new Vector2f((texIdX+1f)/16f,texIdY/16f));
+        }else{
+            texCoord.add(new Vector2f(texIdX/16f,texIdY/16f));
+            texCoord.add(new Vector2f((texIdX+1f)/16f,texIdY/16f));
+            texCoord.add(new Vector2f((texIdX+1f)/16f,(texIdY+1f)/16f));
+            texCoord.add(new Vector2f(texIdX/16f,(texIdY+1f)/16f));
+        }
     }
     
     private Mesh createVisualMesh() {
@@ -65,14 +70,15 @@ public class Chunk {
         for(int i = fXC; i < fXC + Chunk.CHUNK_SIZE; i++) {
             for(int j = fYC; j < fYC + Chunk.CHUNK_SIZE; j++) {
                 for(int k = fZC; k < fZC + Chunk.CHUNK_SIZE; k++) {
-                    if(fWorld.get(i, j, k) != null) {
+                    Integer block = fWorld.get(i, j, k);
+                    if(block != null) {
                         //Check top
                         if(fWorld.getChunk(i, j+1, k, true).get(i, j+1, k) == null) {
                             vertices.add(new Vector3f(i-.5f, j+.5f, k-.5f));
                             vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
-                            addTextureCoords(texCoord);
+                            addTextureCoords(texCoord, BlockInfo.TopSides[block], false);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
                             index = index + 4;
@@ -83,7 +89,7 @@ public class Chunk {
                             vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
                             vertices.add(new Vector3f(i-.5f, j-.5f, k+.5f));
-                            addTextureCoords(texCoord);
+                            addTextureCoords(texCoord, BlockInfo.BottomSides[block], false);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
                             index = index + 4;
@@ -94,7 +100,7 @@ public class Chunk {
                             vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
-                            addTextureCoords(texCoord);
+                            addTextureCoords(texCoord, BlockInfo.RightSides[block], true);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
                             index = index + 4;
@@ -105,7 +111,7 @@ public class Chunk {
                             vertices.add(new Vector3f(i-.5f, j-.5f, k+.5f));
                             vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i-.5f, j+.5f, k-.5f));
-                            addTextureCoords(texCoord);
+                            addTextureCoords(texCoord, BlockInfo.LeftSides[block], false);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
                             index = index + 4;
@@ -116,7 +122,7 @@ public class Chunk {
                             vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
-                            addTextureCoords(texCoord);
+                            addTextureCoords(texCoord, BlockInfo.BackSides[block], false);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
                             index = index + 4;
@@ -127,7 +133,7 @@ public class Chunk {
                             vertices.add(new Vector3f(i-.5f, j+.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));
-                            addTextureCoords(texCoord);
+                            addTextureCoords(texCoord, BlockInfo.FrontSides[block], true);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
                             index = index + 4;
