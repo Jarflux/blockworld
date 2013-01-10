@@ -75,8 +75,7 @@ public class BlockWorld {
             if(MathUtil.PosMod(z, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
                 getChunk(x, y, z+1, true).update();
             }
-        }
-        
+        }       
     };
 
     public void addChunkListener(ChunkListener listener) {

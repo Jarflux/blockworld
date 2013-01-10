@@ -8,11 +8,7 @@ import com.jme3.bullet.control.CharacterControl;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
-import com.jme3.input.KeyInput;
-import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.KeyTrigger;
-import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -21,7 +17,6 @@ import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.texture.Texture;
-import com.sun.corba.se.impl.orb.ParserTable;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -102,10 +97,10 @@ public class Main extends SimpleApplication implements ActionListener {
         // We also put the player in its starting position.
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.25f, .75f, 1);
         player = new CharacterControl(capsuleShape, 0.25f);
-        player.setJumpSpeed(7);
+        player.setJumpSpeed(10);
         player.setFallSpeed(30);
         player.setGravity(30);
-        player.setPhysicsLocation(new Vector3f(0, 15, 0));
+        player.setPhysicsLocation(new Vector3f(0, 20, 0));
 
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.

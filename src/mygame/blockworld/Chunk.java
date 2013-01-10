@@ -41,6 +41,7 @@ public class Chunk {
     public int fXC, fYC, fZC;
     protected BulletAppState fPhysicsState;
     protected RigidBodyControl fChunkPhysics = null;
+    protected Object fChunkGeneratorData = null;
     
     public Chunk(BlockWorld world, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
         fXC = xC; fYC = yC; fZC = zC;
@@ -332,6 +333,14 @@ public class Chunk {
         if(isVisible()) {
             update();
         }
+    }
+    
+    public Object getGeneratorData(){
+        return fChunkGeneratorData;
+    }
+
+    void setGeneratorData(Object object) {
+        fChunkGeneratorData = object;
     }
     
 }
