@@ -20,9 +20,12 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
+import com.jme3.texture.Texture;
+import com.sun.corba.se.impl.orb.ParserTable;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import jme3tools.optimize.TextureAtlas;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.BlockWorldViewport;
 
@@ -41,6 +44,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
     private Material fBlockMat;
     private BlockWorld fBlockWorld;
+    private TextureAtlas fAtlas;
     private BlockWorldViewport fBlockWorldView;
     private BulletAppState bulletAppState;
     private CharacterControl player;
@@ -53,7 +57,15 @@ public class Main extends SimpleApplication implements ActionListener {
     @Override
     public void simpleInitApp() {
         fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.jpg"));
+        /*fAtlas = new TextureAtlas(256,256);
+        fAtlas.addTexture(assetManager.loadTexture("Textures/wood.png"), "ColorMap"); 
+        fAtlas.addTexture(assetManager.loadTexture("Textures/dirt.png"), "ColorMap"); 
+        fAtlas.addTexture(assetManager.loadTexture("Textures/grass.png"), "ColorMap");
+        fBlockMat.setTexture("ColorMap", fAtlas.getAtlasTexture("ColorMap"));
+        */
+        Texture text = assetManager.loadTexture("Textures/grass.png");
+        System.out.println("Texture height: " + text.getImage().getHeight() + ", width: " + text.getImage().getWidth());
+        fBlockMat.setTexture("ColorMap", text);
         //fBlockMat.setColor("Color", ColorRGBA.Green);
         
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
@@ -87,7 +99,7 @@ public class Main extends SimpleApplication implements ActionListener {
         // We also put the player in its starting position.
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.25f, .75f, 1);
         player = new CharacterControl(capsuleShape, 0.25f);
-        player.setJumpSpeed(8);
+        player.setJumpSpeed(7);
         player.setFallSpeed(30);
         player.setGravity(30);
         player.setPhysicsLocation(new Vector3f(0, 3, 0));
@@ -96,7 +108,7 @@ public class Main extends SimpleApplication implements ActionListener {
         // to make them appear in the game world.
         bulletAppState.getPhysicsSpace().add(player);
 
-        fBlockWorld = new BlockWorld(rootNode, fBlockMat, bulletAppState);
+        fBlockWorld = new BlockWorld(rootNode, fBlockMat, fAtlas, bulletAppState);
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         setUpdAudio();
         setUpHud();

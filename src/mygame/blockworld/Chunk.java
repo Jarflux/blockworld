@@ -47,6 +47,10 @@ public class Chunk {
     }
     
     private void addTextureCoords(List<Vector2f> texCoord) {
+        /*texCoord.add(new Vector2f(0f/16f+.02f,0f/16f+.02f));
+        texCoord.add(new Vector2f(1f/16f-.02f,0f/16f+.02f));
+        texCoord.add(new Vector2f(1f/16f-.02f,1f/16f-.02f));
+        texCoord.add(new Vector2f(0f/16f+.02f,1f/16f-.02f));*/
         texCoord.add(new Vector2f(0,0));
         texCoord.add(new Vector2f(1,0));
         texCoord.add(new Vector2f(1,1));
@@ -173,7 +177,9 @@ public class Chunk {
         }
         fChunkMesh = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, mesh);
         fChunkMesh.setMaterial(fWorld.getBlockMat());
-        Vector3f center = mesh.getBound().getCenter();
+        if(fWorld.getAtlas() != null) {
+            fWorld.getAtlas().applyCoords(fChunkMesh);
+        }
         fRootNode.attachChild(fChunkMesh);
     }
     
