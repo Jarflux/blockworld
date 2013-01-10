@@ -53,27 +53,12 @@ public class Main extends SimpleApplication implements ActionListener {
     @Override
     public void simpleInitApp() {
         fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        /*fAtlas = new TextureAtlas(256,256);
-        fAtlas.addTexture(assetManager.loadTexture("Textures/wood.png"), "ColorMap"); 
-        fAtlas.addTexture(assetManager.loadTexture("Textures/dirt.png"), "ColorMap"); 
-        fAtlas.addTexture(assetManager.loadTexture("Textures/grass.png"), "ColorMap");
-        fBlockMat.setTexture("ColorMap", fAtlas.getAtlasTexture("ColorMap"));
-        */
+
         Texture text = assetManager.loadTexture("Textures/terrain.png");
         //text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
         fBlockMat.setTexture("ColorMap", text);
         fBlockMat.setBoolean("SeparateTexCoord", true);
-        //fBlockMat.setColor("Color", ColorRGBA.Green);
-        
-        //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-        //fBlockMat.setTexture("DiffuseMap", assetManager.loadTexture("Textures/grass.jpg"));
-        //fBlockMat.setBoolean("UseMaterialColors",true);    
-        //fBlockMat.setColor("Specular",ColorRGBA.White);
-        //fBlockMat.setColor("Diffuse",ColorRGBA.White);
-        //fBlockMat.setFloat("Shininess", 5f); // [1,128]    
-        
-        //fBlockMat.getAdditionalRenderState().setWireframe(true);
 
         /**
          * Set up Physics
@@ -100,13 +85,14 @@ public class Main extends SimpleApplication implements ActionListener {
         player.setJumpSpeed(10);
         player.setFallSpeed(30);
         player.setGravity(30);
-        player.setPhysicsLocation(new Vector3f(0, 20, 0));
+        player.setPhysicsLocation(new Vector3f(5, 55, 5));
 
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
         bulletAppState.getPhysicsSpace().add(player);
 
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, fAtlas, bulletAppState);
+        fBlockWorld.getChunk(5, 50, 5, true);
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         setUpdAudio();
         setUpHud();
@@ -134,7 +120,7 @@ public class Main extends SimpleApplication implements ActionListener {
         audio_nature.setLooping(true);  // activate continuous playing
         audio_nature.setPositional(true);
         audio_nature.setLocalTranslation(Vector3f.ZERO.clone());
-        audio_nature.setVolume(3);
+        audio_nature.setVolume(.5f);
         rootNode.attachChild(audio_nature);
         audio_nature.play(); // play continuously!
     }
@@ -203,34 +189,6 @@ public class Main extends SimpleApplication implements ActionListener {
                 fBlockWorld.addBlock(2, Math.round(contactPoint.x + contactNormal.x * .5f), Math.round(contactPoint.y + contactNormal.y * .5f), Math.round(contactPoint.z + contactNormal.z * .5f));
                 audio_removeBlock.playInstance();
             }
-                /*
-                Vector3f punt = results.getClosestCollision().getContactPoint();
-                Vector3f center = results.getClosestCollision().getGeometry().getModelBound().getCenter();
-                Vector3f dir = punt.subtract(center);
-                dir.mult(2);
-                logger.log(Level.INFO, "Aimed At Block: x = {0}, y = {1}, z = {2}", new Object[]{center.x, center.y, center.z});
-                logger.log(Level.INFO, "Add Block Direction: x = {0}, y = {1}, z = {2}", new Object[]{dir.x, dir.y, dir.z});
-                if ((Math.abs(dir.x)) > (Math.abs(dir.y))) {
-                    if ((Math.abs(dir.x)) > (Math.abs(dir.z))) {
-                        logger.log(Level.INFO, "Biggest x:= {0}, ", new Object[]{dir.x});
-                        logger.log(Level.INFO, "New Block x = {0}, y = {1}, z = {2}", new Object[]{Math.round(center.x + (dir.x * 2)), Math.round(center.y), Math.round(center.z)});
-                        fBlockWorld.addBlock(1, Math.round(center.x + (dir.x * 2)), Math.round(center.y), Math.round(center.z));
-                    } else {
-                        logger.log(Level.INFO, "Biggest z:= {0}, ", new Object[]{dir.z});
-                        logger.log(Level.INFO, "New Block x = {0}, y = {1}, z = {2}", new Object[]{Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2))});
-                        fBlockWorld.addBlock(1, Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2)));
-                    }
-                } else {
-                    if ((Math.abs(dir.y)) > (Math.abs(dir.z))) {
-                        logger.log(Level.INFO, "Biggest y:= {0}, ", new Object[]{dir.y});
-                        logger.log(Level.INFO, "New Block x = {0}, y = {1}, z = {2}", new Object[]{Math.round(center.x), Math.round(center.y + (dir.y * 2)), Math.round(center.z)});
-                        fBlockWorld.addBlock(1, Math.round(center.x), Math.round(center.y + (dir.y * 2)), Math.round(center.z));
-                    } else {
-                        logger.log(Level.INFO, "Biggest z:= {0}, ", new Object[]{dir.z});
-                        logger.log(Level.INFO, "New Block x = {0}, y = {1}, z = {2}", new Object[]{Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2))});
-                        fBlockWorld.addBlock(1, Math.round(center.x), Math.round(center.y), Math.round(center.z + (dir.z * 2)));
-                    }
-                }*/
         } else if (binding.equals("Save") && value) {
             fBlockWorld.saveWorld("Worlds/world0S.dat");
         } else if (binding.equals("Load") && value) {

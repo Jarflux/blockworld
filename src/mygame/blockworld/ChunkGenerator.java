@@ -15,8 +15,7 @@ public class ChunkGenerator {
     private Random fRandom;
     private BlockWorld fBlockWorld;
     private float[][] fChunkMap;
-    private float[][] fTmpChunkMap;
-    private float fRoughness = 5f;
+    private float fRoughness = 2f;
 
     public ChunkGenerator() {
         fRandom = new Random();
@@ -25,8 +24,7 @@ public class ChunkGenerator {
     public void fillChunk(Chunk cnk) {
         fBlockWorld = cnk.fWorld;
         fChunkMap = new float[cnk.CHUNK_SIZE + 1][cnk.CHUNK_SIZE + 1];
-        fTmpChunkMap = new float[cnk.CHUNK_SIZE + 1][cnk.CHUNK_SIZE + 1];
-        
+        // vanuit fWorld hieghtmap opvragen met juiste String naam ,.. daarmee juiste float[][] opvragen via coordinaten x y
         if (fBlockWorld.getChunk(cnk.fXC - 1, cnk.fYC, cnk.fZC -1, false) != null) {
             fChunkMap[0][0] = ((float[][])fBlockWorld.getChunk(cnk.fXC -1, cnk.fYC, cnk.fZC -1, false).getGeneratorData())[cnk.CHUNK_SIZE-1][cnk.CHUNK_SIZE-1];
         } else {
@@ -34,29 +32,28 @@ public class ChunkGenerator {
         }
         
         if (fBlockWorld.getChunk(cnk.fXC + cnk.CHUNK_SIZE, cnk.fYC, cnk.fZC -1, false) != null) {
-            fChunkMap[0][cnk.CHUNK_SIZE] = ((float[][])fBlockWorld.getChunk(cnk.fXC + cnk.CHUNK_SIZE, cnk.fYC, cnk.fZC - 1, false).getGeneratorData())[cnk.CHUNK_SIZE-1][cnk.CHUNK_SIZE-1];
-        } else {
-            fChunkMap[0][cnk.CHUNK_SIZE] = fRandom.nextFloat() * fRoughness;
-        }
-        
-        if (fBlockWorld.getChunk(cnk.fXC - 1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE, false) != null) {
-            fChunkMap[cnk.CHUNK_SIZE][0] = ((float[][])fBlockWorld.getChunk(cnk.fXC -1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE, false).getGeneratorData())[cnk.CHUNK_SIZE-1][cnk.CHUNK_SIZE-1];
+            fChunkMap[cnk.CHUNK_SIZE][0] = ((float[][])fBlockWorld.getChunk(cnk.fXC + cnk.CHUNK_SIZE, cnk.fYC, cnk.fZC - 1, false).getGeneratorData())[0][cnk.CHUNK_SIZE-1];
         } else {
             fChunkMap[cnk.CHUNK_SIZE][0] = fRandom.nextFloat() * fRoughness;
         }
         
-        if (fBlockWorld.getChunk(cnk.fXC +  cnk.CHUNK_SIZE +1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE + 1, false) != null) {
-            fChunkMap[cnk.CHUNK_SIZE][cnk.CHUNK_SIZE] = ((float[][])fBlockWorld.getChunk(cnk.fXC +  cnk.CHUNK_SIZE +1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE + 1, false).getGeneratorData())[cnk.CHUNK_SIZE-1][cnk.CHUNK_SIZE-1];
+        if (fBlockWorld.getChunk(cnk.fXC - 1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE, false) != null) {
+            fChunkMap[0][cnk.CHUNK_SIZE] = ((float[][])fBlockWorld.getChunk(cnk.fXC -1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE, false).getGeneratorData())[cnk.CHUNK_SIZE-1][0];
+        } else {
+            fChunkMap[0][cnk.CHUNK_SIZE] = fRandom.nextFloat() * fRoughness;
+        }
+        
+        if (fBlockWorld.getChunk(cnk.fXC +  cnk.CHUNK_SIZE +1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE, false) != null) {
+            fChunkMap[cnk.CHUNK_SIZE][cnk.CHUNK_SIZE] = ((float[][])fBlockWorld.getChunk(cnk.fXC +  cnk.CHUNK_SIZE +1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE + 1, false).getGeneratorData())[0][0];
         } else {
             fChunkMap[cnk.CHUNK_SIZE][cnk.CHUNK_SIZE] = fRandom.nextFloat() * fRoughness;
-        }
-        diamond_Square(0, 0, cnk.CHUNK_SIZE, cnk.CHUNK_SIZE, fRoughness);  
+        }      
         
+        diamond_Square(0, 0, cnk.CHUNK_SIZE, cnk.CHUNK_SIZE, fRoughness);    
         for (int x = cnk.fXC; x < cnk.fXC + cnk.CHUNK_SIZE; x++) {
             for (int z = cnk.fZC; z < cnk.fZC + cnk.CHUNK_SIZE; z++) {
-                float calculatedHeight = fChunkMap[x - cnk.fXC + 1][z - cnk.fZC + 1];
+                float calculatedHeight = (fChunkMap[x - cnk.fXC][z - cnk.fZC]+fChunkMap[x - cnk.fXC][z - cnk.fZC + 1]+fChunkMap[x - cnk.fXC + 1][z - cnk.fZC]+fChunkMap[x - cnk.fXC + 1][z - cnk.fZC + 1])/4;
                 for (int y = cnk.fYC; y < cnk.fYC + cnk.CHUNK_SIZE; y++) {
-                    fTmpChunkMap[x - cnk.fXC][z - cnk.fZC] = calculatedHeight - 1 ; 
                     if (y < Math.round(calculatedHeight) - 1) {
                         cnk.addBlock(0, x, y, z);
                     } else if (y == Math.round(calculatedHeight) - 1) {
@@ -65,15 +62,13 @@ public class ChunkGenerator {
                 }
             }
         }
-        cnk.setGeneratorData(fTmpChunkMap);
+        cnk.setGeneratorData(fChunkMap);
     }
 
     public void diamond_Step(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {
         // Calc mid value with 4 corners and randomNumber
         int length = Math.abs(bottomRightX - topLeftX);
-
-        // if integers not found generate random number
-        // can be improved by taking the avg of surrounding blocks values       
+        // if integers not found generate random number     
         float sum = 0.0f;
         sum += fChunkMap[topLeftX][topLeftY];
         sum += fChunkMap[topLeftX][topLeftY + length];
@@ -85,7 +80,7 @@ public class ChunkGenerator {
     public void square_Step(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {
         float sum;
         int length = Math.abs(bottomRightX - topLeftX);
-
+                
         //TopMid
         sum = 0.0f;
         sum += fChunkMap[topLeftX + (length / 2)][topLeftY + (length / 2)];

@@ -83,6 +83,7 @@ public class BlockWorld {
         fListeners.remove(listener);
     }
     protected Map<Integer, Map<Integer, Map<Integer, Chunk>>> fChunks = new HashMap<Integer, Map<Integer, Map<Integer, Chunk>>>();
+    protected Map<String, HeightMap> fHeightMaps = new HashMap<String, HeightMap>();
     protected Node fRootNode;
     protected Material fBlockMat;
     protected TextureAtlas fAtlas;
