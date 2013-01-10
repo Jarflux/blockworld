@@ -12,30 +12,60 @@ import java.util.Random;
  */
 public class ChunkGenerator {
 
-    private Random r;
-    private BlockWorld bw;
-    private float[][] chunkMap;
+    private Random fRandom;
+    private BlockWorld fBlockWorld;
+    private float[][] fChunkMap;
+    private float[][] fTmpChunkMap;
+    private float fRoughness = 5f;
 
     public ChunkGenerator() {
-        r = new Random();
+        fRandom = new Random();
     }
 
     public void fillChunk(Chunk cnk) {
-        chunkMap = new float[cnk.CHUNK_SIZE+1][cnk.CHUNK_SIZE+1];
-        diamond_Square(0, 0,cnk.CHUNK_SIZE, cnk.CHUNK_SIZE, 10f);
-        bw = cnk.fWorld;
+        fBlockWorld = cnk.fWorld;
+        fChunkMap = new float[cnk.CHUNK_SIZE + 1][cnk.CHUNK_SIZE + 1];
+        fTmpChunkMap = new float[cnk.CHUNK_SIZE + 1][cnk.CHUNK_SIZE + 1];
+        
+        if (fBlockWorld.getChunk(cnk.fXC - 1, cnk.fYC, cnk.fZC -1, false) != null) {
+            fChunkMap[0][0] = ((float[][])fBlockWorld.getChunk(cnk.fXC -1, cnk.fYC, cnk.fZC -1, false).getGeneratorData())[cnk.CHUNK_SIZE-1][cnk.CHUNK_SIZE-1];
+        } else {
+            fChunkMap[0][0] = fRandom.nextFloat() * fRoughness;
+        }
+        
+        if (fBlockWorld.getChunk(cnk.fXC + cnk.CHUNK_SIZE, cnk.fYC, cnk.fZC -1, false) != null) {
+            fChunkMap[0][cnk.CHUNK_SIZE] = ((float[][])fBlockWorld.getChunk(cnk.fXC + cnk.CHUNK_SIZE, cnk.fYC, cnk.fZC - 1, false).getGeneratorData())[cnk.CHUNK_SIZE-1][cnk.CHUNK_SIZE-1];
+        } else {
+            fChunkMap[0][cnk.CHUNK_SIZE] = fRandom.nextFloat() * fRoughness;
+        }
+        
+        if (fBlockWorld.getChunk(cnk.fXC - 1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE, false) != null) {
+            fChunkMap[cnk.CHUNK_SIZE][0] = ((float[][])fBlockWorld.getChunk(cnk.fXC -1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE, false).getGeneratorData())[cnk.CHUNK_SIZE-1][cnk.CHUNK_SIZE-1];
+        } else {
+            fChunkMap[cnk.CHUNK_SIZE][0] = fRandom.nextFloat() * fRoughness;
+        }
+        
+        if (fBlockWorld.getChunk(cnk.fXC +  cnk.CHUNK_SIZE +1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE + 1, false) != null) {
+            fChunkMap[cnk.CHUNK_SIZE][cnk.CHUNK_SIZE] = ((float[][])fBlockWorld.getChunk(cnk.fXC +  cnk.CHUNK_SIZE +1, cnk.fYC, cnk.fZC + cnk.CHUNK_SIZE + 1, false).getGeneratorData())[cnk.CHUNK_SIZE-1][cnk.CHUNK_SIZE-1];
+        } else {
+            fChunkMap[cnk.CHUNK_SIZE][cnk.CHUNK_SIZE] = fRandom.nextFloat() * fRoughness;
+        }
+        diamond_Square(0, 0, cnk.CHUNK_SIZE, cnk.CHUNK_SIZE, fRoughness);  
+        
         for (int x = cnk.fXC; x < cnk.fXC + cnk.CHUNK_SIZE; x++) {
             for (int z = cnk.fZC; z < cnk.fZC + cnk.CHUNK_SIZE; z++) {
-                float calculatedHeight = (noise.getMap()[x-cnk.fXC][z-cnk.fZC])* plateau;
-                for (int y = cnk.fYC; y < cnk.fYC + cnk.CHUNK_SIZE; y++) {       
-                    if (y < Math.round(calculatedHeight)-1) {
+                float calculatedHeight = fChunkMap[x - cnk.fXC + 1][z - cnk.fZC + 1];
+                for (int y = cnk.fYC; y < cnk.fYC + cnk.CHUNK_SIZE; y++) {
+                    fTmpChunkMap[x - cnk.fXC][z - cnk.fZC] = calculatedHeight - 1 ; 
+                    if (y < Math.round(calculatedHeight) - 1) {
                         cnk.addBlock(0, x, y, z);
-                    }else if(y == Math.round(calculatedHeight)-1) {
+                    } else if (y == Math.round(calculatedHeight) - 1) {
                         cnk.addBlock(1, x, y, z);
                     }
                 }
             }
         }
+        cnk.setGeneratorData(fTmpChunkMap);
     }
 
     public void diamond_Step(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {
@@ -45,23 +75,11 @@ public class ChunkGenerator {
         // if integers not found generate random number
         // can be improved by taking the avg of surrounding blocks values       
         float sum = 0.0f;
-        if ((0.000 - Math.round(chunkMap[topLeftX][topLeftY])) < 0.0001) {
-            chunkMap[topLeftX][topLeftY] = r.nextFloat() * randomNumberRange;
-        }
-        if ((0.000 - Math.round(chunkMap[topLeftX][topLeftY+ length])) < 0.0001) {
-            chunkMap[topLeftX][length] = r.nextFloat() * randomNumberRange;
-        }
-        if ((0.000 - Math.round(chunkMap[topLeftX+length][topLeftY])) < 0.0001) {
-            chunkMap[topLeftX + length][0] = r.nextFloat() * randomNumberRange;
-        }
-        if ((0.000 - Math.round(chunkMap[topLeftX + length][topLeftY + length])) < 0.0001) {
-            chunkMap[topLeftX + length][length] = r.nextFloat() * randomNumberRange;
-        }
-        sum += chunkMap[topLeftX][topLeftY];
-        sum += chunkMap[topLeftX][topLeftY+length];
-        sum += chunkMap[topLeftX+ length][topLeftY];
-        sum += chunkMap[topLeftX+ length][topLeftY+length];
-        chunkMap[topLeftX + (length / 2)][topLeftY+(length / 2)] = Math.round(sum / 4) + (r.nextFloat() * randomNumberRange);
+        sum += fChunkMap[topLeftX][topLeftY];
+        sum += fChunkMap[topLeftX][topLeftY + length];
+        sum += fChunkMap[topLeftX + length][topLeftY];
+        sum += fChunkMap[topLeftX + length][topLeftY + length];
+        fChunkMap[topLeftX + (length / 2)][topLeftY + (length / 2)] = Math.round(sum / 4) + (fRandom.nextFloat() * randomNumberRange);
     }
 
     public void square_Step(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {
@@ -70,34 +88,37 @@ public class ChunkGenerator {
 
         //TopMid
         sum = 0.0f;
-        sum += chunkMap[topLeftX+ (length / 2)][topLeftY+(length / 2)];
-        sum += chunkMap[topLeftX][topLeftY];
-        sum += chunkMap[topLeftX+ length][topLeftY];
-        chunkMap[topLeftX+(length / 2)][topLeftY] = Math.round(sum / 3) + (r.nextFloat() * randomNumberRange);
+        sum += fChunkMap[topLeftX + (length / 2)][topLeftY + (length / 2)];
+        sum += fChunkMap[topLeftX][topLeftY];
+        sum += fChunkMap[topLeftX + length][topLeftY];
+        fChunkMap[topLeftX + (length / 2)][topLeftY] = Math.round(sum / 3) + (fRandom.nextFloat() * randomNumberRange);
+
         //LeftMid
         sum = 0.0f;
-        sum += chunkMap[topLeftX + (length / 2)][topLeftY+(length / 2)];
-        sum += chunkMap[topLeftX][topLeftY];
-        sum += chunkMap[topLeftX][topLeftY+length];
-        chunkMap[topLeftX][topLeftY+(length / 2)] = Math.round(sum / 3) + (r.nextFloat() * randomNumberRange);
+        sum += fChunkMap[topLeftX + (length / 2)][topLeftY + (length / 2)];
+        sum += fChunkMap[topLeftX][topLeftY];
+        sum += fChunkMap[topLeftX][topLeftY + length];
+        fChunkMap[topLeftX][topLeftY + (length / 2)] = Math.round(sum / 3) + (fRandom.nextFloat() * randomNumberRange);
+
         //RightMid
         sum = 0.0f;
-        sum += chunkMap[topLeftX + (length / 2)][topLeftY+(length / 2)];
-        sum += chunkMap[topLeftX + length][topLeftY];
-        sum += chunkMap[topLeftX + length][topLeftY+length];
-        chunkMap[topLeftX+length][topLeftY+(length / 2)] = Math.round(sum / 3) + (r.nextFloat() * randomNumberRange);
+        sum += fChunkMap[topLeftX + (length / 2)][topLeftY + (length / 2)];
+        sum += fChunkMap[topLeftX + length][topLeftY];
+        sum += fChunkMap[topLeftX + length][topLeftY + length];
+        fChunkMap[topLeftX + length][topLeftY + (length / 2)] = Math.round(sum / 3) + (fRandom.nextFloat() * randomNumberRange);
+
         //BottomMid
         sum = 0.0f;
-        sum += chunkMap[topLeftX+(length / 2)][topLeftY+(length / 2)];
-        sum += chunkMap[topLeftX][topLeftY+length];
-        sum += chunkMap[topLeftX+length][topLeftY+length];
-        chunkMap[topLeftX+(length / 2)][topLeftY+length] = Math.round(sum / 3) + (r.nextFloat() * randomNumberRange);
+        sum += fChunkMap[topLeftX + (length / 2)][topLeftY + (length / 2)];
+        sum += fChunkMap[topLeftX][topLeftY + length];
+        sum += fChunkMap[topLeftX + length][topLeftY + length];
+        fChunkMap[topLeftX + (length / 2)][topLeftY + length] = Math.round(sum / 3) + (fRandom.nextFloat() * randomNumberRange);
     }
 
     public void diamond_Square(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {
         float currentRandomNumberRange = randomNumberRange / 2;
         int length = Math.abs(bottomRightX - topLeftX);
-        if(length > 1) {
+        if (length > 1) {
             diamond_Step(topLeftX, topLeftY, bottomRightX, bottomRightY, currentRandomNumberRange);
             square_Step(topLeftX, topLeftY, bottomRightX, bottomRightY, currentRandomNumberRange);
 
