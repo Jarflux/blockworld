@@ -7,11 +7,9 @@ package mygame.blockworld;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.material.Material;
 import com.jme3.scene.Node;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -48,32 +46,31 @@ public class BlockWorld {
     private ChunkListener fPhysicsUpdater = new ChunkListener() {
 
         public void blockAdded(Chunk chunk, Integer block, int x, int y, int z) {
-            update(chunk, block, x, y, z);
+            update(x, y, z);
         }
 
         public void blockRemoved(Chunk chunk, Integer block, int x, int y, int z) {
-            update(chunk, block, x, y, z);
+            update(x, y, z);
         }
         
-        private void update(Chunk chunk, Integer block, int x, int y, int z) {
-            chunk.update();
+        private void update(int x, int y, int z) {
             if(x % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x-1, y, z, true).update();
+                getChunk(x-1, y, z, true).sceduleUpdate();
             }
             if(MathUtil.PosMod(x, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x+1, y, z, true).update();
+                getChunk(x+1, y, z, true).sceduleUpdate();
             }
             if(y % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x, y-1, z, true).update();
+                getChunk(x, y-1, z, true).sceduleUpdate();
             }
             if(MathUtil.PosMod(y, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x, y+1, z, true).update();
+                getChunk(x, y+1, z, true).sceduleUpdate();
             }
             if(z % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x, y, z-1, true).update();
+                getChunk(x, y, z-1, true).sceduleUpdate();
             }
             if(MathUtil.PosMod(z, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x, y, z+1, true).update();
+                getChunk(x, y, z+1, true).sceduleUpdate();
             }
         }       
     };
@@ -193,9 +190,10 @@ public class BlockWorld {
                 BufferedReader fileReader = new BufferedReader(new FileReader(file));
                 while(fileReader.ready()) {
                     String line = fileReader.readLine();
-                    int xC = line.charAt(0);
-                    int yC = line.charAt(1);
-                    int zC = line.charAt(2);
+                    String[] coords = line.split(":");
+                    int xC = Integer.valueOf(coords[0]);
+                    int yC = Integer.valueOf(coords[1]);
+                    int zC = Integer.valueOf(coords[2]);
                     getChunk(xC, yC, zC, true, false).load(fileReader);
                 }
                 fileReader.close();

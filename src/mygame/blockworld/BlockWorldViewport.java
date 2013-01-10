@@ -45,17 +45,23 @@ public class BlockWorldViewport {
                         Chunk cnk = fWorld.getChunk(i*Chunk.CHUNK_SIZE, j*Chunk.CHUNK_SIZE, k*Chunk.CHUNK_SIZE, true);
                         if(cnk != null) {
                             if(!previousChunks.remove(cnk)) {
-                                cnk.showChunk();
+                                cnk.setVisible(true);
                             }
                             fShown.add(cnk);
                         }
                     }
                 }
             }
+            for(Chunk cnk : previousChunks) {
+                cnk.setVisible(false);
+            }
         }
         fX = x;
         fY = y;
         fZ = z;
+        for(Chunk cnk : fShown) {
+            cnk.update();
+        }
     }
     
 }

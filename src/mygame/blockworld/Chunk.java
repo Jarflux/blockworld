@@ -42,12 +42,14 @@ public class Chunk {
     protected BulletAppState fPhysicsState;
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
+    protected boolean fNeedsUpdate;
     
     public Chunk(BlockWorld world, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
         fXC = xC; fYC = yC; fZC = zC;
         fWorld = world;
         fRootNode = rootNode;
         fPhysicsState = physicsState;
+        fNeedsUpdate = false;
     }
     
     private void addTextureCoords(List<Vector2f> texCoord, int texId, boolean swap) {
@@ -168,9 +170,16 @@ public class Chunk {
         return mesh;
     }
     
+    public void sceduleUpdate() {
+        fNeedsUpdate = true;
+    }
+    
     public void update() {
-        updateVisualMesh();
-        updatePhysicsMesh();
+        if(fNeedsUpdate) {
+            updateVisualMesh();
+            updatePhysicsMesh();
+            fNeedsUpdate = false;
+        }
     }
     
     protected void updateVisualMesh() {
@@ -187,9 +196,6 @@ public class Chunk {
         }
         fChunkMesh = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, mesh);
         fChunkMesh.setMaterial(fWorld.getBlockMat());
-        if(fWorld.getAtlas() != null) {
-            fWorld.getAtlas().applyCoords(fChunkMesh);
-        }
         fRootNode.attachChild(fChunkMesh);
     }
     
@@ -197,16 +203,15 @@ public class Chunk {
         if(!isVisible()) {
             return;
         }
+        if(fChunkPhysics != null) {
+            fPhysicsState.getPhysicsSpace().remove(fChunkPhysics);
+        }
         if(fChunkMesh == null) {
-            if(fChunkPhysics != null) {
-                fPhysicsState.getPhysicsSpace().remove(fChunkPhysics);
-            }
             fChunkPhysics = null;
             return;
         }
         if(fChunkPhysics != null) {
             fChunkMesh.removeControl(fChunkPhysics);
-            fPhysicsState.getPhysicsSpace().remove(fChunkPhysics);
         }
         CollisionShape chunkShape =
             CollisionShapeFactory.createMeshShape(fChunkMesh);
@@ -223,24 +228,23 @@ public class Chunk {
         fListeners.remove(listener);
     }
     
-    public void showChunk() {
-        if(!fVisible) {
-            fVisible = true;
-            update();
-        }
-    }
-    
-    public void hideChunk() {
-        if(fVisible) {
+    public void setVisible(boolean visible) {
+        if(!visible) {
             if(fChunkMesh != null) {
                 fRootNode.detachChild(fChunkMesh);
-                if(fChunkPhysics != null) {
-                    fChunkMesh.removeControl(fChunkPhysics);
-                    fPhysicsState.getPhysicsSpace().remove(fChunkPhysics);
-                }
             }
-            fVisible = false;
+            if(fChunkPhysics != null) {
+                fPhysicsState.getPhysicsSpace().remove(fChunkPhysics);
+            }
+        }else{
+            if(fChunkMesh != null) {
+                fRootNode.attachChild(fChunkMesh);
+            }
+            if(fChunkPhysics != null) {
+                fPhysicsState.getPhysicsSpace().add(fChunkPhysics);
+            }
         }
+        fVisible = visible;
     }
     
     public boolean isVisible() {
@@ -280,6 +284,7 @@ public class Chunk {
         if(fBlocks[xC][yC][zC] != null) {
             fBlocks[xC][yC][zC] = null;
             blockRemoved(fBlocks[xC][yC][zC], x, y, z);
+            fNeedsUpdate = true;
         }
     }
     
@@ -293,15 +298,13 @@ public class Chunk {
         }else{
             fBlocks[xC][yC][zC] = block;
             blockAdded(block, x, y, z);
+            fNeedsUpdate = true;
             return true;
         }
     }
 
     void save(BufferedWriter fileWriter) throws IOException {
-        fileWriter.write(fXC);
-        fileWriter.write(fYC);
-        fileWriter.write(fZC);
-        fileWriter.write('\n');
+        fileWriter.write(fXC+":"+fYC+":"+fZC+'\n');
         for(int i = 0; i < CHUNK_SIZE; i++) {
             for(int j = 0; j < CHUNK_SIZE; j++) {
                 for(int k = 0; k < CHUNK_SIZE; k++) {
@@ -330,9 +333,7 @@ public class Chunk {
                 }
             }
         }
-        if(isVisible()) {
-            update();
-        }
+        fNeedsUpdate = true;
     }
     
     public Object getGeneratorData(){
