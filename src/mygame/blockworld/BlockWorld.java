@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
+import mygame.MathUtil;
 
 /**
  *
@@ -50,19 +50,19 @@ public class BlockWorld {
             if(x % Chunk.CHUNK_SIZE == 0) {
                 getChunk(x-1, y, z, true).update();
             }
-            if(x % Chunk.CHUNK_SIZE == Chunk.CHUNK_SIZE - 1) {
+            if(MathUtil.PosMod(x, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
                 getChunk(x+1, y, z, true).update();
             }
             if(y % Chunk.CHUNK_SIZE == 0) {
                 getChunk(x, y-1, z, true).update();
             }
-            if(y % Chunk.CHUNK_SIZE == Chunk.CHUNK_SIZE - 1) {
+            if(MathUtil.PosMod(y, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
                 getChunk(x, y+1, z, true).update();
             }
             if(z % Chunk.CHUNK_SIZE == 0) {
                 getChunk(x, y, z-1, true).update();
             }
-            if(z % Chunk.CHUNK_SIZE == Chunk.CHUNK_SIZE - 1) {
+            if(MathUtil.PosMod(z, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
                 getChunk(x, y, z+1, true).update();
             }
         }
