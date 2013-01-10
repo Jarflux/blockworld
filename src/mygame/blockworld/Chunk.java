@@ -35,7 +35,7 @@ public class Chunk {
     protected Node fRootNode;
     protected BlockWorld fWorld;
     protected boolean fVisible = false;
-    protected int fXC, fYC, fZC;
+    public int fXC, fYC, fZC;
     protected BulletAppState fPhysicsState;
     protected RigidBodyControl fChunkPhysics = null;
     
@@ -252,13 +252,8 @@ public class Chunk {
     }
     
     public void fillChunk() {
-        for(int x = fXC; x < fXC + Chunk.CHUNK_SIZE; x++) {
-            for(int y = fYC; y < fYC + Chunk.CHUNK_SIZE; y++) {
-                for(int z = fZC; z < fZC + Chunk.CHUNK_SIZE; z++) {
-                    addBlock(1, x, y, z);  
-                }
-            }
-        }
+        ChunkGenerator cnkGenerator= new ChunkGenerator();
+        cnkGenerator.fillChunk(this);
     }
     
     public void removeBlock(int x, int y, int z) {
