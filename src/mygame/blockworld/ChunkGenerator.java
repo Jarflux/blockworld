@@ -4,6 +4,7 @@
  */
 package mygame.blockworld;
 
+import com.jme3.terrain.noise.basis.ImprovedNoise;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,7 +18,10 @@ public class ChunkGenerator {
     private Random fRandom;
     private Float[][] fChunkMap;
     private HeightMap fHeightMap;
-    private float fRoughness = 10f;
+    //private float fRoughness = 10f;
+    private float fTerrainScale = 4f;
+    private float fTerrainRoughness = 64f;
+    private float fNoiseZ = 10f;
 
     public ChunkGenerator() {
         fRandom = new Random();
@@ -137,19 +141,23 @@ public class ChunkGenerator {
         Boolean a= false;Boolean b= false;Boolean c= false; Boolean d = false;
         // if still a corner is empty = randomFloat * fRoughness
         if (fChunkMap[0][0] == null) {
-            fChunkMap[0][0] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
+            fChunkMap[0][0] = fTerrainRoughness * ImprovedNoise.noise((((float)(cnk.fXC/offset))+0f)/fTerrainScale, (((float)(cnk.fXC/offset))+0f)/fTerrainScale, fNoiseZ);
+            //fChunkMap[0][0] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
             a= true;
         }
         if (fChunkMap[offset][0] == null) {
-            fChunkMap[offset][0] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
+            fChunkMap[offset][0] = fTerrainRoughness * ImprovedNoise.noise((((float)(cnk.fXC/offset))+1f)/fTerrainScale, (((float)(cnk.fXC/offset))+0f)/fTerrainScale, fNoiseZ);
+            //fChunkMap[offset][0] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
             b = true;
         }
         if (fChunkMap[offset][offset] == null) {
-            fChunkMap[offset][offset] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
+            fChunkMap[offset][offset] = fTerrainRoughness * ImprovedNoise.noise((((float)(cnk.fXC/offset))+1f)/fTerrainScale, (((float)(cnk.fXC/offset))+1f)/fTerrainScale, fNoiseZ);
+            //fChunkMap[offset][offset] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
             c = true;    
         }
         if (fChunkMap[0][offset] == null) {
-            fChunkMap[0][offset] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
+            fChunkMap[0][offset] = fTerrainRoughness * ImprovedNoise.noise((((float)(cnk.fXC/offset))+0f)/fTerrainScale, (((float)(cnk.fXC/offset))+1f)/fTerrainScale, fNoiseZ);
+            //fChunkMap[0][offset] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
             d = true;
         }
         if( a && b && c && d){ // all 4 corner where random generated
@@ -159,7 +167,9 @@ public class ChunkGenerator {
            fChunkMap = fHeightMap.getHeightMap(cnk.fXC, cnk.fZC);  
         }
         // Calculate the complete fChunkMap with Diamond-Square algorithm
-        diamond_Square(0, 0, offset, offset, fRoughness);
+        float roughnessLocal = Math.max(Math.max(fChunkMap[0][0], fChunkMap[offset][0]),Math.max(fChunkMap[0][offset], fChunkMap[offset][offset]));
+        roughnessLocal = roughnessLocal - Math.min(Math.min(fChunkMap[0][0], fChunkMap[offset][0]),Math.min(fChunkMap[0][offset], fChunkMap[offset][offset]));
+        diamond_Square(0, 0, offset, offset, roughnessLocal);
 
         // Loop over fChunkMap to create every block
         for (int x = cnk.fXC; x < cnk.fXC + offset; x++) {
@@ -242,7 +252,7 @@ public class ChunkGenerator {
 
     // block type logic
     private Integer getBlockType(int heigth, int topHeight) {
-        if (heigth == (topHeight)) {
+        if (heigth - topHeight < 0.1f) {
             return 1;                       // return grass
         } else if (heigth < topHeight) {
             return 0;                       // return dirt
