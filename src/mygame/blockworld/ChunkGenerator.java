@@ -30,12 +30,13 @@ public class ChunkGenerator {
 
     public void fillChunk(Chunk cnk) {
         fHeightMap = cnk.fWorld.getHeightMap("detail");
-        fChunkMap = new Float[cnk.CHUNK_SIZE + 1][cnk.CHUNK_SIZE + 1];
         int offset = Chunk.CHUNK_SIZE;
+        fChunkMap = new Float[offset + 1][offset + 1];
+        
 
         //check if map for that chunk not yet exsists
         if (fHeightMap.getHeightMap(cnk.fXC, cnk.fZC) == null) {
-
+                    
             Float[][] fChunkTop = fHeightMap.getHeightMap(cnk.fXC, cnk.fZC + offset);
             Float[][] fChunkTopRight = fHeightMap.getHeightMap(cnk.fXC + offset, cnk.fZC + offset);
             Float[][] fChunkRight = fHeightMap.getHeightMap(cnk.fXC + offset, cnk.fZC);
@@ -175,14 +176,17 @@ public class ChunkGenerator {
         float roughnessLocal = Math.max(Math.max(fChunkMap[0][0], fChunkMap[offset][0]), Math.max(fChunkMap[0][offset], fChunkMap[offset][offset]));
         roughnessLocal = roughnessLocal - Math.min(Math.min(fChunkMap[0][0], fChunkMap[offset][0]), Math.min(fChunkMap[0][offset], fChunkMap[offset][offset]));
         diamond_Square(0, 0, offset, offset, Math.max(roughnessLocal, fMinLocalRoughness));
-
+        
         // Loop over fChunkMap to create every block
         for (int x = cnk.fXC; x < cnk.fXC + offset; x++) {
             for (int z = cnk.fZC; z < cnk.fZC + offset; z++) {
                 int calculatedHeight = Math.round((fChunkMap[x - cnk.fXC][z - cnk.fZC] + fChunkMap[x - cnk.fXC][z - cnk.fZC + 1] + fChunkMap[x - cnk.fXC + 1][z - cnk.fZC] + fChunkMap[x - cnk.fXC + 1][z - cnk.fZC + 1]) / 4);
                 for (int y = cnk.fYC; y < cnk.fYC + offset; y++) {
-                    if (getBlockType(y, calculatedHeight) != null) {
-                        cnk.addBlock(getBlockType(y, calculatedHeight), x, y, z);
+                    float noise = ImprovedNoise.noise((float)x/8f, (float)y/8f, (float)z/8f);
+                    if(noise < .25f) {
+                        if (getBlockType(y, calculatedHeight) != null) {
+                            cnk.addBlock(getBlockType(y, calculatedHeight), x, y, z);
+                        }
                     }
                 }
             }

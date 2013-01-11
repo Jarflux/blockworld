@@ -100,7 +100,6 @@ public class Main extends SimpleApplication implements ActionListener {
         bulletAppState.getPhysicsSpace().add(player);
 
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, fAtlas, bulletAppState);
-        //fBlockWorld.getChunk(5, 50, 5, true);
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         setUpdAudio();
         setUpHud();
