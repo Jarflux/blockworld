@@ -14,6 +14,7 @@ TODO's New Feature:
 - Implement basic finite fluids (like water that overflows its container) (idea: make fluids evaporate, rain-down, sink through certain block-types (at a certain rate))
 - Implement fluid physics (pressure)
 - (Nathan) Implement a way to "smooth" the blocks into a more classic 3D RPG-like enviroment
+- (Nathan) Implement terrain "streaming" (loading & saving chunks to disk)
 - Make animated objects (voxel animation possible?)
 
 TODO's Optimizations:
