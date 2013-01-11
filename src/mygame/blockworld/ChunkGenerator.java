@@ -19,10 +19,10 @@ public class ChunkGenerator {
     private Float[][] fChunkMap;
     private HeightMap fHeightMap;
     //private float fRoughness = 10f;
-    private float fTerrainScale = 32f;
-    private float fTerrainRoughness = 32f;
+    private float fTerrainScale = 32f/2f;
+    private float fTerrainRoughness = 32f*2f;
     private float fNoiseZ = 10f;
-    private float fMinLocalRoughness = 4f;
+    private float fMinLocalRoughness = 2f;
 
     public ChunkGenerator() {
         fRandom = new Random();
@@ -183,11 +183,11 @@ public class ChunkGenerator {
                 int calculatedHeight = Math.round((fChunkMap[x - cnk.fXC][z - cnk.fZC] + fChunkMap[x - cnk.fXC][z - cnk.fZC + 1] + fChunkMap[x - cnk.fXC + 1][z - cnk.fZC] + fChunkMap[x - cnk.fXC + 1][z - cnk.fZC + 1]) / 4);
                 for (int y = cnk.fYC; y < cnk.fYC + offset; y++) {
                     float noise = ImprovedNoise.noise((float)x/8f, (float)y/8f, (float)z/8f);
-                    if(noise < .25f) {
+                    //if(noise < .25f) {
                         if (getBlockType(y, calculatedHeight) != null) {
                             cnk.addBlock(getBlockType(y, calculatedHeight), x, y, z);
                         }
-                    }
+                    //}
                 }
             }
         }
