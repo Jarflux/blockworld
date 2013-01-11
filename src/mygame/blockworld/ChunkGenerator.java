@@ -19,9 +19,10 @@ public class ChunkGenerator {
     private Float[][] fChunkMap;
     private HeightMap fHeightMap;
     //private float fRoughness = 10f;
-    private float fTerrainScale = 4f;
-    private float fTerrainRoughness = 64f;
+    private float fTerrainScale = 32f;
+    private float fTerrainRoughness = 32f;
     private float fNoiseZ = 10f;
+    private float fMinLocalRoughness = 4f;
 
     public ChunkGenerator() {
         fRandom = new Random();
@@ -143,6 +144,7 @@ public class ChunkGenerator {
             Boolean c = false;
             Boolean d = false;
             // if still a corner is empty = randomFloat * fRoughness
+            fNoiseZ = fRandom.nextFloat();
             if (fChunkMap[0][0] == null) {
                 fChunkMap[0][0] = fTerrainRoughness * ImprovedNoise.noise((((float) (cnk.fXC / offset)) + 0f) / fTerrainScale, (((float) (cnk.fXC / offset)) + 0f) / fTerrainScale, fNoiseZ);
                 //fChunkMap[0][0] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
@@ -172,7 +174,7 @@ public class ChunkGenerator {
         // Calculate the complete fChunkMap with Diamond-Square algorithm
         float roughnessLocal = Math.max(Math.max(fChunkMap[0][0], fChunkMap[offset][0]), Math.max(fChunkMap[0][offset], fChunkMap[offset][offset]));
         roughnessLocal = roughnessLocal - Math.min(Math.min(fChunkMap[0][0], fChunkMap[offset][0]), Math.min(fChunkMap[0][offset], fChunkMap[offset][offset]));
-        diamond_Square(0, 0, offset, offset, roughnessLocal);
+        diamond_Square(0, 0, offset, offset, Math.max(roughnessLocal, fMinLocalRoughness));
 
         // Loop over fChunkMap to create every block
         for (int x = cnk.fXC; x < cnk.fXC + offset; x++) {
