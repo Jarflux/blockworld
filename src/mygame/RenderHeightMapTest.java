@@ -27,8 +27,8 @@ public class RenderHeightMapTest {
                 for(int i = 0; i < 256; i++) {
                     for(int j = 0; j < 256; j++) {
                         //float f = noise.value((float)i/32f, (float)j/32f, (float)k);
-                        float f = ImprovedNoise.noise((float)i/32f, (float)j/32f, (float)k);
-                        g.setColor(new Color(Math.abs(f), Math.abs(f), Math.abs(f)));
+                        float f = ImprovedNoise.noise((float)i/128f, (float)j/128f, (float)k);
+                        g.setColor(new Color((f+1f)/2f, (f+1f)/2f, (f+1f)/2f));
                         g.drawLine(i, j, i, j);
                     }
                 }
