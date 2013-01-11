@@ -102,6 +102,7 @@ public class BlockWorld {
         this.fBlockMat = blockMat;
         this.fAtlas = atlas;
         this.fPhysicsState = physicsState;
+        this.fHeightMaps.put("detail", new HeightMap());
         fListeners.add(fPhysicsUpdater);
     }
 
@@ -204,4 +205,7 @@ public class BlockWorld {
         }
     }
     
+    public HeightMap getHeightMap(String name){
+        return fHeightMaps.get(name);
+    }
 }

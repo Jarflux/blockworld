@@ -89,7 +89,7 @@ public class Chunk {
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
                             index = index + 4;
                         }
-                        //Check bottem
+                        //Check bottom
                         if(fWorld.getChunk(i, j-1, k, true).get(i, j-1, k) == null) {
                             vertices.add(new Vector3f(i-.5f, j-.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));
