@@ -15,7 +15,13 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
+import com.jme3.shadow.BasicShadowRenderer;
+import com.jme3.shadow.PssmShadowRenderer;
+import com.jme3.shadow.ShadowUtil;
 import com.jme3.texture.Texture;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
@@ -47,17 +53,19 @@ public class Main extends SimpleApplication implements ActionListener {
     private AudioNode audio_nature;
     private AudioNode audio_removeBlock;
     private BitmapText hudPosition;
+    private PssmShadowRenderer fShadowRenderer;
+    private BasicShadowRenderer fShadowRendererBasic;
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false;
     
     @Override
     public void simpleInitApp() {
-        fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 
         Texture text = assetManager.loadTexture("Textures/terrain.png");
         //text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
-        fBlockMat.setTexture("ColorMap", text);
+        fBlockMat.setTexture("DiffuseMap", text);
         fBlockMat.setBoolean("SeparateTexCoord", true);
 
         /**
@@ -102,12 +110,21 @@ public class Main extends SimpleApplication implements ActionListener {
         // We add light so we see the scene
         AmbientLight al = new AmbientLight();
         al.setColor(ColorRGBA.White.mult(1.3f));
-        rootNode.addLight(al);
+        //rootNode.addLight(al);
+        //rootNode.setShadowMode(ShadowMode.CastAndReceive);
 
-        DirectionalLight dl = new DirectionalLight();
-        dl.setColor(ColorRGBA.White);
-        dl.setDirection(new Vector3f(2.8f, -2.8f, -2.8f).normalizeLocal());
-        rootNode.addLight(dl);
+        //fShadowRenderer = new PssmShadowRenderer(assetManager, 2048, 4);
+        //fShadowRenderer.setDirection(new Vector3f(-.5f,-.5f,-.5f).normalizeLocal()); // light direction
+        //viewPort.addProcessor(fShadowRenderer);
+        
+        //fShadowRendererBasic = new BasicShadowRenderer(assetManager);
+        //fShadowRendererBasic.setDirection(new Vector3f(-.5f,-.5f,-.5f).normalizeLocal()); // light direction
+        //viewPort.addProcessor(fShadowRenderer);
+    
+        DirectionalLight sun = new DirectionalLight();
+        sun.setColor(ColorRGBA.White);
+        sun.setDirection(new Vector3f(-.5f,-.5f,-.5f).normalizeLocal());
+        rootNode.addLight(sun);
     }
 
     private void setUpdAudio(){
@@ -223,6 +240,17 @@ public class Main extends SimpleApplication implements ActionListener {
         camPos.y = camPos.y + .75f;
         cam.setLocation(camPos);
         listener.setLocation(cam.getLocation());
+        
+        // Lighting Test
+        //------------------------
+        Vector3f[] points;
+    {
+        points = new Vector3f[8];
+        for (int i = 0; i < points.length; i++) {points[i] = new Vector3f();}
+    }
+        //Camera shadowCam = fShadowRenderer.getShadowCamera();
+        //ShadowUtil.updateFrustumPoints2(shadowCam, points);
+        //----------------------
         fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.y), Math.round(camPos.z));
     }
 

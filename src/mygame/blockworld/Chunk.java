@@ -162,6 +162,7 @@ public class Chunk {
         for(int i = 0; i < indexes.size(); i++) {
             indexesSimpleType[i] = indexes.get(i);
         }
+        // mesh.setBuffer(vertexBuffer.Type.Normal , 3, BufferUtils.createFloatBuffer(NormalsSimpleType)
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(verticesSimpleType));
         mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(texCoordSimpleType));        
         mesh.setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createIntBuffer(indexesSimpleType));
