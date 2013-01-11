@@ -6,7 +6,7 @@ package mygame;
 
 /**
  *
- * @author Nathan
+ * @author Nathan & Ben
  */
 public class MathUtil {
     

@@ -83,6 +83,7 @@ public class BlockWorld {
         fListeners.remove(listener);
     }
     protected Map<Integer, Map<Integer, Map<Integer, Chunk>>> fChunks = new HashMap<Integer, Map<Integer, Map<Integer, Chunk>>>();
+    protected Map<String, HeightMap> fHeightMaps = new HashMap<String, HeightMap>();
     protected Node fRootNode;
     protected Material fBlockMat;
     protected TextureAtlas fAtlas;
@@ -101,6 +102,7 @@ public class BlockWorld {
         this.fBlockMat = blockMat;
         this.fAtlas = atlas;
         this.fPhysicsState = physicsState;
+        this.fHeightMaps.put("detail", new HeightMap());
         fListeners.add(fPhysicsUpdater);
     }
 
@@ -203,4 +205,7 @@ public class BlockWorld {
         }
     }
     
+    public HeightMap getHeightMap(String name){
+        return fHeightMaps.get(name);
+    }
 }

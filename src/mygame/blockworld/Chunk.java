@@ -38,7 +38,7 @@ public class Chunk {
     protected Node fRootNode;
     protected BlockWorld fWorld;
     protected boolean fVisible = false;
-    public int fXC, fYC, fZC;
+    public final int fXC, fYC, fZC;
     protected BulletAppState fPhysicsState;
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
@@ -89,7 +89,7 @@ public class Chunk {
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
                             index = index + 4;
                         }
-                        //Check bottem
+                        //Check bottom
                         if(fWorld.getChunk(i, j-1, k, true).get(i, j-1, k) == null) {
                             vertices.add(new Vector3f(i-.5f, j-.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));

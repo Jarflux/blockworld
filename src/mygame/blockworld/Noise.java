@@ -9,7 +9,7 @@ import java.util.Random;
 
 /**
  *
- * @author Ben
+ * @author Nathan & Ben
  */
 public class Noise {
 
