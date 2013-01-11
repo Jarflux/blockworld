@@ -70,6 +70,7 @@ public class Chunk {
     
     private Mesh createVisualMesh() {
         List<Vector3f> vertices = new ArrayList<Vector3f>();
+        List<Vector3f> normals = new ArrayList<Vector3f>();
         List<Vector2f> texCoord = new ArrayList<Vector2f>();
         List<Integer> indexes = new ArrayList<Integer>();
         int index = 0;
@@ -84,6 +85,10 @@ public class Chunk {
                             vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
+                            normals.add(new Vector3f(0, 1, 0));
+                            normals.add(new Vector3f(0, 1, 0));
+                            normals.add(new Vector3f(0, 1, 0));
+                            normals.add(new Vector3f(0, 1, 0));
                             addTextureCoords(texCoord, BlockInfo.TopSides[block], false);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
@@ -95,6 +100,10 @@ public class Chunk {
                             vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
                             vertices.add(new Vector3f(i-.5f, j-.5f, k+.5f));
+                            normals.add(new Vector3f(0, -1, 0));
+                            normals.add(new Vector3f(0, -1, 0));
+                            normals.add(new Vector3f(0, -1, 0));
+                            normals.add(new Vector3f(0, -1, 0));
                             addTextureCoords(texCoord, BlockInfo.BottomSides[block], false);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
@@ -106,6 +115,10 @@ public class Chunk {
                             vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
+                            normals.add(new Vector3f(1, 0, 0));
+                            normals.add(new Vector3f(1, 0, 0));
+                            normals.add(new Vector3f(1, 0, 0));
+                            normals.add(new Vector3f(1, 0, 0));
                             addTextureCoords(texCoord, BlockInfo.RightSides[block], true);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
@@ -117,6 +130,10 @@ public class Chunk {
                             vertices.add(new Vector3f(i-.5f, j-.5f, k+.5f));
                             vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i-.5f, j+.5f, k-.5f));
+                            normals.add(new Vector3f(-1, 0, 0));
+                            normals.add(new Vector3f(-1, 0, 0));
+                            normals.add(new Vector3f(-1, 0, 0));
+                            normals.add(new Vector3f(-1, 0, 0));
                             addTextureCoords(texCoord, BlockInfo.LeftSides[block], false);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
@@ -128,6 +145,10 @@ public class Chunk {
                             vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
                             vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
+                            normals.add(new Vector3f(0, 0, 1));
+                            normals.add(new Vector3f(0, 0, 1));
+                            normals.add(new Vector3f(0, 0, 1));
+                            normals.add(new Vector3f(0, 0, 1));
                             addTextureCoords(texCoord, BlockInfo.BackSides[block], false);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
@@ -139,6 +160,10 @@ public class Chunk {
                             vertices.add(new Vector3f(i-.5f, j+.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
                             vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));
+                            normals.add(new Vector3f(0, 0, -1));
+                            normals.add(new Vector3f(0, 0, -1));
+                            normals.add(new Vector3f(0, 0, -1));
+                            normals.add(new Vector3f(0, 0, -1));
                             addTextureCoords(texCoord, BlockInfo.FrontSides[block], true);
                             indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
                             indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
@@ -153,16 +178,19 @@ public class Chunk {
         }
         Mesh mesh = new Mesh();
         Vector3f[] verticesSimpleType = new Vector3f[vertices.size()];
+        Vector3f[] normalsSimpleType = new Vector3f[vertices.size()];
         Vector2f[] texCoordSimpleType = new Vector2f[vertices.size()];
         int[] indexesSimpleType = new int[indexes.size()];
         for(int i = 0; i < vertices.size(); i++) {
             verticesSimpleType[i] = vertices.get(i);
+            normalsSimpleType[i] = normals.get(i);
             texCoordSimpleType[i] = texCoord.get(i);
         }
         for(int i = 0; i < indexes.size(); i++) {
             indexesSimpleType[i] = indexes.get(i);
         }
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(verticesSimpleType));
+        mesh.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normalsSimpleType));
         mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(texCoordSimpleType));        
         mesh.setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createIntBuffer(indexesSimpleType));
         mesh.updateCounts();
