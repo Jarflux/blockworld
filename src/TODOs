@@ -1,6 +1,4 @@
 TODO's New Feature:
-- Implement random landscape generator (Ben)
-- Implement cave generator (Ben) (look at perlin noise)
 - Add splash & menu screens (Nathan)
 - Change key-bindings (Nathan)
 - Implement lightning & shadows, and light sources from sun, moon?, blocks, (yet to be implemented) objects, ...

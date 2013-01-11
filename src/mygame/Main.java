@@ -52,12 +52,12 @@ public class Main extends SimpleApplication implements ActionListener {
     
     @Override
     public void simpleInitApp() {
-        fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
 
         Texture text = assetManager.loadTexture("Textures/terrain.png");
         //text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
-        fBlockMat.setTexture("ColorMap", text);
+        fBlockMat.setTexture("DiffuseMap", text);
         fBlockMat.setBoolean("SeparateTexCoord", true);
 
         /**
@@ -92,7 +92,6 @@ public class Main extends SimpleApplication implements ActionListener {
         bulletAppState.getPhysicsSpace().add(player);
 
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, fAtlas, bulletAppState);
-        fBlockWorld.getChunk(5, 50, 5, true);
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         setUpdAudio();
         setUpHud();
