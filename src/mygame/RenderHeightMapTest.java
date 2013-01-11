@@ -12,7 +12,7 @@ import javax.swing.JPanel;
 
 /**
  *
- * @author Nathan
+ * @author Nathan & Ben
  */
 public class RenderHeightMapTest {
     

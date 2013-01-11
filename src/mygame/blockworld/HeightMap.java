@@ -26,14 +26,12 @@ public class HeightMap {
     }
 
     public void setHeightMap(int x, int y, Float[][] floatMap) {
-        if (getHeightMap(x, y) == null) {
-            if (fHeightMaps.get(x) != null) {  
-                fHeightMaps.get(x).put(y, floatMap);
-            } else {
-                Map<Integer, Serializable> yMap = new HashMap<Integer, Serializable>();
-                yMap.put(y, floatMap);
-                fHeightMaps.put(x, yMap);
-            }
+        if (fHeightMaps.get(x) != null) {
+            fHeightMaps.get(x).put(y, floatMap);
+        } else {
+            Map<Integer, Serializable> yMap = new HashMap<Integer, Serializable>();
+            yMap.put(y, floatMap);
+            fHeightMaps.put(x, yMap);
         }
     }
 }

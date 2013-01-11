@@ -38,7 +38,7 @@ public class Chunk {
     protected Node fRootNode;
     protected BlockWorld fWorld;
     protected boolean fVisible = false;
-    public int fXC, fYC, fZC;
+    public final int fXC, fYC, fZC;
     protected BulletAppState fPhysicsState;
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
