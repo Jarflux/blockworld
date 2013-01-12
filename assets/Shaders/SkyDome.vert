@@ -78,9 +78,9 @@ sunCoord = inTexCoord;
 float sunTime = (g_Time*(m_SunSpeed*0.1));
 //sunCoord.x += (sunTime*sin((m_SunDirection*(pi/180.0))));
 //sunCoord.y += (sunTime*cos((m_SunDirection*(pi/180.0))));
-a = suntime*2*(pi/180.0);
-sunCoord.x = r * cos(a);
-sunCoord.y = r * sin(a);
+//a = suntime*2*(pi/180.0);
+//sunCoord.x = r * cos(a);
+//sunCoord.y = r * sin(a);
 #endif
 
 #ifdef SEPERATE_TEXCOORD
