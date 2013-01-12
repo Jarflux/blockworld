@@ -88,9 +88,9 @@ public class Main extends SimpleApplication implements ActionListener {
         // The CharacterControl offers extra settings for
         // size, stepheight, jumping, falling, and gravity.
         // We also put the player in its starting position.
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.25f, .75f, 1);
-        player = new CharacterControl(capsuleShape, 0.25f);
-        player.setJumpSpeed(10);
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.25f*4f, .75f*4f, 1);
+        player = new CharacterControl(capsuleShape, 0.25f*4f);
+        player.setJumpSpeed(20);
         player.setFallSpeed(30);
         player.setGravity(30);
         player.setPhysicsLocation(new Vector3f(5, 55, 5));
@@ -202,7 +202,20 @@ public class Main extends SimpleApplication implements ActionListener {
                 CollisionResult closest = results.getClosestCollision();
                 Vector3f contactPoint = closest.getContactPoint();
                 Vector3f contactNormal = closest.getContactNormal();
-                fBlockWorld.removeBlock(Math.round(contactPoint.x - contactNormal.x * .5f), Math.round(contactPoint.y - contactNormal.y * .5f), Math.round(contactPoint.z - contactNormal.z * .5f));
+                int x = Math.round(contactPoint.x - contactNormal.x * .5f);
+                int y = Math.round(contactPoint.y - contactNormal.y * .5f);
+                int z = Math.round(contactPoint.z - contactNormal.z * .5f);
+                //fBlockWorld.removeBlock(Math.round(contactPoint.x - contactNormal.x * .5f), Math.round(contactPoint.y - contactNormal.y * .5f), Math.round(contactPoint.z - contactNormal.z * .5f));
+                int sphereSize = 1;
+                for(int i = -sphereSize; i < sphereSize+1; i++) {
+                    for(int j = -sphereSize; j < sphereSize+1; j++) {
+                        for(int k = -sphereSize; k < sphereSize+1; k++) {
+                            if(Math.round(Math.sqrt(i*i+j*j+k*k)) <= sphereSize) {
+                                fBlockWorld.removeBlock(x+i, y+j, z+k);
+                            }
+                        }
+                    }
+                }
                 audio_removeBlock.playInstance();
             }
         } else if (binding.equals("AddBlock") && value) {
@@ -218,7 +231,20 @@ public class Main extends SimpleApplication implements ActionListener {
                 CollisionResult closest = results.getClosestCollision();
                 Vector3f contactPoint = closest.getContactPoint();
                 Vector3f contactNormal = closest.getContactNormal();
-                fBlockWorld.addBlock(2, Math.round(contactPoint.x + contactNormal.x * .5f), Math.round(contactPoint.y + contactNormal.y * .5f), Math.round(contactPoint.z + contactNormal.z * .5f));
+                int x = Math.round(contactPoint.x - contactNormal.x * .5f);
+                int y = Math.round(contactPoint.y - contactNormal.y * .5f);
+                int z = Math.round(contactPoint.z - contactNormal.z * .5f);
+                //fBlockWorld.addBlock(2, Math.round(contactPoint.x - contactNormal.x * .5f), Math.round(contactPoint.y - contactNormal.y * .5f), Math.round(contactPoint.z - contactNormal.z * .5f));
+                int sphereSize = 1;
+                for(int i = -sphereSize; i < sphereSize+1; i++) {
+                    for(int j = -sphereSize; j < sphereSize+1; j++) {
+                        for(int k = -sphereSize; k < sphereSize+1; k++) {
+                            if(Math.round(Math.sqrt(i*i+j*j+k*k)) <= sphereSize) {
+                                fBlockWorld.addBlock(2, x+i, y+j, z+k);
+                            }
+                        }
+                    }
+                }
                 audio_removeBlock.playInstance();
             }
         } else if (binding.equals("Save") && value) {
@@ -233,8 +259,8 @@ public class Main extends SimpleApplication implements ActionListener {
         Vector3f playerPosition = player.getPhysicsLocation();
         DecimalFormat df = new DecimalFormat("0.000");
         hudPosition.setText("Position:\nx:" + df.format(playerPosition.x) + "\ny:" + df.format(playerPosition.y) + "\nz:" + df.format(playerPosition.z));
-        Vector3f camDir = cam.getDirection().clone().multLocal(0.1f);
-        Vector3f camLeft = cam.getLeft().clone().multLocal(0.065f);
+        Vector3f camDir = cam.getDirection().clone().multLocal(0.1f*4f);
+        Vector3f camLeft = cam.getLeft().clone().multLocal(0.065f*4f);
         camDir.y = 0;
         camLeft.y = 0;
         walkDirection.set(0, 0, 0);
@@ -252,7 +278,7 @@ public class Main extends SimpleApplication implements ActionListener {
         }
         player.setWalkDirection(walkDirection);
         Vector3f camPos = player.getPhysicsLocation();
-        camPos.y = camPos.y + .75f;
+        camPos.y = camPos.y + .75f*4f;
         cam.setLocation(camPos);
         listener.setLocation(cam.getLocation());
 
