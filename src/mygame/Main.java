@@ -66,7 +66,7 @@ public class Main extends SimpleApplication implements ActionListener {
         fBlockMat.setTexture("DiffuseMap", text);
         //fBlockMat.setBoolean("UseVertexColor", true);
         
-        fBlockMat.setBoolean("SeparateTexCoord", true);
+        //fBlockMat.setBoolean("SeparateTexCoord", true);
 
         /**
          * Set up Physics
@@ -108,11 +108,11 @@ public class Main extends SimpleApplication implements ActionListener {
     private void setUpLight() {
         // We add light so we see the scene
         AmbientLight al = new AmbientLight();
-        al.setColor(ColorRGBA.Orange.mult(.8f));
+        al.setColor(ColorRGBA.Orange.mult(.90f));
         rootNode.addLight(al);
         rootNode.setShadowMode(ShadowMode.CastAndReceive);
 
-        fShadowRenderer = new PssmShadowRenderer(assetManager, 1024, 4);
+        fShadowRenderer = new PssmShadowRenderer(assetManager, 512, 4);
         fShadowRenderer.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal()); // light direction
         fShadowRenderer.setFilterMode(PssmShadowRenderer.FilterMode.Bilinear);
         fShadowRenderer.setEdgesThickness(-10);
@@ -131,11 +131,11 @@ public class Main extends SimpleApplication implements ActionListener {
         //fSpatial.addControl(lightControl);     
 
         DirectionalLight sun = new DirectionalLight();
-        sun.setColor(ColorRGBA.White.mult(0.8f));
+        sun.setColor(ColorRGBA.White.mult(0.9f));
         sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
         rootNode.addLight(sun);
         DirectionalLight sun2 = new DirectionalLight();
-        sun2.setColor(ColorRGBA.White.mult(0.7f));
+        sun2.setColor(ColorRGBA.White.mult(0.55f));
         sun2.setDirection(new Vector3f(.5f, -.5f, .5f).normalizeLocal());
         rootNode.addLight(sun2);
 
