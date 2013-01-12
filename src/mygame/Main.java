@@ -77,7 +77,7 @@ public class Main extends SimpleApplication implements ActionListener {
         */
         fBlockMat.setColor("Color", ColorRGBA.Green);
         fBlockMat.getAdditionalRenderState().setWireframe(true);
-        fBlockMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        //fBlockMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
         
         //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.png"));
         //fBlockMat.setColor("Color", ColorRGBA.Green);

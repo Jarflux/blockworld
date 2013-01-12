@@ -49,7 +49,7 @@ public class MarchingCubes implements MeshCreator{
             for(iVertex = 0; iVertex < 8; iVertex++) {
                     afCubeValue[iVertex] = world.get(x + a2fVertexOffset[iVertex][0],
                                                 y + a2fVertexOffset[iVertex][1],
-                                                z + a2fVertexOffset[iVertex][2])
+                                                z + a2fVertexOffset[iVertex][2], true)
                                                 != null;
             }
 
@@ -126,9 +126,18 @@ public class MarchingCubes implements MeshCreator{
                     }
                     
                     for(iCorner = 0; iCorner < 3; iCorner++) {
-                            iVertex = a2iTriangleConnectionTable[iFlagIndex][3*iTriangle+iCorner];
-                            meshPart.indices[index] = mapping[iVertex];
-                            index++;
+                        int cornerVal;
+                        if(iCorner == 0) {
+                            cornerVal = 1;
+                        }else if(iCorner == 1) {
+                            cornerVal = 0;
+                        }else{
+                            cornerVal = iCorner;
+                        }
+                        
+                        iVertex = a2iTriangleConnectionTable[iFlagIndex][3*iTriangle+cornerVal];
+                        meshPart.indices[index] = mapping[iVertex];
+                        index++;
                     }
             }
             return meshPart;
