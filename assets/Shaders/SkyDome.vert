@@ -37,7 +37,7 @@ varying vec2 moonCoord;
 #ifdef HAS_SUN
 uniform float m_SunSpeed;
 uniform float m_SunDirection;
-varying vec2 SunCoord;
+varying vec2 sunCoord;
 #endif
  
 #ifdef HAS_VERTEXCOLOR
@@ -68,16 +68,19 @@ cloudCoord2.y += (cloudTime2*cos((m_CloudDirection2*(pi/180.0))));
  
 #ifdef HAS_MOON
 moonCoord = inTexCoord;
-float time = (g_Time*(m_MoonSpeed*0.1));
-moonCoord.x += (time*sin((m_MoonDirection*(pi/180.0))));
-moonCoord.y += (time*cos((m_MoonDirection*(pi/180.0))));
+float moonTime = (g_Time*(m_MoonSpeed*0.1));
+moonCoord.x += (moonTime*sin((m_MoonDirection*(pi/180.0))));
+moonCoord.y += (moonTime*cos((m_MoonDirection*(pi/180.0))));
 #endif
  
 #ifdef HAS_SUN
 sunCoord = inTexCoord;
-float time = (g_Time*(m_SunSpeed*0.1));
-sunCoord.x += (time*sin((m_SunDirection*(pi/180.0))));
-sunCoord.y += (time*cos((m_SunDirection*(pi/180.0))));
+float sunTime = (g_Time*(m_SunSpeed*0.1));
+//sunCoord.x += (sunTime*sin((m_SunDirection*(pi/180.0))));
+//sunCoord.y += (sunTime*cos((m_SunDirection*(pi/180.0))));
+a = suntime*2*(pi/180.0);
+sunCoord.x = r * cos(a);
+sunCoord.y = r * sin(a);
 #endif
 
 #ifdef SEPERATE_TEXCOORD

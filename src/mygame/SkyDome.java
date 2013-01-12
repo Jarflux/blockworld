@@ -43,7 +43,7 @@ public class SkyDome implements Control {
     private ColorRGBA sunNightLight = new ColorRGBA(.45f, .45f, .45f, 1f);
     private boolean controlFog = false;
     private boolean controlSun = false;
-    private String model, nightSkyMap, moonMap, cloudsMap, fogAlphaMap;
+    private String model, nightSkyMap, moonMap, sunMap,cloudsMap, fogAlphaMap;
     private boolean cycleCI = false, cycleCO = false;
     private float cloudMaxAlpha = 1f, cloudMinAlpha = 0f, cloudsAlpha = 1;
     private float cloudCycleSpeed = .125f;
@@ -53,6 +53,8 @@ public class SkyDome implements Control {
     private float cloud2Speed = .035f;
     private float moonRotation = 75f;
     private float moonSpeed = 0.1f; //.0185f;
+    private float sunRotation = 75f;
+    private float sunSpeed = 0.8f; //.0185f;
     private boolean isDay = true; // false
     private boolean cycleN2D =  true, cycleD2N = false; //false, true
     private float dayAlpha = 0.5f; // 0
@@ -61,7 +63,7 @@ public class SkyDome implements Control {
     private ColorRGBA fogNightColor = new ColorRGBA(0.3f, 0.3f, 0.3f, 0.6f);
     private ColorRGBA dayColor = new ColorRGBA(.7f, .7f, 1.0f, 1.0f);
     private ColorRGBA nightColor = new ColorRGBA(.4f, .3f, .6f, 1.0f);
-    private Texture tex_SkyNight, tex_Moon, tex_FogAlpha, tex_Clouds;
+    private Texture tex_SkyNight, tex_Moon, tex_Sun, tex_FogAlpha, tex_Clouds;
     private Material mat_Sky;
 
     /**
@@ -78,13 +80,14 @@ public class SkyDome implements Control {
      * @param fogAlphaMap The string value of the texture asset for the blending
      * alpha map for fog coloring
      */
-    public SkyDome(AssetManager assetManager, Camera cam, String model, String nightSkyMap, String moonMap, String cloudsMap, String fogAlphaMap) {
+    public SkyDome(AssetManager assetManager, Camera cam, String model, String nightSkyMap, String moonMap, String sunMap,String cloudsMap, String fogAlphaMap) {
         this.assetManager = assetManager;
         this.cam = cam;
 
         this.model = model;
         this.nightSkyMap = nightSkyMap;
         this.moonMap = moonMap;
+        this.sunMap = sunMap;
         this.cloudsMap = cloudsMap;
         this.fogAlphaMap = fogAlphaMap;
 
@@ -104,6 +107,13 @@ public class SkyDome implements Control {
             tex_Moon.setMagFilter(MagFilter.Bilinear);
             tex_Moon.setWrap(WrapMode.Repeat);
         }
+        
+        if (sunMap != null) {
+            tex_Sun = assetManager.loadTexture(sunMap);
+            tex_Sun.setMinFilter(MinFilter.BilinearNearestMipMap);
+            tex_Sun.setMagFilter(MagFilter.Bilinear);
+            tex_Sun.setWrap(WrapMode.Repeat);
+        }
 
         tex_Clouds = assetManager.loadTexture(cloudsMap);
         tex_Clouds.setMinFilter(MinFilter.BilinearNoMipMaps);
@@ -116,6 +126,11 @@ public class SkyDome implements Control {
             mat_Sky.setTexture("MoonMap", tex_Moon);
             mat_Sky.setFloat("MoonDirection", moonRotation);
             mat_Sky.setFloat("MoonSpeed", moonSpeed);
+        }
+        if (sunMap != null) {
+            mat_Sky.setTexture("SunMap", tex_Sun);
+            mat_Sky.setFloat("SunDirection", sunRotation);
+            mat_Sky.setFloat("SunSpeed", sunSpeed);
         }
         mat_Sky.setColor("ColorDay", dayColor);
         mat_Sky.setColor("ColorNight", nightColor);
@@ -611,7 +626,6 @@ public class SkyDome implements Control {
 // Day/Night Cycle
             if (cycleN2D) {
                 if (dayAlpha < 1.0f) {
-                    System.out.println("DayAlpha:" + dayAlpha);
                     dayAlpha += tpf * cycleSpeed;
                     mat_Sky.setFloat("Alpha", dayAlpha);
                     if (fog != null && controlFog) {
@@ -636,7 +650,6 @@ public class SkyDome implements Control {
                 }
             } else if (cycleD2N) {
                 if (dayAlpha > 0.0f) {
-                    System.out.println("DayAlpha:" + dayAlpha);
                     dayAlpha -= tpf * cycleSpeed;
                     mat_Sky.setFloat("Alpha", dayAlpha);
                     if (fog != null && controlFog) {
@@ -692,6 +705,7 @@ public class SkyDome implements Control {
                 this.model,
                 this.nightSkyMap,
                 this.moonMap,
+                this.sunMap,
                 this.cloudsMap,
                 this.fogAlphaMap);
         control.spatial.addControl(control);

@@ -27,6 +27,11 @@ varying vec2 cloudCoord2;
 uniform sampler2D m_MoonMap;
 varying vec2 moonCoord;
 #endif
+
+#ifdef HAS_SUN
+uniform sampler2D m_SunMap;
+varying vec2 sunCoord;
+#endif
  
 #ifdef HAS_COLORRAMP1
 uniform vec4 m_CloudColorRamp1;
@@ -59,10 +64,15 @@ color *= vertColor;
 vec4 moon = texture2D(m_MoonMap, moonCoord);
 color = mix(color, moon, moon.a);
 #endif
- 
+
 vec4 fColor = mix(m_ColorNight, m_ColorDay, m_Alpha);
 color = mix(color, fColor, m_Alpha);
 vec4 fogColor = mix(m_FogNightColor, m_FogColor, m_Alpha);
+
+#ifdef HAS_SUN
+vec4 sun = texture2D(m_SunMap, sunCoord);
+color = mix(color, sun, sun.a);
+#endif
  
 vec4 c_Color;
 #if defined(HAS_COLORRAMP1) || defined(HAS_COLORRAMP2)
