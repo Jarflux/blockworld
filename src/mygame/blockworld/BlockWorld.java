@@ -149,7 +149,11 @@ public class BlockWorld {
     }
     
     public Integer get(int x, int y, int z) {
-        Chunk cnk = getChunk(x, y, z, false);
+        return get(x, y, z, false);
+    }
+    
+    public Integer get(int x, int y, int z, boolean createChunk) {
+        Chunk cnk = getChunk(x, y, z, createChunk);
         if (cnk != null) {
             return cnk.get(x, y, z);
         }

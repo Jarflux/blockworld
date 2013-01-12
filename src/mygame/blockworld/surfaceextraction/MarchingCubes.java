@@ -19,17 +19,6 @@ import mygame.blockworld.Chunk;
  */
 public class MarchingCubes implements MeshCreator{
     
-    //fGetOffset finds the approximate point of intersection of the surface
-    // between two points with the values fValue1 and fValue2
-    private static float getOffset(boolean fValue1, boolean fValue2)
-    {
-        if(fValue1 == fValue2) {
-            return 0f;
-        }else{
-            return 0.5f;
-        }
-    }
-    
     //vGetNormal() finds the gradient of the scalar field at a point
     //This gradient can be used as a very accurate vertx normal for lighting calculations
     private static Vector3f getNormal(BlockWorld world, int x, int y, int z)
@@ -49,7 +38,8 @@ public class MarchingCubes implements MeshCreator{
     
     //Performs the Marching Cubes algorithm on a single cube
     private static MeshPart marchCube(BlockWorld world, int x, int y, int z, int scale) {
-            int iCorner, iVertex, iVertexTest, iEdge, iTriangle, iFlagIndex, iEdgeFlags;
+            int iCorner, iVertex, iVertexTest, iEdge, iTriangle, iEdgeFlags;
+            char iFlagIndex;
             float fOffset;
             boolean[] afCubeValue = new boolean[8];
             Vector3f[] asEdgeVertex = new Vector3f[12];
@@ -61,6 +51,7 @@ public class MarchingCubes implements MeshCreator{
                                                 y + a2fVertexOffset[iVertex][1],
                                                 z + a2fVertexOffset[iVertex][2])
                                                 != null;
+                    System.out.println("Setting corner[" + iVertex + "] = " + afCubeValue[iVertex]);
             }
 
             //Find which vertices are inside of the surface and which are outside
@@ -76,7 +67,7 @@ public class MarchingCubes implements MeshCreator{
 
             //If the cube is entirely inside or outside of the surface, then there will be no intersections
             if(iEdgeFlags == 0) {
-                    return null;
+                return null;
             }
 
             //Find the point of intersection of the surface with each edge
@@ -84,9 +75,9 @@ public class MarchingCubes implements MeshCreator{
             for(iEdge = 0; iEdge < 12; iEdge++)
             {
                     //if there is an intersection on this edge
-                    if((iEdgeFlags & (1<<iEdge)) == 0) {
-                            fOffset = getOffset(afCubeValue[ a2iEdgeConnection[iEdge][0] ], afCubeValue[ a2iEdgeConnection[iEdge][1] ]);
-
+                    if((iEdgeFlags & (1<<iEdge)) == (1<<iEdge)) {
+                            fOffset = .5f;//getOffset(afCubeValue[ a2iEdgeConnection[iEdge][0] ], afCubeValue[ a2iEdgeConnection[iEdge][1] ]);
+                            
                             asEdgeVertex[iEdge] = new Vector3f();
                             asEdgeVertex[iEdge].x = x + (a2fVertexOffset[ a2iEdgeConnection[iEdge][0] ][0]  +  fOffset * a2fEdgeDirection[iEdge][0]) * scale;
                             asEdgeVertex[iEdge].y = y + (a2fVertexOffset[ a2iEdgeConnection[iEdge][0] ][1]  +  fOffset * a2fEdgeDirection[iEdge][1]) * scale;
@@ -111,12 +102,13 @@ public class MarchingCubes implements MeshCreator{
             for(int i = 0; i < 12; i++) {
                 if(asEdgeVertex[i] != null) {
                     meshPart.vertices[index] = asEdgeVertex[i];
+                    System.out.println("Added vertex[" + i + "] = " + asEdgeVertex[i].x + ", " + asEdgeVertex[i].y + ", " + asEdgeVertex[i].z);
                     meshPart.normals[index] = asEdgeNorm[i];
                     mapping[i] = index;
                     index++;
                 }
             }
-            
+            System.out.println("X = " + x + ", Y = " + y + ", Z = " + z + ", FlagIndex = " + (int)iFlagIndex + ", NrVertices = " + nrVertices + ", index = " + index);
             int nrTriangles = 0;
             //Calculate number of triangles that were found.  There can be up to five per cube
             for(iTriangle = 0; iTriangle < 5; iTriangle++)
@@ -140,6 +132,10 @@ public class MarchingCubes implements MeshCreator{
                             iVertex = a2iTriangleConnectionTable[iFlagIndex][3*iTriangle+iCorner];
                             meshPart.indices[index] = mapping[iVertex];
                             index++;
+                            System.out.println("Triangle point " + iCorner + ": index = " + iVertex + ", mapping = " + mapping[iVertex] + ", vertex = " + asEdgeVertex[iVertex]);
+                            if(asEdgeVertex[iVertex] != null) {
+                                System.out.println("Triangle point " + iCorner + ", index = " + iVertex + ": " + asEdgeVertex[iVertex].x + "." + asEdgeVertex[iVertex].y + "." + asEdgeVertex[iVertex].z);
+                            }
                     }
             }
             return meshPart;
@@ -178,6 +174,9 @@ public class MarchingCubes implements MeshCreator{
                 indices[indicesIndex] = meshPart.indices[i];
                 indicesIndex++;
             }
+            //System.out.println("Triangle point 0 :" + meshPart.indices[0]);
+            //System.out.println("Triangle point 1 :" + meshPart.indices[1]);
+            //System.out.println("Triangle point 2 :" + meshPart.indices[2]);
         }
         Mesh mesh = new Mesh();
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
