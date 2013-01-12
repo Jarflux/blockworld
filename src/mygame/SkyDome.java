@@ -48,14 +48,14 @@ public class SkyDome implements Control {
     private float cloudMaxAlpha = 1f, cloudMinAlpha = 0f, cloudsAlpha = 1;
     private float cloudCycleSpeed = .125f;
     private float cloud1Rotation = FastMath.HALF_PI + 0.02f;
-    private float cloud1Speed = .025f;
+    private float cloud1Speed = .0175f;
     private float cloud2Rotation = FastMath.HALF_PI + 0.023f;
-    private float cloud2Speed = .05f;
+    private float cloud2Speed = .035f;
     private float moonRotation = 75f;
-    private float moonSpeed = 0.185f; //.0185f;
+    private float moonSpeed = 0.1f; //.0185f;
     private boolean isDay = true; // false
     private boolean cycleN2D =  true, cycleD2N = false; //false, true
-    private float dayAlpha = 1; // 0
+    private float dayAlpha = 0.5f; // 0
     private float cycleSpeed = .125f;
     private ColorRGBA fogColor = new ColorRGBA(0.85f, 0.85f, 0.85f, 0.75f);//new ColorRGBA(0.7f, 0.7f, 0.7f, 0.6f);
     private ColorRGBA fogNightColor = new ColorRGBA(0.3f, 0.3f, 0.3f, 0.6f);
@@ -608,10 +608,10 @@ public class SkyDome implements Control {
             Vector3f camLoc = cam.getLocation();
             float[] camLF = camLoc.toArray(null);
             spatial.setLocalTranslation(camLF[0], camLF[1] + .25f, camLF[2]);
-
 // Day/Night Cycle
             if (cycleN2D) {
                 if (dayAlpha < 1.0f) {
+                    System.out.println("DayAlpha:" + dayAlpha);
                     dayAlpha += tpf * cycleSpeed;
                     mat_Sky.setFloat("Alpha", dayAlpha);
                     if (fog != null && controlFog) {
@@ -632,10 +632,12 @@ public class SkyDome implements Control {
                         sun.setColor(sunDayLight);
                     }
                     cycleN2D = false;
+                    cycleD2N = true;
                 }
             } else if (cycleD2N) {
                 if (dayAlpha > 0.0f) {
-                    dayAlpha -= tpf + cycleSpeed;
+                    System.out.println("DayAlpha:" + dayAlpha);
+                    dayAlpha -= tpf * cycleSpeed;
                     mat_Sky.setFloat("Alpha", dayAlpha);
                     if (fog != null && controlFog) {
                         viewPort.setBackgroundColor(mix(fogNightColor, fogColor, dayAlpha));
@@ -655,6 +657,7 @@ public class SkyDome implements Control {
                         sun.setColor(sunNightLight);
                     }
                     cycleD2N = false;
+                    cycleN2D = true;
                 }
             }
 
