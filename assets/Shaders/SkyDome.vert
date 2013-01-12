@@ -33,6 +33,12 @@ uniform float m_MoonSpeed;
 uniform float m_MoonDirection;
 varying vec2 moonCoord;
 #endif
+
+#ifdef HAS_SUN
+uniform float m_SunSpeed;
+uniform float m_SunDirection;
+varying vec2 SunCoord;
+#endif
  
 #ifdef HAS_VERTEXCOLOR
 attribute vec4 inColor;
@@ -44,7 +50,7 @@ const float pi = 3.14159;
 void main(){
 texCoord1 = inTexCoord;
  
-cycleTime = mod(g_Time,100.0);//* m_CycleSpeed 100;
+cycleTime = mod(g_Time,100.0);
  
 #ifdef HAS_CLOUDS1
 cloudCoord1 = inTexCoord;
@@ -67,6 +73,13 @@ moonCoord.x += (time*sin((m_MoonDirection*(pi/180.0))));
 moonCoord.y += (time*cos((m_MoonDirection*(pi/180.0))));
 #endif
  
+#ifdef HAS_SUN
+sunCoord = inTexCoord;
+float time = (g_Time*(m_SunSpeed*0.1));
+sunCoord.x += (time*sin((m_SunDirection*(pi/180.0))));
+sunCoord.y += (time*cos((m_SunDirection*(pi/180.0))));
+#endif
+
 #ifdef SEPERATE_TEXCOORD
 texCoord2 = inTexCoord2;
 #endif
