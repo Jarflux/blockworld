@@ -12,6 +12,7 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
@@ -59,10 +60,11 @@ public class Main extends SimpleApplication implements ActionListener {
     @Override
     public void simpleInitApp() {
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
-        //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
+        fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         
+        /*
         Texture text = assetManager.loadTexture("Textures/terrain.png");
         text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
@@ -72,7 +74,11 @@ public class Main extends SimpleApplication implements ActionListener {
         //fBlockMat.setBoolean("UseMaterialColors",true);
         fBlockMat.setBoolean("WardIso",true);
         fBlockMat.setBoolean("SeparateTexCoord", true);
-
+        */
+        //fBlockMat.setColor("Color", ColorRGBA.Green);
+        fBlockMat.getAdditionalRenderState().setWireframe(true);
+        fBlockMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+        
         //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.png"));
         //fBlockMat.setColor("Color", ColorRGBA.Green);
         
@@ -100,9 +106,10 @@ public class Main extends SimpleApplication implements ActionListener {
         player = new CharacterControl(capsuleShape, 0.25f * 4f);
         player.setJumpSpeed(15);
         player.setFallSpeed(30);
-        player.setGravity(30);
-        player.setPhysicsLocation(new Vector3f(5, 55, 5));
-        
+        //player.setGravity(30);
+        player.setGravity(0);
+        //player.setPhysicsLocation(new Vector3f(5, 55, 5));
+        player.setPhysicsLocation(new Vector3f(0, 5, 0));
 
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
