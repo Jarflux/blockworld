@@ -2,18 +2,21 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package mygame.blockworld;
+package mygame.blockworld.chunkgenerators;
 
 import com.jme3.terrain.noise.basis.ImprovedNoise;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import mygame.blockworld.BlockWorld;
+import mygame.blockworld.Chunk;
+import mygame.blockworld.HeightMap;
 
 /**
  *
  * @author Nathan & Ben
  */
-public class ChunkGenerator {
+public class LandscapeChunkGenerator implements ChunkGenerator {
 
     private Random fRandom;
     private Float[][] fChunkMap;
@@ -24,12 +27,12 @@ public class ChunkGenerator {
     private float fNoiseZ = 10f;
     private float fMinLocalRoughness = 2f;
 
-    public ChunkGenerator() {
+    public LandscapeChunkGenerator() {
         fRandom = new Random();
     }
 
-    public void fillChunk(Chunk cnk) {
-        fHeightMap = cnk.fWorld.getHeightMap("detail");
+    public void fillChunk(BlockWorld world, Chunk cnk) {
+        fHeightMap = world.getHeightMap("detail");
         int offset = Chunk.CHUNK_SIZE;
         fChunkMap = new Float[offset + 1][offset + 1];
         

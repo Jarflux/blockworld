@@ -18,10 +18,8 @@ import com.jme3.math.Vector3f;
 import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
-import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.jme3.shadow.BasicShadowRenderer;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.texture.Texture;
 import java.text.DecimalFormat;
@@ -60,10 +58,11 @@ public class Main extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleInitApp() {
+        //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
-
+        
         Texture text = assetManager.loadTexture("Textures/terrain.png");
         text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
@@ -74,6 +73,9 @@ public class Main extends SimpleApplication implements ActionListener {
         fBlockMat.setBoolean("WardIso",true);
         fBlockMat.setBoolean("SeparateTexCoord", true);
 
+        //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.png"));
+        //fBlockMat.setColor("Color", ColorRGBA.Green);
+        
         /**
          * Set up Physics
          */
@@ -83,7 +85,7 @@ public class Main extends SimpleApplication implements ActionListener {
 
         // We re-use the flyby camera for rotation, while positioning is handled by physics
         //viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
-        flyCam.setMoveSpeed(.01f);
+        flyCam.setMoveSpeed(10f);
         cam.setFrustumPerspective(45f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 1000f);
         setUpKeys();
         setUpLight();
@@ -96,7 +98,7 @@ public class Main extends SimpleApplication implements ActionListener {
         // We also put the player in its starting position.
         CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.25f * 4f, .75f * 4f, 1);
         player = new CharacterControl(capsuleShape, 0.25f * 4f);
-        player.setJumpSpeed(20);
+        player.setJumpSpeed(15);
         player.setFallSpeed(30);
         player.setGravity(30);
         player.setPhysicsLocation(new Vector3f(5, 55, 5));
@@ -105,8 +107,11 @@ public class Main extends SimpleApplication implements ActionListener {
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
         bulletAppState.getPhysicsSpace().add(player);
-
+        //cam.setLocation(new Vector3f(0, 30, 0));
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, fAtlas, bulletAppState);
+        /*Chunk cnk = fBlockWorld.getChunk(0, 0, 0, true, true);
+        cnk.setVisible(true);
+        cnk.update();*/
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         setUpdAudio();
         setUpHud();
@@ -330,7 +335,8 @@ public class Main extends SimpleApplication implements ActionListener {
         camPos.y = camPos.y + .75f * 4f;
         cam.setLocation(camPos);
         listener.setLocation(cam.getLocation());
-
+        
+        //Vector3f camPos = cam.getLocation();
         fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.y), Math.round(camPos.z));
     }
 
