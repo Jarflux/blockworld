@@ -59,10 +59,10 @@ public class Main extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleInitApp() {
-        //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
-        fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
+        //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         
         /*
         Texture text = assetManager.loadTexture("Textures/terrain.png");
@@ -75,7 +75,7 @@ public class Main extends SimpleApplication implements ActionListener {
         fBlockMat.setBoolean("WardIso",true);
         fBlockMat.setBoolean("SeparateTexCoord", true);
         */
-        //fBlockMat.setColor("Color", ColorRGBA.Green);
+        fBlockMat.setColor("Color", ColorRGBA.Green);
         fBlockMat.getAdditionalRenderState().setWireframe(true);
         fBlockMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
         

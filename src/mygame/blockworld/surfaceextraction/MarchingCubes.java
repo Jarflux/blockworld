@@ -51,7 +51,6 @@ public class MarchingCubes implements MeshCreator{
                                                 y + a2fVertexOffset[iVertex][1],
                                                 z + a2fVertexOffset[iVertex][2])
                                                 != null;
-                    System.out.println("Setting corner[" + iVertex + "] = " + afCubeValue[iVertex]);
             }
 
             //Find which vertices are inside of the surface and which are outside
@@ -102,13 +101,11 @@ public class MarchingCubes implements MeshCreator{
             for(int i = 0; i < 12; i++) {
                 if(asEdgeVertex[i] != null) {
                     meshPart.vertices[index] = asEdgeVertex[i];
-                    System.out.println("Added vertex[" + i + "] = " + asEdgeVertex[i].x + ", " + asEdgeVertex[i].y + ", " + asEdgeVertex[i].z);
                     meshPart.normals[index] = asEdgeNorm[i];
                     mapping[i] = index;
                     index++;
                 }
             }
-            System.out.println("X = " + x + ", Y = " + y + ", Z = " + z + ", FlagIndex = " + (int)iFlagIndex + ", NrVertices = " + nrVertices + ", index = " + index);
             int nrTriangles = 0;
             //Calculate number of triangles that were found.  There can be up to five per cube
             for(iTriangle = 0; iTriangle < 5; iTriangle++)
@@ -132,10 +129,6 @@ public class MarchingCubes implements MeshCreator{
                             iVertex = a2iTriangleConnectionTable[iFlagIndex][3*iTriangle+iCorner];
                             meshPart.indices[index] = mapping[iVertex];
                             index++;
-                            System.out.println("Triangle point " + iCorner + ": index = " + iVertex + ", mapping = " + mapping[iVertex] + ", vertex = " + asEdgeVertex[iVertex]);
-                            if(asEdgeVertex[iVertex] != null) {
-                                System.out.println("Triangle point " + iCorner + ", index = " + iVertex + ": " + asEdgeVertex[iVertex].x + "." + asEdgeVertex[iVertex].y + "." + asEdgeVertex[iVertex].z);
-                            }
                     }
             }
             return meshPart;
@@ -165,18 +158,15 @@ public class MarchingCubes implements MeshCreator{
         int verticesIndex = 0;
         int indicesIndex = 0;
         for(MeshPart meshPart : meshParts) {
+            for(int i = 0; i < meshPart.indices.length; i++) {
+                indices[indicesIndex] = verticesIndex + meshPart.indices[i];
+                indicesIndex++;
+            }
             for(int i = 0; i < meshPart.vertices.length; i++) {
                 vertices[verticesIndex] = meshPart.vertices[i];
                 normals[verticesIndex] = meshPart.normals[i];
                 verticesIndex++;
             }
-            for(int i = 0; i < meshPart.indices.length; i++) {
-                indices[indicesIndex] = meshPart.indices[i];
-                indicesIndex++;
-            }
-            //System.out.println("Triangle point 0 :" + meshPart.indices[0]);
-            //System.out.println("Triangle point 1 :" + meshPart.indices[1]);
-            //System.out.println("Triangle point 2 :" + meshPart.indices[2]);
         }
         Mesh mesh = new Mesh();
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
