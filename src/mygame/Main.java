@@ -158,6 +158,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 "Models/Skies/SkyDome.j3o",
                 "Textures/Skies/SkyNight_L.png",
                 "Textures/Skies/Moon_L.png", 
+                "Textures/Skies/Sun_L.png",
                 "Textures/Skies/Clouds_L.png", 
                 "Textures/Skies/Fog_Alpha.png");
         Node sky = new Node();
