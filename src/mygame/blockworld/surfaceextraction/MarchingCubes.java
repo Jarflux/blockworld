@@ -4,6 +4,7 @@
  */
 package mygame.blockworld.surfaceextraction;
 
+import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer;
@@ -163,6 +164,7 @@ public class MarchingCubes implements MeshCreator{
         }
         Vector3f[] vertices = new Vector3f[meshVertices];
         Vector3f[] normals = new Vector3f[meshVertices];
+        
         int[] indices = new int[meshIndices];
         int verticesIndex = 0;
         int indicesIndex = 0;
@@ -177,9 +179,17 @@ public class MarchingCubes implements MeshCreator{
                 verticesIndex++;
             }
         }
+        Vector2f[] texCoords = new Vector2f[meshVertices];
+        for(int i = 0; i < meshVertices-3; i+=4) {
+            texCoords[i] = new Vector2f(0, 0);
+            texCoords[i+1] = new Vector2f(0, 1);
+            texCoords[i+2] = new Vector2f(1, 1);
+            texCoords[i+3] = new Vector2f(1, 0);
+        }
         Mesh mesh = new Mesh();
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
-        mesh.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normals));       
+        mesh.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normals));
+        mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(texCoords));   
         mesh.setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createIntBuffer(indices));
         mesh.updateCounts();
         mesh.updateBound();

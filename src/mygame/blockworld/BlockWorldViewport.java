@@ -34,6 +34,7 @@ public class BlockWorldViewport {
         if( (x / Chunk.CHUNK_SIZE != fX / Chunk.CHUNK_SIZE) ||
                 (y / Chunk.CHUNK_SIZE != fY / Chunk.CHUNK_SIZE) ||
                 (z / Chunk.CHUNK_SIZE != fZ / Chunk.CHUNK_SIZE) ) {
+            long start = System.nanoTime();
             List<Chunk> previousChunks = fShown;
             fShown = new ArrayList<Chunk>(VIEW_HEIGHT * VIEW_LENGTH * VIEW_WIDTH);
             int xC = x / Chunk.CHUNK_SIZE;
@@ -55,6 +56,8 @@ public class BlockWorldViewport {
             for(Chunk cnk : previousChunks) {
                 cnk.setVisible(false);
             }
+            long end = System.nanoTime();
+            System.out.println("Visual update took : " + (end - start));
         }
         fX = x;
         fY = y;
