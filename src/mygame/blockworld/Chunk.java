@@ -20,9 +20,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import mygame.MathUtil;
 import mygame.blockworld.chunkgenerators.ChunkGenerator;
-import mygame.blockworld.chunkgenerators.FlatTerrainGenerator;
 import mygame.blockworld.surfaceextraction.BasicTriangulation;
-import mygame.blockworld.surfaceextraction.MarchingCubes;
 import mygame.blockworld.surfaceextraction.MeshCreator;
 
 /**
@@ -44,7 +42,7 @@ public class Chunk {
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
-    protected ChunkGenerator fChunkGenerator = new FlatTerrainGenerator();
+    protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
     protected MeshCreator fMeshCreator = new BasicTriangulation();
     
     public Chunk(BlockWorld world, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
