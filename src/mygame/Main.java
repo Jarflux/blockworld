@@ -15,8 +15,12 @@ import com.jme3.material.Material;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.shadow.BasicShadowRenderer;
 import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.texture.Texture;
@@ -61,12 +65,14 @@ public class Main extends SimpleApplication implements ActionListener {
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
 
         Texture text = assetManager.loadTexture("Textures/terrain.png");
-        //text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
         fBlockMat.setTexture("DiffuseMap", text);
-        //fBlockMat.setBoolean("UseVertexColor", true);
-        
-        //fBlockMat.setBoolean("SeparateTexCoord", true);
+        fBlockMat.setBoolean("VertexLighting", true);
+        fBlockMat.setBoolean("HighQuality", true);
+        //fBlockMat.setBoolean("UseMaterialColors",true);
+        fBlockMat.setBoolean("WardIso",true);
+        fBlockMat.setBoolean("SeparateTexCoord", true);
 
         /**
          * Set up Physics
@@ -76,7 +82,7 @@ public class Main extends SimpleApplication implements ActionListener {
         //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // We re-use the flyby camera for rotation, while positioning is handled by physics
-        viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
+        //viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
         flyCam.setMoveSpeed(.01f);
         cam.setFrustumPerspective(45f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 1000f);
         setUpKeys();
@@ -88,12 +94,13 @@ public class Main extends SimpleApplication implements ActionListener {
         // The CharacterControl offers extra settings for
         // size, stepheight, jumping, falling, and gravity.
         // We also put the player in its starting position.
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.25f*4f, .75f*4f, 1);
-        player = new CharacterControl(capsuleShape, 0.25f*4f);
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.25f * 4f, .75f * 4f, 1);
+        player = new CharacterControl(capsuleShape, 0.25f * 4f);
         player.setJumpSpeed(20);
         player.setFallSpeed(30);
         player.setGravity(30);
         player.setPhysicsLocation(new Vector3f(5, 55, 5));
+        
 
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
@@ -108,36 +115,78 @@ public class Main extends SimpleApplication implements ActionListener {
     private void setUpLight() {
         // We add light so we see the scene
         AmbientLight al = new AmbientLight();
-        al.setColor(ColorRGBA.Orange.mult(.90f));
+        al.setColor(ColorRGBA.White.mult(1.5f));
         rootNode.addLight(al);
-        rootNode.setShadowMode(ShadowMode.CastAndReceive);
+//        rootNode.setShadowMode(ShadowMode.Receive);
+//
+//        fShadowRenderer = new PssmShadowRenderer(assetManager, 512, 4);
+//        fShadowRenderer.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal()); // light direction
+//        fShadowRenderer.setFilterMode(PssmShadowRenderer.FilterMode.Bilinear);
+//        //fShadowRenderer.setEdgesThickness(-10);
+//        fShadowRenderer.setShadowIntensity(0.35f);
+//        viewPort.addProcessor(fShadowRenderer);
+//
+//        //FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+//        //SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.61f);
+//        //fpp.addFilter(ssaoFilter);
+//        //viewPort.addProcessor(fpp);
+//
+//        //PointLight myLight = new PointLight();
+//        //rootNode.addLight(myLight);
+//        //LightControl lightControl = new LightControl(myLight);
+//        //fSpatial =  new Spatial(); 
+//        //fSpatial.addControl(lightControl);     
 
-        fShadowRenderer = new PssmShadowRenderer(assetManager, 512, 4);
-        fShadowRenderer.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal()); // light direction
-        fShadowRenderer.setFilterMode(PssmShadowRenderer.FilterMode.Bilinear);
-        fShadowRenderer.setEdgesThickness(-10);
-        fShadowRenderer.setShadowIntensity(0.35f);
-        viewPort.addProcessor(fShadowRenderer);
+//        DirectionalLight sun2 = new DirectionalLight();
+//        sun2.setColor(ColorRGBA.White.mult(0.55f));
+//        sun2.setDirection(new Vector3f(.5f, -.5f, .5f).normalizeLocal());
+//        rootNode.addLight(sun2);
 
-        //FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-        //SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.61f);
-        //fpp.addFilter(ssaoFilter);
-        //viewPort.addProcessor(fpp);
+        SkyDome skyDome = new SkyDome(assetManager, cam,
+                "Models/Skies/SkyDome.j3o",
+                "Textures/Skies/SkyNight_L.png",
+                "Textures/Skies/Moon_L.png", 
+                "Textures/Skies/Clouds_L.png", 
+                "Textures/Skies/Fog_Alpha.png");
+        Node sky = new Node();
+        sky.setQueueBucket(Bucket.Sky);
+        sky.addControl(skyDome);
+        sky.setCullHint(Spatial.CullHint.Never);
 
-        //PointLight myLight = new PointLight();
-        //rootNode.addLight(myLight);
-        //LightControl lightControl = new LightControl(myLight);
-        //fSpatial =  new Spatial(); 
-        //fSpatial.addControl(lightControl);     
+        // Either add a reference to the control for the existing JME fog filter or use the one I posted…
+        // But… REMEMBER!  If you use JME’s… the sky dome will have fog rendered over it.
+        // Sorta pointless at that point
+        FogFilter fog = new FogFilter();
+        skyDome.setFogFilter(fog, viewPort);
 
+        // Set some fog colors… or not (defaults are cool)
+        //skyDome.setFogColor(fogColor);
+        //skyDome.setFogNightColor(fogNightColor);
+
+        // Enable the control to modify the fog filter
+        skyDome.setControlFog(true);
+        
+        // Add the directional light you use for sun… or not
         DirectionalLight sun = new DirectionalLight();
         sun.setColor(ColorRGBA.White.mult(0.9f));
         sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
         rootNode.addLight(sun);
-        DirectionalLight sun2 = new DirectionalLight();
-        sun2.setColor(ColorRGBA.White.mult(0.55f));
-        sun2.setDirection(new Vector3f(.5f, -.5f, .5f).normalizeLocal());
-        rootNode.addLight(sun2);
+        skyDome.setSun(sun);
+        //skyDome.setDayNightTransitionSpeed(1f);
+        //skyDome.setMoonSpeed(0.5f);
+
+        // Set some sunlight day/night colors… or not
+        //skyDome.setSunDayLight(dayLight);
+        //skyDome.setSunNightLight(nightLight);
+
+        // Enable the control to modify your sunlight
+        skyDome.setControlSun(true);
+        //skyDome.cycleDayToNight();
+        // Enable the control
+        skyDome.setEnabled(true);
+
+        // Add the skydome to the root… or where ever
+        rootNode.attachChild(sky);
 
     }
 
@@ -207,11 +256,11 @@ public class Main extends SimpleApplication implements ActionListener {
                 int z = Math.round(contactPoint.z - contactNormal.z * .5f);
                 //fBlockWorld.removeBlock(Math.round(contactPoint.x - contactNormal.x * .5f), Math.round(contactPoint.y - contactNormal.y * .5f), Math.round(contactPoint.z - contactNormal.z * .5f));
                 int sphereSize = 1;
-                for(int i = -sphereSize; i < sphereSize+1; i++) {
-                    for(int j = -sphereSize; j < sphereSize+1; j++) {
-                        for(int k = -sphereSize; k < sphereSize+1; k++) {
-                            if(Math.round(Math.sqrt(i*i+j*j+k*k)) <= sphereSize) {
-                                fBlockWorld.removeBlock(x+i, y+j, z+k);
+                for (int i = -sphereSize; i < sphereSize + 1; i++) {
+                    for (int j = -sphereSize; j < sphereSize + 1; j++) {
+                        for (int k = -sphereSize; k < sphereSize + 1; k++) {
+                            if (Math.round(Math.sqrt(i * i + j * j + k * k)) <= sphereSize) {
+                                fBlockWorld.removeBlock(x + i, y + j, z + k);
                             }
                         }
                     }
@@ -236,11 +285,11 @@ public class Main extends SimpleApplication implements ActionListener {
                 int z = Math.round(contactPoint.z - contactNormal.z * .5f);
                 //fBlockWorld.addBlock(2, Math.round(contactPoint.x - contactNormal.x * .5f), Math.round(contactPoint.y - contactNormal.y * .5f), Math.round(contactPoint.z - contactNormal.z * .5f));
                 int sphereSize = 1;
-                for(int i = -sphereSize; i < sphereSize+1; i++) {
-                    for(int j = -sphereSize; j < sphereSize+1; j++) {
-                        for(int k = -sphereSize; k < sphereSize+1; k++) {
-                            if(Math.round(Math.sqrt(i*i+j*j+k*k)) <= sphereSize) {
-                                fBlockWorld.addBlock(2, x+i, y+j, z+k);
+                for (int i = -sphereSize; i < sphereSize + 1; i++) {
+                    for (int j = -sphereSize; j < sphereSize + 1; j++) {
+                        for (int k = -sphereSize; k < sphereSize + 1; k++) {
+                            if (Math.round(Math.sqrt(i * i + j * j + k * k)) <= sphereSize) {
+                                fBlockWorld.addBlock(2, x + i, y + j, z + k);
                             }
                         }
                     }
@@ -259,8 +308,8 @@ public class Main extends SimpleApplication implements ActionListener {
         Vector3f playerPosition = player.getPhysicsLocation();
         DecimalFormat df = new DecimalFormat("0.000");
         hudPosition.setText("Position:\nx:" + df.format(playerPosition.x) + "\ny:" + df.format(playerPosition.y) + "\nz:" + df.format(playerPosition.z));
-        Vector3f camDir = cam.getDirection().clone().multLocal(0.1f*4f);
-        Vector3f camLeft = cam.getLeft().clone().multLocal(0.065f*4f);
+        Vector3f camDir = cam.getDirection().clone().multLocal(0.1f * 4f);
+        Vector3f camLeft = cam.getLeft().clone().multLocal(0.065f * 4f);
         camDir.y = 0;
         camLeft.y = 0;
         walkDirection.set(0, 0, 0);
@@ -278,7 +327,7 @@ public class Main extends SimpleApplication implements ActionListener {
         }
         player.setWalkDirection(walkDirection);
         Vector3f camPos = player.getPhysicsLocation();
-        camPos.y = camPos.y + .75f*4f;
+        camPos.y = camPos.y + .75f * 4f;
         cam.setLocation(camPos);
         listener.setLocation(cam.getLocation());
 
