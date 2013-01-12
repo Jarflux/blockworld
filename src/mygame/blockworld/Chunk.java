@@ -4,25 +4,24 @@
  */
 package mygame.blockworld;
 
+import mygame.blockworld.chunkgenerators.LandscapeChunkGenerator;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
-import com.jme3.math.Vector2f;
-import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
-import com.jme3.scene.VertexBuffer;
-import com.jme3.util.BufferUtils;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 import mygame.MathUtil;
+import mygame.blockworld.chunkgenerators.ChunkGenerator;
+import mygame.blockworld.surfaceextraction.BasicTriangulation;
+import mygame.blockworld.surfaceextraction.MeshCreator;
 
 /**
  *
@@ -42,161 +41,15 @@ public class Chunk {
     protected BulletAppState fPhysicsState;
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
-    protected boolean fNeedsUpdate;
+    protected boolean fNeedsUpdate = false;
+    protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
+    protected MeshCreator fMeshCreator = new BasicTriangulation();
     
     public Chunk(BlockWorld world, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
         fXC = xC; fYC = yC; fZC = zC;
         fWorld = world;
         fRootNode = rootNode;
         fPhysicsState = physicsState;
-        fNeedsUpdate = false;
-    }
-    
-    private void addTextureCoords(List<Vector2f> texCoord, int texId, boolean swap) {
-        float texIdX = texId % 16;
-        float texIdY = (texId - texIdX) / 16;
-        if(swap) {
-            texCoord.add(new Vector2f(texIdX/16f,texIdY/16f));
-            texCoord.add(new Vector2f(texIdX/16f,(texIdY+1f)/16f));
-            texCoord.add(new Vector2f((texIdX+1f)/16f,(texIdY+1f)/16f));
-            texCoord.add(new Vector2f((texIdX+1f)/16f,texIdY/16f));
-        }else{
-            texCoord.add(new Vector2f(texIdX/16f,texIdY/16f));
-            texCoord.add(new Vector2f((texIdX+1f)/16f,texIdY/16f));
-            texCoord.add(new Vector2f((texIdX+1f)/16f,(texIdY+1f)/16f));
-            texCoord.add(new Vector2f(texIdX/16f,(texIdY+1f)/16f));
-        }
-    }
-    
-    private Mesh createVisualMesh() {
-        List<Vector3f> vertices = new ArrayList<Vector3f>();
-        List<Vector3f> normals = new ArrayList<Vector3f>();
-        List<Vector2f> texCoord = new ArrayList<Vector2f>();
-        List<Integer> indexes = new ArrayList<Integer>();
-        int index = 0;
-        for(int i = fXC; i < fXC + Chunk.CHUNK_SIZE; i++) {
-            for(int j = fYC; j < fYC + Chunk.CHUNK_SIZE; j++) {
-                for(int k = fZC; k < fZC + Chunk.CHUNK_SIZE; k++) {
-                    Integer block = fWorld.get(i, j, k);
-                    if(block != null) {
-                        //Check top
-                        if(fWorld.getChunk(i, j+1, k, true).get(i, j+1, k) == null) {
-                            vertices.add(new Vector3f(i-.5f, j+.5f, k-.5f));
-                            vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
-                            vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
-                            vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
-                            normals.add(new Vector3f(0, 1, 0));
-                            normals.add(new Vector3f(0, 1, 0));
-                            normals.add(new Vector3f(0, 1, 0));
-                            normals.add(new Vector3f(0, 1, 0));
-                            addTextureCoords(texCoord, BlockInfo.TopSides[block], false);
-                            indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
-                            indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
-                            index = index + 4;
-                        }
-                        //Check bottom
-                        if(fWorld.getChunk(i, j-1, k, true).get(i, j-1, k) == null) {
-                            vertices.add(new Vector3f(i-.5f, j-.5f, k-.5f));
-                            vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));
-                            vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
-                            vertices.add(new Vector3f(i-.5f, j-.5f, k+.5f));
-                            normals.add(new Vector3f(0, -1, 0));
-                            normals.add(new Vector3f(0, -1, 0));
-                            normals.add(new Vector3f(0, -1, 0));
-                            normals.add(new Vector3f(0, -1, 0));
-                            addTextureCoords(texCoord, BlockInfo.BottomSides[block], false);
-                            indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
-                            indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
-                            index = index + 4;
-                        }
-                        //Check right
-                        if(fWorld.getChunk(i+1, j, k, true).get(i+1, j, k) == null) {
-                            vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));
-                            vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
-                            vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
-                            vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
-                            normals.add(new Vector3f(1, 0, 0));
-                            normals.add(new Vector3f(1, 0, 0));
-                            normals.add(new Vector3f(1, 0, 0));
-                            normals.add(new Vector3f(1, 0, 0));
-                            addTextureCoords(texCoord, BlockInfo.RightSides[block], true);
-                            indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
-                            indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
-                            index = index + 4;
-                        }
-                        //Check left
-                        if(fWorld.getChunk(i-1, j, k, true).get(i-1, j, k) == null) {
-                            vertices.add(new Vector3f(i-.5f, j-.5f, k-.5f));
-                            vertices.add(new Vector3f(i-.5f, j-.5f, k+.5f));
-                            vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
-                            vertices.add(new Vector3f(i-.5f, j+.5f, k-.5f));
-                            normals.add(new Vector3f(-1, 0, 0));
-                            normals.add(new Vector3f(-1, 0, 0));
-                            normals.add(new Vector3f(-1, 0, 0));
-                            normals.add(new Vector3f(-1, 0, 0));
-                            addTextureCoords(texCoord, BlockInfo.LeftSides[block], false);
-                            indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
-                            indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
-                            index = index + 4;
-                        }
-                        //Check back
-                        if(fWorld.getChunk(i, j, k+1, true).get(i, j, k+1) == null) {
-                            vertices.add(new Vector3f(i-.5f, j-.5f, k+.5f));
-                            vertices.add(new Vector3f(i+.5f, j-.5f, k+.5f));
-                            vertices.add(new Vector3f(i+.5f, j+.5f, k+.5f));
-                            vertices.add(new Vector3f(i-.5f, j+.5f, k+.5f));
-                            normals.add(new Vector3f(0, 0, 1));
-                            normals.add(new Vector3f(0, 0, 1));
-                            normals.add(new Vector3f(0, 0, 1));
-                            normals.add(new Vector3f(0, 0, 1));
-                            addTextureCoords(texCoord, BlockInfo.BackSides[block], false);
-                            indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
-                            indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
-                            index = index + 4;
-                        }
-                        //Check front
-                        if(fWorld.getChunk(i, j, k-1, true).get(i, j, k-1) == null) {
-                            vertices.add(new Vector3f(i-.5f, j-.5f, k-.5f));
-                            vertices.add(new Vector3f(i-.5f, j+.5f, k-.5f));
-                            vertices.add(new Vector3f(i+.5f, j+.5f, k-.5f));
-                            vertices.add(new Vector3f(i+.5f, j-.5f, k-.5f));
-                            normals.add(new Vector3f(0, 0, -1));
-                            normals.add(new Vector3f(0, 0, -1));
-                            normals.add(new Vector3f(0, 0, -1));
-                            normals.add(new Vector3f(0, 0, -1));
-                            addTextureCoords(texCoord, BlockInfo.FrontSides[block], true);
-                            indexes.add(index); indexes.add(index+1); indexes.add(index+2); // triangle 1
-                            indexes.add(index); indexes.add(index+2); indexes.add(index+3); // triangle 2
-                            index = index + 4;
-                        }
-                    }
-                }
-            }
-        }
-        if(index == 0) {
-            return null;
-        }
-        Mesh mesh = new Mesh();
-        Vector3f[] verticesSimpleType = new Vector3f[vertices.size()];
-        Vector3f[] normalsSimpleType = new Vector3f[vertices.size()];
-        Vector2f[] texCoordSimpleType = new Vector2f[vertices.size()];
-        int[] indexesSimpleType = new int[indexes.size()];
-        for(int i = 0; i < vertices.size(); i++) {
-            verticesSimpleType[i] = vertices.get(i);
-            normalsSimpleType[i] = normals.get(i);
-            texCoordSimpleType[i] = texCoord.get(i);
-        }
-        for(int i = 0; i < indexes.size(); i++) {
-            indexesSimpleType[i] = indexes.get(i);
-        }
-        // mesh.setBuffer(vertexBuffer.Type.Normal , 3, BufferUtils.createFloatBuffer(NormalsSimpleType)
-        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(verticesSimpleType));
-        mesh.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normalsSimpleType));
-        mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(texCoordSimpleType));        
-        mesh.setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createIntBuffer(indexesSimpleType));
-        mesh.updateCounts();
-        mesh.updateBound();
-        return mesh;
     }
     
     public void sceduleUpdate() {
@@ -218,7 +71,7 @@ public class Chunk {
         if(fChunkMesh != null) {
             fRootNode.detachChild(fChunkMesh);
         }
-        Mesh mesh = createVisualMesh();
+        Mesh mesh = fMeshCreator.calculateMesh(fWorld, this);
         if(mesh == null) {
             fChunkMesh = null;
             return;
@@ -301,8 +154,7 @@ public class Chunk {
     }
     
     public void fillChunk() {
-        ChunkGenerator cnkGenerator= new ChunkGenerator();
-        cnkGenerator.fillChunk(this);
+        fChunkGenerator.fillChunk(fWorld, this);
     }
     
     public void removeBlock(int x, int y, int z) {
