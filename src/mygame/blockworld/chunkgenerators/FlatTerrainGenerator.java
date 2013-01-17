@@ -4,7 +4,6 @@
  */
 package mygame.blockworld.chunkgenerators;
 
-import com.jme3.terrain.noise.basis.ImprovedNoise;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
 
@@ -20,14 +19,13 @@ public class FlatTerrainGenerator implements ChunkGenerator {
                 for (int y = cnk.fYC; y < cnk.fYC + Chunk.CHUNK_SIZE; y++) {
                     if (y < -5) {
                         cnk.addBlock(3, x, y, z);
-                    }else if(y < 0) {
+                    } else if (y < 0) {
                         cnk.addBlock(0, x, y, z);
-                    }else if(y == 0) {
+                    } else if (y == 0) {
                         cnk.addBlock(1, x, y, z);
                     }
                 }
             }
         }
     }
-    
 }

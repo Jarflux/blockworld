@@ -6,8 +6,6 @@ package mygame.blockworld.chunkgenerators;
 
 import com.jme3.terrain.noise.basis.ImprovedNoise;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
 import mygame.blockworld.HeightMap;
@@ -22,8 +20,8 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
     private Float[][] fChunkMap;
     private HeightMap fHeightMap;
     //private float fRoughness = 10f;
-    private float fTerrainScale = 32f/2f;
-    private float fTerrainRoughness = 32f*2f;
+    private float fTerrainScale = 32f / 2f;
+    private float fTerrainRoughness = 32f * 2f;
     private float fNoiseZ = 10f;
     private float fMinLocalRoughness = 2f;
 
@@ -35,11 +33,11 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
         fHeightMap = world.getHeightMap("detail");
         int offset = Chunk.CHUNK_SIZE;
         fChunkMap = new Float[offset + 1][offset + 1];
-        
+
 
         //check if map for that chunk not yet exsists
         if (fHeightMap.getHeightMap(cnk.fXC, cnk.fZC) == null) {
-                    
+
             Float[][] fChunkTop = fHeightMap.getHeightMap(cnk.fXC, cnk.fZC + offset);
             Float[][] fChunkTopRight = fHeightMap.getHeightMap(cnk.fXC + offset, cnk.fZC + offset);
             Float[][] fChunkRight = fHeightMap.getHeightMap(cnk.fXC + offset, cnk.fZC);
@@ -55,10 +53,6 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
                 for (int i = 0; i < offset + 1; i++) {
                     if (fChunkMap[i][offset] == null) {
                         fChunkMap[i][offset] = fChunkTop[i][0];
-                    } else {
-                        if (fChunkMap[i][offset] != fChunkTop[i][0]) { //test if corners that overlap match
-                            Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, "TOP overlap height value does not match");
-                        }
                     }
                 }
             }
@@ -68,10 +62,6 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
                 for (int i = 0; i < offset + 1; i++) {
                     if (fChunkMap[offset][i] == null) {
                         fChunkMap[offset][i] = fChunkRight[0][i];
-                    } else {
-                        if (fChunkMap[offset][i] != fChunkRight[0][i]) { //test if corners that overlap match
-                            Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, "RIGHT overlap height value does not match");
-                        }
                     }
                 }
             }
@@ -81,10 +71,6 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
                 for (int i = 0; i < offset + 1; i++) {
                     if (fChunkMap[i][0] == null) {
                         fChunkMap[i][0] = fChunkBottom[i][offset];
-                    } else {
-                        if (fChunkMap[i][0] != fChunkBottom[i][offset]) { //test if corners that overlap match
-                            Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, "BOTTOM overlap height value does not match");
-                        }
                     }
                 }
             }
@@ -94,10 +80,6 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
                 for (int i = 0; i < offset + 1; i++) {
                     if (fChunkMap[0][i] == null) {
                         fChunkMap[0][i] = fChunkLeft[offset][i];
-                    } else {
-                        if (fChunkMap[0][i] != fChunkLeft[offset][i]) { //test if corners that overlap match
-                            Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, "LEFT overlap height value does not match");
-                        }
                     }
                 }
             }
@@ -105,72 +87,41 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
             // Test if corners match with all the surrounding chunks
             // if a corner is still empty fill from the diagonal chunk
             if (fChunkTopLeft != null) {
-                if (fChunkMap[0][offset] != null) {
-                    if (fChunkMap[0][offset] != fChunkTopLeft[offset][0]) { //test if corner that overlap match
-                        Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, "TOP LEFT overlap height value does not match");
-                    }
-                } else {
+                if (fChunkMap[0][offset] == null) {
                     fChunkMap[0][offset] = fChunkTopLeft[offset][0];
                 }
             }
 
             if (fChunkTopRight != null) {
-                if (fChunkMap[offset][offset] != null) {
-                    if (fChunkMap[offset][offset] != fChunkTopRight[0][0]) { //test if corner that overlap match
-                        Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, "TOP RIGHT overlap height value does not match");
-                    }
-                } else {
+                if (fChunkMap[offset][offset] == null) {
                     fChunkMap[offset][offset] = fChunkTopRight[0][0];
                 }
             }
             if (fChunkBottomRight != null) {
-                if (fChunkMap[offset][0] != null) {
-                    if (fChunkMap[offset][0] != fChunkBottomRight[0][offset]) { //test if corner that overlap match
-                        Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, "BOTTOM RIGHT overlap height value does not match");
-                    }
-                } else {
+                if (fChunkMap[offset][0] == null) {
                     fChunkMap[offset][0] = fChunkBottomRight[0][offset];
                 }
             }
 
             if (fChunkBottomLeft != null) {
-                if (fChunkMap[0][0] != null) {
-                    if (fChunkMap[0][0] != fChunkBottomLeft[offset][offset]) { //test if corner that overlap match
-                        Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, "BOTTOM LEFT height value does not match");
-                    }
-                } else {
+                if (fChunkMap[0][0] == null) {
                     fChunkMap[0][0] = fChunkBottomLeft[offset][offset];
                 }
             }
 
-            Boolean a = false;
-            Boolean b = false;
-            Boolean c = false;
-            Boolean d = false;
             // if still a corner is empty = randomFloat * fRoughness
             fNoiseZ = fRandom.nextFloat();
             if (fChunkMap[0][0] == null) {
                 fChunkMap[0][0] = fTerrainRoughness * ImprovedNoise.noise((((float) (cnk.fXC / offset)) + 0f) / fTerrainScale, (((float) (cnk.fXC / offset)) + 0f) / fTerrainScale, fNoiseZ);
-                //fChunkMap[0][0] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
-                a = true;
             }
             if (fChunkMap[offset][0] == null) {
                 fChunkMap[offset][0] = fTerrainRoughness * ImprovedNoise.noise((((float) (cnk.fXC / offset)) + 1f) / fTerrainScale, (((float) (cnk.fXC / offset)) + 0f) / fTerrainScale, fNoiseZ);
-                //fChunkMap[offset][0] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
-                b = true;
             }
             if (fChunkMap[offset][offset] == null) {
                 fChunkMap[offset][offset] = fTerrainRoughness * ImprovedNoise.noise((((float) (cnk.fXC / offset)) + 1f) / fTerrainScale, (((float) (cnk.fXC / offset)) + 1f) / fTerrainScale, fNoiseZ);
-                //fChunkMap[offset][offset] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
-                c = true;
             }
             if (fChunkMap[0][offset] == null) {
                 fChunkMap[0][offset] = fTerrainRoughness * ImprovedNoise.noise((((float) (cnk.fXC / offset)) + 0f) / fTerrainScale, (((float) (cnk.fXC / offset)) + 1f) / fTerrainScale, fNoiseZ);
-                //fChunkMap[0][offset] = fRandom.nextFloat() * (fRoughness*2)-fRoughness;
-                d = true;
-            }
-            if (a && b && c && d) { // all 4 corner where random generated
-                Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, "Initial Chunk Corners Randomized");
             }
         } else {
             fChunkMap = fHeightMap.getHeightMap(cnk.fXC, cnk.fZC);
@@ -179,22 +130,33 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
         float roughnessLocal = Math.max(Math.max(fChunkMap[0][0], fChunkMap[offset][0]), Math.max(fChunkMap[0][offset], fChunkMap[offset][offset]));
         roughnessLocal = roughnessLocal - Math.min(Math.min(fChunkMap[0][0], fChunkMap[offset][0]), Math.min(fChunkMap[0][offset], fChunkMap[offset][offset]));
         diamond_Square(0, 0, offset, offset, Math.max(roughnessLocal, fMinLocalRoughness));
-        
+
         // Loop over fChunkMap to create every block
         for (int x = cnk.fXC; x < cnk.fXC + offset; x++) {
             for (int z = cnk.fZC; z < cnk.fZC + offset; z++) {
                 int calculatedHeight = Math.round((fChunkMap[x - cnk.fXC][z - cnk.fZC] + fChunkMap[x - cnk.fXC][z - cnk.fZC + 1] + fChunkMap[x - cnk.fXC + 1][z - cnk.fZC] + fChunkMap[x - cnk.fXC + 1][z - cnk.fZC + 1]) / 4);
                 for (int y = cnk.fYC; y < cnk.fYC + offset; y++) {
-                    float noise = ImprovedNoise.noise((float)x/8f, (float)y/8f, (float)z/8f);
-                    //if(noise < .25f) {
-                        if (getBlockType(y, calculatedHeight) != null) {
-                            cnk.addBlock(getBlockType(y, calculatedHeight), x, y, z);
-                        }
-                    //}
+                    if (getBlockType(y, calculatedHeight) != null) {
+                        cnk.addBlock(getBlockType(y, calculatedHeight), x, y, z);
+                    }
                 }
             }
         }
         fHeightMap.setHeightMap(cnk.fXC, cnk.fZC, fChunkMap);
+    }
+
+    public void diamond_Square(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {
+        float currentRandomNumberRange = randomNumberRange / 2;
+        int length = Math.abs(bottomRightX - topLeftX);
+        if (length > 1) {
+            diamond_Step(topLeftX, topLeftY, bottomRightX, bottomRightY, currentRandomNumberRange);
+            square_Step(topLeftX, topLeftY, bottomRightX, bottomRightY, currentRandomNumberRange);
+
+            diamond_Square(topLeftX, topLeftY, topLeftX + (length / 2), topLeftY + (length / 2), currentRandomNumberRange);
+            diamond_Square(topLeftX + (length / 2), topLeftY, topLeftX + length, topLeftY + (length / 2), currentRandomNumberRange);
+            diamond_Square(topLeftX, topLeftY + (length / 2), topLeftX + (length / 2), topLeftY + length, currentRandomNumberRange);
+            diamond_Square(topLeftX + (length / 2), topLeftY + (length / 2), topLeftX + length, topLeftY + length, currentRandomNumberRange);
+        }
     }
 
     public void diamond_Step(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {
@@ -248,20 +210,6 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
         }
     }
 
-    public void diamond_Square(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {
-        float currentRandomNumberRange = randomNumberRange / 2;
-        int length = Math.abs(bottomRightX - topLeftX);
-        if (length > 1) {
-            diamond_Step(topLeftX, topLeftY, bottomRightX, bottomRightY, currentRandomNumberRange);
-            square_Step(topLeftX, topLeftY, bottomRightX, bottomRightY, currentRandomNumberRange);
-
-            diamond_Square(topLeftX, topLeftY, topLeftX + (length / 2), topLeftY + (length / 2), currentRandomNumberRange);
-            diamond_Square(topLeftX + (length / 2), topLeftY, topLeftX + length, topLeftY + (length / 2), currentRandomNumberRange);
-            diamond_Square(topLeftX, topLeftY + (length / 2), topLeftX + (length / 2), topLeftY + length, currentRandomNumberRange);
-            diamond_Square(topLeftX + (length / 2), topLeftY + (length / 2), topLeftX + length, topLeftY + length, currentRandomNumberRange);
-        }
-    }
-
     // block type logic
     private Integer getBlockType(int heigth, int topHeight) {
         Integer blockType = null;
@@ -271,7 +219,7 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
         if (heigth < topHeight) {
             blockType = 0;                       // return dirt
         }
-        if (heigth < (topHeight - 0) - (6* fRandom.nextFloat())) {
+        if (heigth < (topHeight - 0) - (6 * fRandom.nextFloat())) {
             blockType = 3;
         }
         return blockType;                        // return air

@@ -57,7 +57,7 @@ public class BlockWorldViewport {
                 cnk.setVisible(false);
             }
             long end = System.nanoTime();
-            System.out.println("Visual update took : " + (end - start));
+            //System.out.println("Visual update took : " + (end - start));
         }
         fX = x;
         fY = y;

@@ -12,7 +12,6 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
-import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
@@ -21,7 +20,6 @@ import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
-import com.jme3.shadow.PssmShadowRenderer;
 import com.jme3.texture.Texture;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
@@ -41,12 +39,16 @@ import mygame.blockworld.surfaceextraction.MeshCreator;
  */
 public class Main extends SimpleApplication implements ActionListener {
 
-    public static void main(String[] args) {
-        Main app = new Main();
-        app.startLogging();
-        app.start();
-    }
-    private static final Logger logger = Logger.getLogger(Main.class.getName());
+    private static final int PLAYER_GRAVITY = 0;
+    private static final int PLAYER_FALLSPEED = 30;
+    private static final int PLAYER_JUMPSPEED = 15;
+    private static final float PLAYER_WALKSPEED = 0.1f * 4f;
+    private static final float PLAYER_STEPHEIGHT = 0.25f * 4f;
+    private static final float PLAYER_HITBOX_HEIGHT = 0.75f * 4f;
+    private static final float PLAYER_HITBOX_RADIUS = 0.25f * 4f;
+    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 25, 0);
+    private static final String SAVE_GAME_PATH = "Worlds/world0.dat";  
+    
     private Material fBlockMat;
     private BlockWorld fBlockWorld;
     private TextureAtlas fAtlas;
@@ -56,9 +58,15 @@ public class Main extends SimpleApplication implements ActionListener {
     private AudioNode audio_nature;
     private AudioNode audio_removeBlock;
     private BitmapText hudPosition;
-    private PssmShadowRenderer fShadowRenderer;
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false;
+    private static final Logger logger = Logger.getLogger(Main.class.getName());
+
+    public static void main(String[] args) {
+        Main app = new Main();
+        app.startLogging();
+        app.start();
+    }
 
     @Override
     public void simpleInitApp() {
@@ -66,8 +74,7 @@ public class Main extends SimpleApplication implements ActionListener {
         fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
-        
-        
+
         Texture text = assetManager.loadTexture("Textures/dirt.png");
         text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
@@ -75,23 +82,22 @@ public class Main extends SimpleApplication implements ActionListener {
         fBlockMat.setBoolean("VertexLighting", true);
         fBlockMat.setBoolean("HighQuality", true);
         //fBlockMat.setBoolean("UseMaterialColors",true);
-        fBlockMat.setBoolean("WardIso",true);
+        fBlockMat.setBoolean("WardIso", true);
         fBlockMat.setBoolean("SeparateTexCoord", true);
-        
+
         //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/dirt.png"));
         //fBlockMat.setColor("Color", ColorRGBA.Green);
         //fBlockMat.getAdditionalRenderState().setWireframe(true);
         //fBlockMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
-        
+
         //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.png"));
         //fBlockMat.setColor("Color", ColorRGBA.Green);
-        
+
         /**
          * Set up Physics
          */
         bulletAppState = new BulletAppState();
         stateManager.attach(bulletAppState);
-        //bulletAppState.getPhysicsSpace().enableDebug(assetManager);
 
         // We re-use the flyby camera for rotation, while positioning is handled by physics
         //viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
@@ -106,14 +112,12 @@ public class Main extends SimpleApplication implements ActionListener {
         // The CharacterControl offers extra settings for
         // size, stepheight, jumping, falling, and gravity.
         // We also put the player in its starting position.
-        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(.25f * 4f * 2f, .75f * 4f * 2f, 1);
-        player = new CharacterControl(capsuleShape, 0.25f * 4f * 2f);
-        player.setJumpSpeed(15);
-        player.setFallSpeed(30);
-        //player.setGravity(30);
-        player.setGravity(0);
-        //player.setPhysicsLocation(new Vector3f(5, 55, 5));
-        player.setPhysicsLocation(new Vector3f(0, 35, 0));
+        CapsuleCollisionShape capsuleShape = new CapsuleCollisionShape(PLAYER_HITBOX_RADIUS, PLAYER_HITBOX_HEIGHT, 1);
+        player = new CharacterControl(capsuleShape, PLAYER_STEPHEIGHT);
+        player.setJumpSpeed(PLAYER_JUMPSPEED);
+        player.setFallSpeed(PLAYER_FALLSPEED);
+        player.setGravity(PLAYER_GRAVITY);
+        player.setPhysicsLocation(PLAYER_START_LOCATION);
 
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
@@ -121,8 +125,8 @@ public class Main extends SimpleApplication implements ActionListener {
         //cam.setLocation(new Vector3f(0, 30, 0));
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, fAtlas, bulletAppState);
         /*Chunk cnk = fBlockWorld.getChunk(0, 0, 0, true, true);
-        cnk.setVisible(true);
-        cnk.update();*/
+         cnk.setVisible(true);
+         cnk.update();*/
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
         setUpdAudio();
         setUpHud();
@@ -133,37 +137,13 @@ public class Main extends SimpleApplication implements ActionListener {
         AmbientLight al = new AmbientLight();
         al.setColor(ColorRGBA.White.mult(1.5f));
         rootNode.addLight(al);
-//        rootNode.setShadowMode(ShadowMode.Receive);
-//
-//        fShadowRenderer = new PssmShadowRenderer(assetManager, 512, 4);
-//        fShadowRenderer.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal()); // light direction
-//        fShadowRenderer.setFilterMode(PssmShadowRenderer.FilterMode.Bilinear);
-//        //fShadowRenderer.setEdgesThickness(-10);
-//        fShadowRenderer.setShadowIntensity(0.35f);
-//        viewPort.addProcessor(fShadowRenderer);
-//
-//        //FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-//        //SSAOFilter ssaoFilter = new SSAOFilter(12.94f, 43.92f, 0.33f, 0.61f);
-//        //fpp.addFilter(ssaoFilter);
-//        //viewPort.addProcessor(fpp);
-//
-//        //PointLight myLight = new PointLight();
-//        //rootNode.addLight(myLight);
-//        //LightControl lightControl = new LightControl(myLight);
-//        //fSpatial =  new Spatial(); 
-//        //fSpatial.addControl(lightControl);     
-
-//        DirectionalLight sun2 = new DirectionalLight();
-//        sun2.setColor(ColorRGBA.White.mult(0.55f));
-//        sun2.setDirection(new Vector3f(.5f, -.5f, .5f).normalizeLocal());
-//        rootNode.addLight(sun2);
 
         SkyDome skyDome = new SkyDome(assetManager, cam,
                 "Models/Skies/SkyDome.j3o",
                 "Textures/Skies/SkyNight_L.png",
-                "Textures/Skies/Moon_L.png", 
+                "Textures/Skies/Moon_L.png",
                 "Textures/Skies/Sun_L.png",
-                "Textures/Skies/Clouds_L.png", 
+                "Textures/Skies/Clouds_L.png",
                 "Textures/Skies/Fog_Alpha.png");
         Node sky = new Node();
         sky.setQueueBucket(Bucket.Sky);
@@ -182,7 +162,7 @@ public class Main extends SimpleApplication implements ActionListener {
 
         // Enable the control to modify the fog filter
         skyDome.setControlFog(true);
-        
+
         // Add the directional light you use for sun… or not
         DirectionalLight sun = new DirectionalLight();
         sun.setColor(ColorRGBA.White.mult(0.9f));
@@ -314,7 +294,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 audio_removeBlock.playInstance();
             }
         } else if (binding.equals("Save") && value) {
-            fBlockWorld.saveWorld("Worlds/world0.dat");
+            fBlockWorld.saveWorld(SAVE_GAME_PATH);
         } else if (binding.equals("Load") && value) {
             fBlockWorld.loadWorld("Worlds/world0.dat");
         } else if (binding.equals("SwitchRender") && value) {
@@ -338,8 +318,8 @@ public class Main extends SimpleApplication implements ActionListener {
         Vector3f playerPosition = player.getPhysicsLocation();
         DecimalFormat df = new DecimalFormat("0.000");
         hudPosition.setText("Position:\nx:" + df.format(playerPosition.x) + "\ny:" + df.format(playerPosition.y) + "\nz:" + df.format(playerPosition.z));
-        Vector3f camDir = cam.getDirection().clone().multLocal(0.1f * 4f * 2f);
-        Vector3f camLeft = cam.getLeft().clone().multLocal(0.065f * 4f * 2f);
+        Vector3f camDir = cam.getDirection().clone().multLocal(PLAYER_WALKSPEED);
+        Vector3f camLeft = cam.getLeft().clone().multLocal(PLAYER_WALKSPEED * 0.65f);
         camDir.y = 0;
         camLeft.y = 0;
         walkDirection.set(0, 0, 0);
@@ -360,7 +340,7 @@ public class Main extends SimpleApplication implements ActionListener {
         camPos.y = camPos.y + .75f * 4f * 2f;
         cam.setLocation(camPos);
         listener.setLocation(cam.getLocation());
-        
+
         //Vector3f camPos = cam.getLocation();
         fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.y), Math.round(camPos.z));
     }
