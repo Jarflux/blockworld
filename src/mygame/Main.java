@@ -12,6 +12,7 @@ import com.jme3.input.controls.ActionListener;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
@@ -46,7 +47,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private static final float PLAYER_STEPHEIGHT = 0.25f * 4f;
     private static final float PLAYER_HITBOX_HEIGHT = 0.75f * 4f;
     private static final float PLAYER_HITBOX_RADIUS = 0.25f * 4f;
-    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 25, 0);
+    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 35, 0);
     private static final String SAVE_GAME_PATH = "Worlds/world0.dat";  
     
     private Material fBlockMat;
@@ -296,7 +297,7 @@ public class Main extends SimpleApplication implements ActionListener {
         } else if (binding.equals("Save") && value) {
             fBlockWorld.saveWorld(SAVE_GAME_PATH);
         } else if (binding.equals("Load") && value) {
-            fBlockWorld.loadWorld("Worlds/world0.dat");
+            fBlockWorld.loadWorld(SAVE_GAME_PATH);
         } else if (binding.equals("SwitchRender") && value) {
             MeshCreator old = Chunk.getMeshCreator();
             Chunk.setMeshCreator(fOtherCreator);
