@@ -45,7 +45,8 @@ public class Chunk {
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
     protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
-    protected MeshCreator fMeshCreator = new MarchingCubes();
+    protected static MeshCreator fMeshCreator = new MarchingCubes();
+    private MeshCreator fPreviousCreator = fMeshCreator;
     
     public Chunk(BlockWorld world, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
         fXC = xC; fYC = yC; fZC = zC;
@@ -54,15 +55,24 @@ public class Chunk {
         fPhysicsState = physicsState;
     }
     
-    public void sceduleUpdate() {
+    public static MeshCreator getMeshCreator() {
+        return fMeshCreator;
+    }
+    
+    public static void setMeshCreator(MeshCreator meshCreator) {
+        fMeshCreator = meshCreator;
+    }
+    
+    public void scheduleUpdate() {
         fNeedsUpdate = true;
     }
     
     public void update() {
-        if(fNeedsUpdate) {
+        if(fNeedsUpdate || fPreviousCreator != fMeshCreator) {
             updateVisualMesh();
             //updatePhysicsMesh();
             fNeedsUpdate = false;
+            fPreviousCreator = fMeshCreator;
         }
     }
     

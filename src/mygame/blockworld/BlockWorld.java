@@ -55,22 +55,22 @@ public class BlockWorld {
         
         private void update(int x, int y, int z) {
             if(x % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x-1, y, z, true).sceduleUpdate();
+                getChunk(x-1, y, z, true).scheduleUpdate();
             }
             if(MathUtil.PosMod(x, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x+1, y, z, true).sceduleUpdate();
+                getChunk(x+1, y, z, true).scheduleUpdate();
             }
             if(y % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x, y-1, z, true).sceduleUpdate();
+                getChunk(x, y-1, z, true).scheduleUpdate();
             }
             if(MathUtil.PosMod(y, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x, y+1, z, true).sceduleUpdate();
+                getChunk(x, y+1, z, true).scheduleUpdate();
             }
             if(z % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x, y, z-1, true).sceduleUpdate();
+                getChunk(x, y, z-1, true).scheduleUpdate();
             }
             if(MathUtil.PosMod(z, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x, y, z+1, true).sceduleUpdate();
+                getChunk(x, y, z+1, true).scheduleUpdate();
             }
         }       
     };

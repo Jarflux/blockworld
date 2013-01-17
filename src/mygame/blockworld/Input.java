@@ -34,6 +34,9 @@ public class Input implements InputListener{
         im.addMapping("AddBlock", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
         im.addMapping("Save", new KeyTrigger(KeyInput.KEY_F9));
         im.addMapping("Load", new KeyTrigger(KeyInput.KEY_F10));
+        im.addMapping("SwitchRender", new KeyTrigger(KeyInput.KEY_R));
+        im.addMapping("SwitchCulling", new KeyTrigger(KeyInput.KEY_F));
+        im.addMapping("SwitchWireFrame", new KeyTrigger(KeyInput.KEY_T));
         im.addListener(listener, "Save");
         im.addListener(listener, "Load");
         im.addListener(listener, "RemoveBlock");
@@ -43,5 +46,9 @@ public class Input implements InputListener{
         im.addListener(listener, "Up");
         im.addListener(listener, "Down");
         im.addListener(listener, "Jump");
+        im.addListener(listener, "SwitchRender");
+        im.addListener(listener, "SwitchCulling");
+        im.addListener(listener, "SwitchWireFrame");
     }
+
 }

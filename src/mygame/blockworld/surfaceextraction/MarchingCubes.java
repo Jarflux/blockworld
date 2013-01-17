@@ -4,6 +4,7 @@
  */
 package mygame.blockworld.surfaceextraction;
 
+import com.jme3.math.Matrix3f;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
@@ -34,17 +35,770 @@ public class MarchingCubes implements MeshCreator{
     private static class MeshPart {
         public Vector3f[] vertices;
         public Vector3f[] normals;
+        public Vector2f[] texCoords;
         public int[] indices;
     }
     
+    /* Code in comment is used to calculate the tables used below
+     */
+    private static char[] caseIDs = {0, 1, 1+2, 1+4, 2+16+32, 1+2+16+32, 2+16+32+8, 1+32+4+128, 1+16+32+128, 2+16+32+128, 1+64, 1+2+64, 2+8+64, 1+32+8+64, 1+16+32+64, 2+8+16+32+64+128, 2+4+8+16+32+128};
+    
+    private static int[][][] caseTriangles = {
+            {},
+            {{0,8,3}},
+            {{9,8,1}, {8,3,1}},
+            {{0,10,1}, {8,10,0}, {3,2,8}, {8,2,10}},
+            {{8,0,1}, {1,7,8}, {7,1,5}},
+            {{3,1,7}, {7,1,5}},
+            {{0,3,8}, {11,2,5}, {2,1,5}, {11,5,7}},
+            {{1,0,9}, {8,7,4}, {10,5,6}, {2,11,3}},
+            {{0,9,5}, {5,6,0}, {0,6,3}, {3,6,11}},
+            {{0,11,8}, {0,1,11}, {1,5,11}, {5,6,11}},
+            {{3,10,6}, {5,0,8}, {0,5,10}, {10,3,0}, {8,3,6}, {8,6,5}},
+            {{8,5,9}, {3,1,10}, {6,3,10}, {6,8,3}, {6,5,8}},
+            {{10,2,1}, {0,5,9}, {0,6,5}, {0,3,6}, {3,11,6}},
+            {{2,0,10}, {0,9,10}, {8,6,4}, {8,11,6}},
+            {{0,9,10}, {0,7,3}, {7,10,6}, {0,10,7}},
+            {{8,0,3}, {1,10,2}}, //inverse of case 1+4
+            {{8,0,3}, {5,6,10}}, //inverse of case 1+64
+        };
+    
+    private static Vector3f[] mirror(Vector3f mirror, Vector3f[] vertices) {
+        Vector3f[] result = new Vector3f[vertices.length];
+        for(int i = 0; i < vertices.length; i++) {
+            if(vertices[i] != null) {
+                result[i] = mirror.subtract(vertices[i]);
+                result[i].x = Math.abs(result[i].x);
+                result[i].y = Math.abs(result[i].y);
+                result[i].z = Math.abs(result[i].z);
+            }else{
+                result[i] = null;
+            }
+        }
+        return result;
+    }
+    
+    private static Vector3f[] mirrorXY(Vector3f[] vertices) {
+        return mirror(new Vector3f(0, 0, 1), vertices);
+    }
+    
+    private static Vector3f[] mirrorXZ(Vector3f[] vertices) {
+        return mirror(new Vector3f(0, 1, 0), vertices);
+    }
+    
+    private static Vector3f[] mirrorYZ(Vector3f[] vertices) {
+        return mirror(new Vector3f(1, 0, 0), vertices);
+    }
+    
+    private static Vector3f[] rotate(Matrix3f rotationMatrix, Vector3f translationVector, Vector3f[] vertices) {
+        Vector3f[] result = new Vector3f[vertices.length];
+        for(int i = 0; i < vertices.length; i++) {
+            if(vertices[i] != null) {
+                result[i] = rotationMatrix.mult(vertices[i].subtract(translationVector)).add(translationVector);
+            }else{
+                result[i] = null;
+            }
+        }
+        return result;
+    }
+    
+    private static Vector3f[] rotateXY(int direction, Vector3f[] vertices) {
+        return rotate(new Matrix3f(0, -direction, 0, direction, 0, 0, 0, 0, 1), new Vector3f(.5f, 0f, .5f), vertices);
+    }
+    
+    private static Vector3f[] rotateXZ(int direction, Vector3f[] vertices) {
+        return rotate(new Matrix3f(0, 0, direction, 0, 1, 0, -direction, 0, 0), new Vector3f(.5f, 0f, .5f), vertices);
+    }
+    
+    private static Vector3f[] rotateYZ(int direction, Vector3f[] vertices) {
+        return rotate(new Matrix3f(1, 0, 0, 0, 0, -direction, 0, direction, 0), new Vector3f(0f, .5f, .5f), vertices);
+    }
+    
+    private static Vector3f[] invert(Vector3f[] filledCase, Vector3f[] vertices) {
+        Vector3f[] result = new Vector3f[filledCase.length];
+        for(int i = 0; i < filledCase.length; i++) {
+            boolean found = false;
+            for(int j = 0; !found && j < vertices.length; j++) {
+                found |= (vertices[j] != null) && (filledCase[i].distanceSquared(vertices[j]) < .01f);
+            }
+            if(found) {
+                result[i] = null;
+            }else{
+                result[i] = filledCase[i].clone();
+            }
+        }
+        return result;
+    }
+    
+    private static void completeTransformations(Vector3f[][] vertices) {
+        completeTransformations(null, vertices);
+    }
+    
+    private static void completeTransformations(Vector3f[] filledCase, Vector3f[][] vertices) {
+        if(filledCase == null) {
+            vertices[1] = vertices[0];
+        }else{
+            vertices[1] = invert(filledCase, vertices[0]);
+        }
+        
+        vertices[2] = mirrorXY(vertices[0]);
+        vertices[3] = mirrorXY(vertices[1]);
+        
+        vertices[4] = mirrorXZ(vertices[0]);
+        vertices[5] = mirrorXZ(vertices[1]);
+        vertices[6] = mirrorXZ(vertices[2]);
+        vertices[7] = mirrorXZ(vertices[3]);
+        
+        int vertexIndex = 8;
+        for(int i = 0; i < 8; i++, vertexIndex++) {
+            vertices[vertexIndex] = mirrorYZ(vertices[i]);
+        }
+        for(int i = 0; i < 16; i++, vertexIndex++) {
+            vertices[vertexIndex] = rotateXZ(1, vertices[i]);
+        }
+        for(int i = 0; i < 32; i++, vertexIndex++) {
+            vertices[vertexIndex] = rotateYZ(1, vertices[i]);
+        }
+        for(int i = 0; i < 64; i++, vertexIndex++) {
+            vertices[vertexIndex] = rotateXZ(1, vertices[i]);
+        }
+    }
+    
+    private static boolean[] triangleNeedsSwitch = {false, true, true, false, true, false, false, true,
+                                                    true, false, false, true, false, true, true, false};
+    
+    public static void main(String[] args) {
+        Vector3f[][] vertices = new Vector3f[128][12];
+        vertices[0] = new Vector3f[12];
+        for(int edge = 0; edge < 12; edge++) {
+            vertices[0][edge] = new Vector3f(a2fVertexOffset[ a2iEdgeConnection[edge][0] ][0]  +  .5f * a2fEdgeDirection[edge][0], a2fVertexOffset[ a2iEdgeConnection[edge][0] ][1]  +  .5f * a2fEdgeDirection[edge][1], a2fVertexOffset[ a2iEdgeConnection[edge][0] ][2]  +  .5f * a2fEdgeDirection[edge][2]);
+        }
+        completeTransformations(vertices);
+        
+        Vector3f[] filledUpCorners = new Vector3f[8];
+        for(int corner = 0; corner < 8; corner++) {
+            filledUpCorners[corner] = new Vector3f(a2fVertexOffset[corner][0], a2fVertexOffset[corner][1], a2fVertexOffset[corner][2]);
+        }
+        
+        Vector3f[][] resultingVertices = new Vector3f[256][];
+        int[][] resultingTriangles = new int[256][];
+        
+        //fill arrays
+        for(int caseCounter = 0; caseCounter < 17; caseCounter++) {
+            char caseId = caseIDs[caseCounter];
+            Vector3f[][] corners = new Vector3f[128][8];
+            corners[0] = new Vector3f[8];
+            for(int corner = 0; corner < 8; corner++) {
+                if((caseId & 1<<corner) == 1<<corner) {
+                    corners[0][corner] = new Vector3f(a2fVertexOffset[corner][0], a2fVertexOffset[corner][1], a2fVertexOffset[corner][2]);
+                }else{
+                    corners[0][corner] = null;
+                }
+            }
+            if(caseCounter == 3 || caseCounter == 10 || caseCounter == 15 || caseCounter == 16) {
+                completeTransformations(corners);
+            }else{
+                completeTransformations(filledUpCorners, corners);
+            }
+            for(int permutation = 0; permutation < 128; permutation++) {
+                char permutationId = 0;
+                for(int corner = 0; corner < 8; corner++) {
+                    if(corners[permutation][corner] != null) {
+                        for(int cornerId = 0; cornerId < 8; cornerId++) {
+                            if(Math.abs(corners[permutation][corner].x - a2fVertexOffset[cornerId][0]) < 0.01
+                                    && Math.abs(corners[permutation][corner].y - a2fVertexOffset[cornerId][1]) < 0.01
+                                    && Math.abs(corners[permutation][corner].z - a2fVertexOffset[cornerId][2]) < 0.01) {
+                                permutationId |= 1<<cornerId;
+                            }
+                        }
+                    }
+                }
+                if(resultingVertices[permutationId] != null) {
+                    continue;
+                }
+                int[] trianglePermutation = new int[caseTriangles[caseCounter].length*3];
+                Vector3f[] verticesPermutation = new Vector3f[12];
+                for(int triangleCounter = 0; triangleCounter < caseTriangles[caseCounter].length; triangleCounter++) {
+                    if(!triangleNeedsSwitch[permutation%16]) {
+                        trianglePermutation[triangleCounter*3+0] = caseTriangles[caseCounter][triangleCounter][1];
+                        trianglePermutation[triangleCounter*3+1] = caseTriangles[caseCounter][triangleCounter][0];
+                    }else{
+                        trianglePermutation[triangleCounter*3+0] = caseTriangles[caseCounter][triangleCounter][0];
+                        trianglePermutation[triangleCounter*3+1] = caseTriangles[caseCounter][triangleCounter][1];
+                    }
+                    trianglePermutation[triangleCounter*3+2] = caseTriangles[caseCounter][triangleCounter][2];
+                    
+                    verticesPermutation[caseTriangles[caseCounter][triangleCounter][0]] = vertices[permutation][caseTriangles[caseCounter][triangleCounter][0]];
+                    verticesPermutation[caseTriangles[caseCounter][triangleCounter][1]] = vertices[permutation][caseTriangles[caseCounter][triangleCounter][1]];
+                    verticesPermutation[caseTriangles[caseCounter][triangleCounter][2]] = vertices[permutation][caseTriangles[caseCounter][triangleCounter][2]];
+                }
+                resultingVertices[permutationId] = verticesPermutation;
+                resultingTriangles[permutationId] = trianglePermutation;
+            }
+        }
+        int nullCount = 0;
+        System.out.println("private static float[][][] vertices = {");
+        for(int i = 0; i < 256; i++) {
+            System.out.print("\t\t\t{");
+            if(resultingVertices[i] == null) {
+                System.out.println("case is null, problem !!!},");
+                nullCount++;
+                continue;
+            }
+            for(int j = 0; j < resultingVertices[i].length; j++) {
+                if(resultingVertices[i][j] == null) {
+                    System.out.print("null,");
+                }else{
+                    System.out.print("{" + resultingVertices[i][j].x + "f," + resultingVertices[i][j].y + "f," + resultingVertices[i][j].z + "f},");
+                }
+            }
+            System.out.println("},");
+        }
+        System.out.println("\t\t};");
+        if(nullCount != 0) {
+            System.out.println("Number of errors = " + nullCount);
+            return;
+        }
+        System.out.println("private static int[][] triangles = {");
+        for(int i = 0; i < 256; i++) {
+            System.out.print("\t\t\t{");
+            if(resultingTriangles[i] == null) {
+                System.out.println("case is null, problem !!!},");
+                continue;
+            }
+            for(int j = 0; j < resultingTriangles[i].length; j++) {
+                System.out.print(resultingTriangles[i][j] + ",");
+            }
+            System.out.println("},");
+        }
+        System.out.println("\t\t};");
+    }
+    
+    private static float[][][] sVERTICES = {
+			{null,null,null,null,null,null,null,null,null,null,null,null,},
+			{{0.5f,0.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,0.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,0.0f},null,null,{1.0f,0.5f,0.0f},null,null,null,null,{1.0f,0.0f,0.5f},null,null,null,},
+			{null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},null,null,},
+			{{0.5f,1.0f,0.0f},null,null,{1.0f,0.5f,0.0f},null,null,null,null,{1.0f,1.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,},
+			{null,{1.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,null,null,null,{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},null,null,},
+			{{0.5f,1.0f,0.0f},{1.0f,1.0f,0.5f},null,null,null,{1.0f,0.0f,0.5f},null,{0.0f,0.0f,0.5f},{0.0f,0.5f,0.0f},null,null,null,},
+			{{0.5f,1.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,1.0f,0.5f},null,null,null,},
+			{null,{0.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,null,null,null,{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},null,null,},
+			{{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,},
+			{{0.5f,1.0f,0.0f},{0.0f,1.0f,0.5f},null,null,null,{0.0f,0.0f,0.5f},null,{1.0f,0.0f,0.5f},{1.0f,0.5f,0.0f},null,null,null,},
+			{null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},null,null,},
+			{{0.5f,0.0f,0.0f},{0.0f,0.0f,0.5f},null,null,null,{0.0f,1.0f,0.5f},null,{1.0f,1.0f,0.5f},{1.0f,0.5f,0.0f},null,null,null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.0f,0.5f},null,null,null,{1.0f,1.0f,0.5f},null,{0.0f,1.0f,0.5f},{0.0f,0.5f,0.0f},null,null,null,},
+			{null,{1.0f,1.0f,0.5f},null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,{0.0f,0.0f,0.5f},null,null,null,null,},
+			{{0.5f,0.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,0.0f,0.5f},null,null,null,},
+			{null,{0.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},null,null,null,null,{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},null,null,},
+			{{0.5f,0.0f,1.0f},{1.0f,0.0f,0.5f},{0.5f,0.0f,0.0f},{0.0f,0.0f,0.5f},null,null,null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},null,},
+			{{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,0.0f},{1.0f,0.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,},
+			{null,{0.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{1.0f,1.0f,0.5f},null,{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},null,},
+			{null,{1.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},{0.0f,0.5f,1.0f},null,{0.5f,1.0f,0.0f},{0.5f,0.0f,0.0f},{0.5f,0.0f,1.0f},null,},
+			{{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,{0.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,{1.0f,0.0f,0.5f},null,null,{1.0f,1.0f,0.5f},},
+			{{0.0f,0.0f,0.5f},{0.0f,0.5f,0.0f},{0.0f,1.0f,0.5f},{0.0f,0.5f,1.0f},null,null,null,null,{0.5f,0.0f,1.0f},null,{0.5f,1.0f,0.0f},null,},
+			{{0.0f,1.0f,0.5f},{0.5f,1.0f,0.0f},null,null,null,{0.5f,0.0f,0.0f},null,{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,},
+			{{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,null,{0.0f,1.0f,0.5f},{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},},
+			{{0.5f,0.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,null,{1.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},},
+			{null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},{0.0f,0.0f,0.5f},null,},
+			{{1.0f,0.5f,0.0f},{1.0f,1.0f,0.5f},null,null,null,{0.0f,1.0f,0.5f},{0.0f,0.5f,1.0f},null,{0.5f,0.0f,0.0f},null,null,{0.5f,0.0f,1.0f},},
+			{{0.5f,0.0f,0.0f},{1.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,{0.0f,1.0f,0.5f},{0.0f,0.5f,0.0f},null,null,{0.0f,0.5f,1.0f},},
+			{{0.5f,0.0f,1.0f},{1.0f,0.0f,0.5f},null,null,null,{1.0f,1.0f,0.5f},null,{0.0f,1.0f,0.5f},{0.0f,0.5f,1.0f},null,null,null,},
+			{{0.5f,0.0f,1.0f},null,null,{1.0f,0.5f,1.0f},null,null,null,null,{1.0f,0.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},{0.0f,0.0f,0.5f},null,null,null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,},
+			{null,{1.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,null,null,null,{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},null,null,},
+			{{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},null,null,null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},{0.0f,0.0f,0.5f},null,null,null,},
+			{{1.0f,0.0f,0.5f},{1.0f,0.5f,0.0f},{1.0f,1.0f,0.5f},{1.0f,0.5f,1.0f},null,null,null,null,{0.5f,0.0f,1.0f},null,{0.5f,1.0f,0.0f},null,},
+			{{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,null,{1.0f,1.0f,0.5f},{1.0f,0.0f,0.5f},{0.0f,0.0f,0.5f},},
+			{{1.0f,1.0f,0.5f},{0.5f,1.0f,0.0f},null,null,null,{0.5f,0.0f,0.0f},null,{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},null,null,null,},
+			{{0.5f,1.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,null,{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},},
+			{{0.5f,1.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,},
+			{null,{0.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},{1.0f,0.5f,1.0f},null,{0.5f,1.0f,0.0f},{0.5f,0.0f,0.0f},{0.5f,0.0f,1.0f},null,},
+			{null,{1.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.0f,1.0f,0.5f},null,{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},null,},
+			{{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},null,null,null,{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,{0.0f,0.0f,0.5f},null,null,{0.0f,1.0f,0.5f},},
+			{null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},{1.0f,0.0f,0.5f},null,},
+			{{0.5f,0.0f,0.0f},{0.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},{1.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},null,{1.0f,1.0f,0.5f},{1.0f,0.5f,0.0f},null,null,{1.0f,0.5f,1.0f},},
+			{{0.0f,0.5f,0.0f},{0.0f,1.0f,0.5f},null,null,null,{1.0f,1.0f,0.5f},{1.0f,0.5f,1.0f},null,{0.5f,0.0f,0.0f},null,null,{0.5f,0.0f,1.0f},},
+			{{0.5f,0.0f,1.0f},{0.0f,0.0f,0.5f},null,null,null,{0.0f,1.0f,0.5f},null,{1.0f,1.0f,0.5f},{1.0f,0.5f,1.0f},null,null,null,},
+			{null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},null,null,},
+			{{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,1.0f},{1.0f,0.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},null,null,null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},{0.0f,0.0f,0.5f},null,null,null,},
+			{null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},null,null,null,null,},
+			{null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},null,},
+			{{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,1.0f},{1.0f,0.0f,0.5f},null,null,{1.0f,1.0f,0.5f},},
+			{{0.0f,0.0f,0.5f},{0.0f,0.5f,1.0f},null,null,null,{1.0f,0.5f,1.0f},{1.0f,1.0f,0.5f},null,{0.5f,0.0f,0.0f},null,null,{0.5f,1.0f,0.0f},},
+			{{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,1.0f},{1.0f,1.0f,0.5f},null,null,null,},
+			{null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,{1.0f,0.0f,0.5f},{0.0f,0.0f,0.5f},{0.0f,1.0f,0.5f},null,},
+			{{1.0f,0.0f,0.5f},{1.0f,0.5f,1.0f},null,null,null,{0.0f,0.5f,1.0f},{0.0f,1.0f,0.5f},null,{0.5f,0.0f,0.0f},null,null,{0.5f,1.0f,0.0f},},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},{0.0f,0.0f,0.5f},null,null,{0.0f,1.0f,0.5f},},
+			{{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},null,null,null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},{0.0f,1.0f,0.5f},null,null,null,},
+			{{0.0f,1.0f,0.5f},null,{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,{1.0f,0.0f,0.5f},null,{0.0f,0.5f,1.0f},{0.0f,0.5f,0.0f},{1.0f,0.5f,0.0f},{1.0f,0.5f,1.0f},},
+			{null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},{1.0f,0.0f,0.5f},null,},
+			{null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},{0.0f,0.0f,0.5f},null,},
+			{null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},null,null,},
+			{{0.5f,1.0f,1.0f},null,null,{1.0f,0.5f,1.0f},null,null,null,null,{1.0f,1.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,},
+			{{1.0f,1.0f,0.5f},{1.0f,0.5f,0.0f},{1.0f,0.0f,0.5f},{1.0f,0.5f,1.0f},null,null,null,null,{0.5f,1.0f,1.0f},null,{0.5f,0.0f,0.0f},null,},
+			{null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},null,},
+			{null,{1.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,null,null,null,{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},null,null,},
+			{null,{1.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.0f,0.0f,0.5f},null,{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},{0.5f,0.0f,0.0f},null,},
+			{{1.0f,0.0f,0.5f},{0.5f,0.0f,0.0f},null,null,null,{0.5f,1.0f,0.0f},null,{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},null,null,null,},
+			{{0.0f,0.5f,0.0f},{0.0f,0.0f,0.5f},null,null,null,{1.0f,0.0f,0.5f},{1.0f,0.5f,1.0f},null,{0.5f,1.0f,0.0f},null,null,{0.5f,1.0f,1.0f},},
+			{{0.5f,1.0f,0.0f},{1.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},{0.0f,1.0f,0.5f},null,null,null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,},
+			{null,{0.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},{1.0f,0.5f,1.0f},null,{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},{0.5f,1.0f,1.0f},null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,null,{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},},
+			{{0.5f,1.0f,0.0f},{0.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,{1.0f,0.0f,0.5f},{1.0f,0.5f,0.0f},null,null,{1.0f,0.5f,1.0f},},
+			{{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},null,null,null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},{0.0f,1.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},null,null,null,{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,{0.0f,0.0f,0.5f},null,null,{0.0f,1.0f,0.5f},},
+			{{0.5f,0.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,null,{1.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},},
+			{{0.5f,1.0f,1.0f},{0.0f,1.0f,0.5f},null,null,null,{0.0f,0.0f,0.5f},null,{1.0f,0.0f,0.5f},{1.0f,0.5f,1.0f},null,null,null,},
+			{{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,},
+			{null,{0.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{1.0f,1.0f,0.5f},null,{0.5f,0.0f,0.0f},{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},null,},
+			{{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,null,{1.0f,1.0f,0.5f},{1.0f,0.0f,0.5f},{0.0f,0.0f,0.5f},},
+			{{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,0.0f},{1.0f,0.0f,0.5f},null,null,{1.0f,1.0f,0.5f},},
+			{null,{1.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.0f,0.0f,0.5f},null,{0.5f,1.0f,0.0f},{0.5f,1.0f,1.0f},{0.5f,0.0f,1.0f},null,},
+			{{0.5f,1.0f,0.0f},null,{0.5f,1.0f,1.0f},null,{0.5f,0.0f,0.0f},null,{0.5f,0.0f,1.0f},null,{0.0f,0.5f,0.0f},{1.0f,0.5f,0.0f},{1.0f,0.5f,1.0f},{0.0f,0.5f,1.0f},},
+			{{0.0f,0.0f,0.5f},{0.5f,0.0f,0.0f},{1.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},null,{0.5f,1.0f,0.0f},null,{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,null,{1.0f,0.5f,1.0f},},
+			{null,{0.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{1.0f,0.0f,0.5f},null,{0.5f,1.0f,0.0f},{0.5f,1.0f,1.0f},{0.5f,0.0f,1.0f},null,},
+			{{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,null,{0.0f,0.0f,0.5f},{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},},
+			{{0.0f,1.0f,0.5f},{0.5f,1.0f,0.0f},{1.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},null,{0.5f,0.0f,0.0f},null,{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,null,{1.0f,0.5f,1.0f},},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},},
+			{{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,null,{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},},
+			{{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},{0.0f,0.0f,0.5f},null,null,{0.0f,1.0f,0.5f},},
+			{null,{1.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.0f,1.0f,0.5f},null,{0.5f,0.0f,0.0f},{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},null,},
+			{{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,null,{0.0f,1.0f,0.5f},{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},},
+			{{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,},
+			{null,{1.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,null,null,null,{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},null,null,},
+			{null,{1.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},{0.0f,0.5f,0.0f},null,{0.5f,1.0f,1.0f},{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},null,},
+			{{1.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},null,null,null,{0.5f,0.0f,1.0f},null,{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},null,null,null,},
+			{{0.0f,0.0f,0.5f},{0.0f,0.5f,0.0f},null,null,null,{1.0f,0.5f,0.0f},{1.0f,1.0f,0.5f},null,{0.5f,0.0f,1.0f},null,null,{0.5f,1.0f,1.0f},},
+			{{1.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},null,null,null,{0.5f,1.0f,1.0f},null,{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},null,null,null,},
+			{{0.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},{1.0f,0.0f,0.5f},{0.5f,0.0f,0.0f},null,{0.5f,1.0f,1.0f},null,{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,null,{1.0f,0.5f,0.0f},},
+			{null,{0.5f,1.0f,0.0f},null,{0.5f,1.0f,1.0f},null,{0.5f,0.0f,0.0f},null,{0.5f,0.0f,1.0f},null,null,null,null,},
+			{{0.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},null,null,null,{0.5f,1.0f,1.0f},null,{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,},
+			{null,{1.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},{0.0f,0.5f,0.0f},null,{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},null,},
+			{{0.5f,0.0f,0.0f},null,{0.5f,1.0f,0.0f},null,{0.5f,0.0f,1.0f},null,{0.5f,1.0f,1.0f},null,{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},},
+			{{0.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},{1.0f,1.0f,0.5f},{0.5f,1.0f,0.0f},null,{0.5f,0.0f,1.0f},null,{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,null,{1.0f,0.5f,0.0f},},
+			{null,{0.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},{1.0f,0.5f,0.0f},null,{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},null,},
+			{{1.0f,0.0f,0.5f},{1.0f,0.5f,0.0f},null,null,null,{0.0f,0.5f,0.0f},{0.0f,1.0f,0.5f},null,{0.5f,0.0f,1.0f},null,null,{0.5f,1.0f,1.0f},},
+			{null,{0.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},{1.0f,0.5f,0.0f},null,{0.5f,1.0f,1.0f},{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},null,},
+			{{0.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},null,null,null,{0.5f,0.0f,1.0f},null,{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,},
+			{null,{0.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,null,null,null,{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},null,null,},
+			{{0.5f,1.0f,1.0f},{1.0f,1.0f,0.5f},null,null,null,{1.0f,0.0f,0.5f},null,{0.0f,0.0f,0.5f},{0.0f,0.5f,1.0f},null,null,null,},
+			{{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,{0.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,{1.0f,0.0f,0.5f},null,null,{1.0f,1.0f,0.5f},},
+			{{0.5f,1.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,null,{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},},
+			{{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,0.0f},{1.0f,1.0f,0.5f},null,null,null,},
+			{{1.0f,0.5f,0.0f},{1.0f,0.0f,0.5f},null,null,null,{0.0f,0.0f,0.5f},{0.0f,0.5f,1.0f},null,{0.5f,1.0f,0.0f},null,null,{0.5f,1.0f,1.0f},},
+			{null,{0.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{1.0f,0.0f,0.5f},null,{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},{0.5f,0.0f,0.0f},null,},
+			{{0.0f,0.0f,0.5f},{0.5f,0.0f,0.0f},null,null,null,{0.5f,1.0f,0.0f},null,{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,},
+			{null,{0.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},null,null,null,null,{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},null,null,},
+			{{0.5f,1.0f,0.0f},{1.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,{0.0f,0.0f,0.5f},{0.0f,0.5f,0.0f},null,null,{0.0f,0.5f,1.0f},},
+			{null,{1.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},{0.0f,0.5f,1.0f},null,{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},{0.5f,1.0f,1.0f},null,},
+			{{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,null,{0.0f,0.0f,0.5f},{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},},
+			{{0.5f,1.0f,1.0f},{1.0f,1.0f,0.5f},{0.5f,1.0f,0.0f},{0.0f,1.0f,0.5f},null,null,null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},null,},
+			{null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,{1.0f,0.0f,0.5f},{0.0f,0.0f,0.5f},{0.0f,1.0f,0.5f},null,},
+			{{0.5f,1.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,},
+			{{0.0f,1.0f,0.5f},{0.0f,0.5f,0.0f},{0.0f,0.0f,0.5f},{0.0f,0.5f,1.0f},null,null,null,null,{0.5f,1.0f,1.0f},null,{0.5f,0.0f,0.0f},null,},
+			{{0.5f,1.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,1.0f,0.5f},null,null,null,},
+			{{0.5f,1.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,1.0f,0.5f},null,null,null,},
+			{{0.0f,1.0f,0.5f},{0.0f,0.5f,0.0f},{0.0f,0.0f,0.5f},{0.0f,0.5f,1.0f},null,null,null,null,{0.5f,1.0f,1.0f},null,{0.5f,0.0f,0.0f},null,},
+			{{0.5f,1.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,},
+			{null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,{1.0f,0.0f,0.5f},{0.0f,0.0f,0.5f},{0.0f,1.0f,0.5f},null,},
+			{{0.5f,1.0f,1.0f},{1.0f,1.0f,0.5f},{0.5f,1.0f,0.0f},{0.0f,1.0f,0.5f},null,null,null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},null,},
+			{{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,null,{0.0f,0.0f,0.5f},{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},},
+			{null,{1.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},{0.0f,0.5f,1.0f},null,{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},{0.5f,1.0f,1.0f},null,},
+			{{0.5f,1.0f,0.0f},{1.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,{0.0f,0.0f,0.5f},{0.0f,0.5f,0.0f},null,null,{0.0f,0.5f,1.0f},},
+			{null,{0.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},null,null,null,null,{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},null,null,},
+			{{0.0f,0.0f,0.5f},{0.5f,0.0f,0.0f},null,null,null,{0.5f,1.0f,0.0f},null,{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,},
+			{null,{0.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{1.0f,0.0f,0.5f},null,{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},{0.5f,0.0f,0.0f},null,},
+			{{1.0f,0.5f,0.0f},{1.0f,0.0f,0.5f},null,null,null,{0.0f,0.0f,0.5f},{0.0f,0.5f,1.0f},null,{0.5f,1.0f,0.0f},null,null,{0.5f,1.0f,1.0f},},
+			{{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,0.0f},{1.0f,1.0f,0.5f},null,null,null,},
+			{{0.5f,1.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,null,{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},},
+			{{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,{0.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,{1.0f,0.0f,0.5f},null,null,{1.0f,1.0f,0.5f},},
+			{{0.5f,1.0f,1.0f},{1.0f,1.0f,0.5f},null,null,null,{1.0f,0.0f,0.5f},null,{0.0f,0.0f,0.5f},{0.0f,0.5f,1.0f},null,null,null,},
+			{null,{0.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,null,null,null,{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},null,null,},
+			{{0.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},null,null,null,{0.5f,0.0f,1.0f},null,{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,},
+			{null,{0.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},{1.0f,0.5f,0.0f},null,{0.5f,1.0f,1.0f},{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},null,},
+			{{1.0f,0.0f,0.5f},{1.0f,0.5f,0.0f},null,null,null,{0.0f,0.5f,0.0f},{0.0f,1.0f,0.5f},null,{0.5f,0.0f,1.0f},null,null,{0.5f,1.0f,1.0f},},
+			{null,{0.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},{1.0f,0.5f,0.0f},null,{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},null,},
+			{{0.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},{1.0f,1.0f,0.5f},{0.5f,1.0f,0.0f},null,{0.5f,0.0f,1.0f},null,{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,null,{1.0f,0.5f,0.0f},},
+			{{0.5f,0.0f,0.0f},null,{0.5f,1.0f,0.0f},null,{0.5f,0.0f,1.0f},null,{0.5f,1.0f,1.0f},null,{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},},
+			{null,{1.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},{0.0f,0.5f,0.0f},null,{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},null,},
+			{{0.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},null,null,null,{0.5f,1.0f,1.0f},null,{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,},
+			{null,{0.5f,1.0f,0.0f},null,{0.5f,1.0f,1.0f},null,{0.5f,0.0f,0.0f},null,{0.5f,0.0f,1.0f},null,null,null,null,},
+			{{0.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},{1.0f,0.0f,0.5f},{0.5f,0.0f,0.0f},null,{0.5f,1.0f,1.0f},null,{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,null,{1.0f,0.5f,0.0f},},
+			{{1.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},null,null,null,{0.5f,1.0f,1.0f},null,{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},null,null,null,},
+			{{0.0f,0.0f,0.5f},{0.0f,0.5f,0.0f},null,null,null,{1.0f,0.5f,0.0f},{1.0f,1.0f,0.5f},null,{0.5f,0.0f,1.0f},null,null,{0.5f,1.0f,1.0f},},
+			{{1.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},null,null,null,{0.5f,0.0f,1.0f},null,{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},null,null,null,},
+			{null,{1.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},{0.0f,0.5f,0.0f},null,{0.5f,1.0f,1.0f},{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},null,},
+			{null,{1.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,null,null,null,{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},null,null,},
+			{{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,},
+			{{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,null,{0.0f,1.0f,0.5f},{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},},
+			{null,{1.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.0f,1.0f,0.5f},null,{0.5f,0.0f,0.0f},{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},null,},
+			{{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},{0.0f,0.0f,0.5f},null,null,{0.0f,1.0f,0.5f},},
+			{{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,null,{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},},
+			{{0.0f,1.0f,0.5f},{0.5f,1.0f,0.0f},{1.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},null,{0.5f,0.0f,0.0f},null,{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,null,{1.0f,0.5f,1.0f},},
+			{{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,null,{0.0f,0.0f,0.5f},{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},},
+			{null,{0.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{1.0f,0.0f,0.5f},null,{0.5f,1.0f,0.0f},{0.5f,1.0f,1.0f},{0.5f,0.0f,1.0f},null,},
+			{{0.0f,0.0f,0.5f},{0.5f,0.0f,0.0f},{1.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},null,{0.5f,1.0f,0.0f},null,{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,null,{1.0f,0.5f,1.0f},},
+			{{0.5f,1.0f,0.0f},null,{0.5f,1.0f,1.0f},null,{0.5f,0.0f,0.0f},null,{0.5f,0.0f,1.0f},null,{0.0f,0.5f,0.0f},{1.0f,0.5f,0.0f},{1.0f,0.5f,1.0f},{0.0f,0.5f,1.0f},},
+			{null,{1.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.0f,0.0f,0.5f},null,{0.5f,1.0f,0.0f},{0.5f,1.0f,1.0f},{0.5f,0.0f,1.0f},null,},
+			{{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,0.0f},{1.0f,0.0f,0.5f},null,null,{1.0f,1.0f,0.5f},},
+			{{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,null,{1.0f,1.0f,0.5f},{1.0f,0.0f,0.5f},{0.0f,0.0f,0.5f},},
+			{null,{0.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{1.0f,1.0f,0.5f},null,{0.5f,0.0f,0.0f},{0.5f,0.0f,1.0f},{0.5f,1.0f,1.0f},null,},
+			{{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,},
+			{{0.5f,1.0f,1.0f},{0.0f,1.0f,0.5f},null,null,null,{0.0f,0.0f,0.5f},null,{1.0f,0.0f,0.5f},{1.0f,0.5f,1.0f},null,null,null,},
+			{{0.5f,0.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,null,{1.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},null,null,null,{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,{0.0f,0.0f,0.5f},null,null,{0.0f,1.0f,0.5f},},
+			{{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},null,null,null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},{0.0f,1.0f,0.5f},null,null,null,},
+			{{0.5f,1.0f,0.0f},{0.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,{1.0f,0.0f,0.5f},{1.0f,0.5f,0.0f},null,null,{1.0f,0.5f,1.0f},},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,null,{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},},
+			{null,{0.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},{1.0f,0.5f,1.0f},null,{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},{0.5f,1.0f,1.0f},null,},
+			{{0.5f,1.0f,0.0f},{1.0f,1.0f,0.5f},{0.5f,1.0f,1.0f},{0.0f,1.0f,0.5f},null,null,null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,},
+			{{0.0f,0.5f,0.0f},{0.0f,0.0f,0.5f},null,null,null,{1.0f,0.0f,0.5f},{1.0f,0.5f,1.0f},null,{0.5f,1.0f,0.0f},null,null,{0.5f,1.0f,1.0f},},
+			{{1.0f,0.0f,0.5f},{0.5f,0.0f,0.0f},null,null,null,{0.5f,1.0f,0.0f},null,{0.5f,1.0f,1.0f},{1.0f,0.5f,1.0f},null,null,null,},
+			{null,{1.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.0f,0.0f,0.5f},null,{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},{0.5f,0.0f,0.0f},null,},
+			{null,{1.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,null,null,null,{0.5f,1.0f,1.0f},{0.5f,1.0f,0.0f},null,null,},
+			{null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},null,},
+			{{1.0f,1.0f,0.5f},{1.0f,0.5f,0.0f},{1.0f,0.0f,0.5f},{1.0f,0.5f,1.0f},null,null,null,null,{0.5f,1.0f,1.0f},null,{0.5f,0.0f,0.0f},null,},
+			{{0.5f,0.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,1.0f,1.0f},null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,},
+			{{0.5f,1.0f,1.0f},null,null,{1.0f,0.5f,1.0f},null,null,null,null,{1.0f,1.0f,0.5f},null,null,null,},
+			{null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},null,null,},
+			{null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},{0.0f,0.0f,0.5f},null,},
+			{null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},null,{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},{1.0f,0.0f,0.5f},null,},
+			{{0.0f,1.0f,0.5f},null,{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,{1.0f,0.0f,0.5f},null,{0.0f,0.5f,1.0f},{0.0f,0.5f,0.0f},{1.0f,0.5f,0.0f},{1.0f,0.5f,1.0f},},
+			{{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},null,null,null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},{0.0f,1.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},{0.0f,0.0f,0.5f},null,null,{0.0f,1.0f,0.5f},},
+			{{1.0f,0.0f,0.5f},{1.0f,0.5f,1.0f},null,null,null,{0.0f,0.5f,1.0f},{0.0f,1.0f,0.5f},null,{0.5f,0.0f,0.0f},null,null,{0.5f,1.0f,0.0f},},
+			{null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,{1.0f,0.0f,0.5f},{0.0f,0.0f,0.5f},{0.0f,1.0f,0.5f},null,},
+			{{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,1.0f},{1.0f,1.0f,0.5f},null,null,null,},
+			{{0.0f,0.0f,0.5f},{0.0f,0.5f,1.0f},null,null,null,{1.0f,0.5f,1.0f},{1.0f,1.0f,0.5f},null,{0.5f,0.0f,0.0f},null,null,{0.5f,1.0f,0.0f},},
+			{{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,1.0f},{1.0f,0.0f,0.5f},null,null,{1.0f,1.0f,0.5f},},
+			{null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},{1.0f,1.0f,0.5f},null,},
+			{null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},null,null,null,null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},null,null,null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},{0.0f,0.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,1.0f},{1.0f,0.0f,0.5f},null,null,null,},
+			{null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},null,null,},
+			{{0.5f,0.0f,1.0f},{0.0f,0.0f,0.5f},null,null,null,{0.0f,1.0f,0.5f},null,{1.0f,1.0f,0.5f},{1.0f,0.5f,1.0f},null,null,null,},
+			{{0.0f,0.5f,0.0f},{0.0f,1.0f,0.5f},null,null,null,{1.0f,1.0f,0.5f},{1.0f,0.5f,1.0f},null,{0.5f,0.0f,0.0f},null,null,{0.5f,0.0f,1.0f},},
+			{{0.5f,0.0f,0.0f},{0.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},{1.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},null,{1.0f,1.0f,0.5f},{1.0f,0.5f,0.0f},null,null,{1.0f,0.5f,1.0f},},
+			{null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},{1.0f,0.0f,0.5f},null,},
+			{{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},null,null,null,{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,{0.0f,0.0f,0.5f},null,null,{0.0f,1.0f,0.5f},},
+			{null,{1.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,{0.0f,0.5f,0.0f},{0.0f,1.0f,0.5f},null,{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},null,},
+			{null,{0.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},{1.0f,0.5f,1.0f},null,{0.5f,1.0f,0.0f},{0.5f,0.0f,0.0f},{0.5f,0.0f,1.0f},null,},
+			{{0.5f,1.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,},
+			{{0.5f,1.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,null,{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},},
+			{{1.0f,1.0f,0.5f},{0.5f,1.0f,0.0f},null,null,null,{0.5f,0.0f,0.0f},null,{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},null,null,null,},
+			{{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,null,{1.0f,1.0f,0.5f},{1.0f,0.0f,0.5f},{0.0f,0.0f,0.5f},},
+			{{1.0f,0.0f,0.5f},{1.0f,0.5f,0.0f},{1.0f,1.0f,0.5f},{1.0f,0.5f,1.0f},null,null,null,null,{0.5f,0.0f,1.0f},null,{0.5f,1.0f,0.0f},null,},
+			{{0.5f,0.0f,1.0f},{1.0f,0.5f,1.0f},null,null,null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},{0.0f,0.0f,0.5f},null,null,null,},
+			{null,{1.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,null,null,null,{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},null,null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},{0.0f,0.0f,0.5f},null,null,null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,1.0f},null,},
+			{{0.5f,0.0f,1.0f},null,null,{1.0f,0.5f,1.0f},null,null,null,null,{1.0f,0.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,1.0f},{1.0f,0.0f,0.5f},null,null,null,{1.0f,1.0f,0.5f},null,{0.0f,1.0f,0.5f},{0.0f,0.5f,1.0f},null,null,null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.0f,0.5f},{0.5f,0.0f,1.0f},{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,{0.0f,1.0f,0.5f},{0.0f,0.5f,0.0f},null,null,{0.0f,0.5f,1.0f},},
+			{{1.0f,0.5f,0.0f},{1.0f,1.0f,0.5f},null,null,null,{0.0f,1.0f,0.5f},{0.0f,0.5f,1.0f},null,{0.5f,0.0f,0.0f},null,null,{0.5f,0.0f,1.0f},},
+			{null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,{1.0f,1.0f,0.5f},{0.0f,1.0f,0.5f},{0.0f,0.0f,0.5f},null,},
+			{{0.5f,0.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,null,{1.0f,0.0f,0.5f},null,{0.0f,1.0f,0.5f},},
+			{{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},{0.5f,0.0f,1.0f},null,null,{0.0f,1.0f,0.5f},{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},},
+			{{0.0f,1.0f,0.5f},{0.5f,1.0f,0.0f},null,null,null,{0.5f,0.0f,0.0f},null,{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,},
+			{{0.0f,0.0f,0.5f},{0.0f,0.5f,0.0f},{0.0f,1.0f,0.5f},{0.0f,0.5f,1.0f},null,null,null,null,{0.5f,0.0f,1.0f},null,{0.5f,1.0f,0.0f},null,},
+			{{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,{0.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,{1.0f,0.0f,0.5f},null,null,{1.0f,1.0f,0.5f},},
+			{null,{1.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},{0.0f,0.5f,1.0f},null,{0.5f,1.0f,0.0f},{0.5f,0.0f,0.0f},{0.5f,0.0f,1.0f},null,},
+			{null,{0.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{1.0f,1.0f,0.5f},null,{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},null,},
+			{{0.5f,0.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,},
+			{{0.5f,0.0f,1.0f},{0.0f,0.5f,1.0f},null,null,null,{0.0f,0.5f,0.0f},null,{1.0f,0.5f,0.0f},{1.0f,0.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,1.0f},{1.0f,0.0f,0.5f},{0.5f,0.0f,0.0f},{0.0f,0.0f,0.5f},null,null,null,null,{0.0f,0.5f,1.0f},null,{1.0f,0.5f,0.0f},null,},
+			{null,{0.0f,0.5f,0.0f},null,{0.0f,0.5f,1.0f},null,null,null,null,{0.5f,0.0f,1.0f},{0.5f,0.0f,0.0f},null,null,},
+			{{0.5f,0.0f,1.0f},null,null,{0.0f,0.5f,1.0f},null,null,null,null,{0.0f,0.0f,0.5f},null,null,null,},
+			{null,{1.0f,1.0f,0.5f},null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,{0.0f,0.0f,0.5f},null,null,null,null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.0f,0.5f},null,null,null,{1.0f,1.0f,0.5f},null,{0.0f,1.0f,0.5f},{0.0f,0.5f,0.0f},null,null,null,},
+			{{0.5f,0.0f,0.0f},{0.0f,0.0f,0.5f},null,null,null,{0.0f,1.0f,0.5f},null,{1.0f,1.0f,0.5f},{1.0f,0.5f,0.0f},null,null,null,},
+			{null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,1.0f,0.5f},{1.0f,1.0f,0.5f},null,null,},
+			{{0.5f,1.0f,0.0f},{0.0f,1.0f,0.5f},null,null,null,{0.0f,0.0f,0.5f},null,{1.0f,0.0f,0.5f},{1.0f,0.5f,0.0f},null,null,null,},
+			{{0.5f,1.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,0.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,},
+			{null,{0.0f,1.0f,0.5f},null,{0.0f,0.0f,0.5f},null,null,null,null,{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},null,null,},
+			{{0.5f,1.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,1.0f,0.5f},null,null,null,},
+			{{0.5f,1.0f,0.0f},{1.0f,1.0f,0.5f},null,null,null,{1.0f,0.0f,0.5f},null,{0.0f,0.0f,0.5f},{0.0f,0.5f,0.0f},null,null,null,},
+			{null,{1.0f,1.0f,0.5f},null,{1.0f,0.0f,0.5f},null,null,null,null,{0.5f,0.0f,0.0f},{0.5f,1.0f,0.0f},null,null,},
+			{{0.5f,0.0f,0.0f},{1.0f,0.5f,0.0f},{0.5f,1.0f,0.0f},{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,0.0f,0.5f},null,{1.0f,1.0f,0.5f},null,},
+			{{0.5f,1.0f,0.0f},null,null,{1.0f,0.5f,0.0f},null,null,null,null,{1.0f,1.0f,0.5f},null,null,null,},
+			{null,{1.0f,0.5f,0.0f},null,{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,0.0f,0.5f},{1.0f,0.0f,0.5f},null,null,},
+			{{0.5f,0.0f,0.0f},null,null,{1.0f,0.5f,0.0f},null,null,null,null,{1.0f,0.0f,0.5f},null,null,null,},
+			{{0.5f,0.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,0.0f,0.5f},null,null,null,},
+			{null,null,null,null,null,null,null,null,null,null,null,null,},
+		};
+private static int[][] sTRIANGLES = {
+			{},
+			{8,0,3,},
+			{0,8,3,},
+			{8,9,1,3,8,1,},
+			{8,0,3,},
+			{10,0,1,10,8,0,2,3,8,2,8,10,},
+			{9,8,1,8,3,1,},
+			{0,8,1,7,1,8,1,7,5,},
+			{0,8,3,},
+			{8,9,1,3,8,1,},
+			{0,10,1,8,10,0,3,2,8,8,2,10,},
+			{8,0,1,1,7,8,7,1,5,},
+			{9,8,1,8,3,1,},
+			{0,8,1,7,1,8,1,7,5,},
+			{8,0,1,1,7,8,7,1,5,},
+			{1,3,7,1,7,5,},
+			{0,8,3,},
+			{8,9,1,3,8,1,},
+			{10,0,1,10,8,0,2,3,8,2,8,10,},
+			{0,8,1,7,1,8,1,7,5,},
+			{3,10,6,5,0,8,0,5,10,10,3,0,8,3,6,8,6,5,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{10,0,1,10,8,0,2,3,8,2,8,10,},
+			{0,8,1,7,1,8,1,7,5,},
+			{2,10,1,5,0,9,6,0,5,3,0,6,11,3,6,},
+			{0,9,5,5,6,0,0,6,3,3,6,11,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{8,0,1,1,7,8,7,1,5,},
+			{8,0,3,},
+			{0,10,1,8,10,0,3,2,8,8,2,10,},
+			{9,8,1,8,3,1,},
+			{8,0,1,1,7,8,7,1,5,},
+			{0,10,1,8,10,0,3,2,8,8,2,10,},
+			{10,2,1,0,5,9,0,6,5,0,3,6,3,11,6,},
+			{8,0,1,1,7,8,7,1,5,},
+			{9,0,5,6,5,0,6,0,3,6,3,11,},
+			{3,10,6,5,0,8,0,5,10,10,3,0,8,3,6,8,6,5,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{0,8,1,7,1,8,1,7,5,},
+			{9,8,1,8,3,1,},
+			{8,0,1,1,7,8,7,1,5,},
+			{0,8,1,7,1,8,1,7,5,},
+			{1,3,7,1,7,5,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{8,0,1,1,7,8,7,1,5,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{0,8,1,7,1,8,1,7,5,},
+			{2,0,10,0,9,10,8,6,4,8,11,6,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{9,8,1,8,3,1,},
+			{0,8,3,},
+			{10,3,6,0,5,8,5,0,10,3,10,0,3,8,6,6,8,5,},
+			{10,0,1,10,8,0,2,3,8,2,8,10,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{8,9,1,3,8,1,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{0,8,1,7,1,8,1,7,5,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{10,0,1,10,8,0,2,3,8,2,8,10,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{2,10,1,5,0,9,6,0,5,3,0,6,11,3,6,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{0,8,1,7,1,8,1,7,5,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{0,9,5,5,6,0,0,6,3,3,6,11,},
+			{8,0,1,1,7,8,7,1,5,},
+			{0,10,1,8,10,0,3,2,8,8,2,10,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{2,10,1,5,0,9,6,0,5,3,0,6,11,3,6,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{2,0,10,0,9,10,8,6,4,8,11,6,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{2,10,1,5,0,9,6,0,5,3,0,6,11,3,6,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{1,0,9,8,7,4,10,5,6,2,11,3,},
+			{2,10,1,5,0,9,6,0,5,3,0,6,11,3,6,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{2,10,1,5,0,9,6,0,5,3,0,6,11,3,6,},
+			{0,8,3,10,1,2,},
+			{8,9,1,3,8,1,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{0,8,1,7,1,8,1,7,5,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{8,0,1,1,7,8,7,1,5,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{3,1,7,7,1,5,},
+			{8,0,1,1,7,8,7,1,5,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{0,2,10,9,0,10,6,8,4,11,8,6,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{0,8,1,7,1,8,1,7,5,},
+			{8,9,1,3,8,1,},
+			{8,0,1,1,7,8,7,1,5,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{0,9,5,5,6,0,0,6,3,3,6,11,},
+			{0,8,1,7,1,8,1,7,5,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{0,8,1,7,1,8,1,7,5,},
+			{8,9,1,3,8,1,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{2,10,1,5,0,9,6,0,5,3,0,6,11,3,6,},
+			{8,0,3,1,10,2,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{0,8,3,6,5,10,},
+			{8,0,3,1,10,2,},
+			{0,8,3,},
+			{8,0,3,},
+			{0,10,1,8,10,0,3,2,8,8,2,10,},
+			{10,3,6,0,5,8,5,0,10,3,10,0,3,8,6,6,8,5,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{0,10,1,8,10,0,3,2,8,8,2,10,},
+			{10,2,1,0,5,9,0,6,5,0,3,6,3,11,6,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{9,8,1,8,3,1,},
+			{8,0,1,1,7,8,7,1,5,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{8,0,1,1,7,8,7,1,5,},
+			{9,0,5,6,5,0,6,0,3,6,3,11,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{0,8,1,7,1,8,1,7,5,},
+			{9,8,1,8,3,1,},
+			{8,0,1,1,7,8,7,1,5,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{2,0,10,0,9,10,8,6,4,8,11,6,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{0,8,1,7,1,8,1,7,5,},
+			{1,3,7,1,7,5,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{0,8,1,7,1,8,1,7,5,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{8,0,1,1,7,8,7,1,5,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{9,8,1,8,3,1,},
+			{10,0,1,10,8,0,2,3,8,2,8,10,},
+			{10,2,1,0,5,9,0,6,5,0,3,6,3,11,6,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{10,2,1,0,5,9,0,6,5,0,3,6,3,11,6,},
+			{0,1,9,7,8,4,5,10,6,11,2,3,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{10,2,1,0,5,9,0,6,5,0,3,6,3,11,6,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{0,2,10,9,0,10,6,8,4,11,8,6,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{10,2,1,0,5,9,0,6,5,0,3,6,3,11,6,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{8,0,3,1,10,2,},
+			{0,8,1,7,1,8,1,7,5,},
+			{9,0,5,6,5,0,6,0,3,6,3,11,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{8,0,1,1,7,8,7,1,5,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{10,2,1,0,5,9,0,6,5,0,3,6,3,11,6,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{0,8,3,10,1,2,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{8,0,1,1,7,8,7,1,5,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{9,8,1,8,3,1,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{0,8,3,10,1,2,},
+			{0,8,3,6,5,10,},
+			{8,0,3,},
+			{8,9,1,3,8,1,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{0,2,10,9,0,10,6,8,4,11,8,6,},
+			{8,0,1,1,7,8,7,1,5,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{0,8,1,7,1,8,1,7,5,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{3,1,7,7,1,5,},
+			{8,0,1,1,7,8,7,1,5,},
+			{0,8,1,7,1,8,1,7,5,},
+			{8,9,1,3,8,1,},
+			{8,0,1,1,7,8,7,1,5,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{0,3,8,11,2,5,2,1,5,11,5,7,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{5,8,9,1,3,10,3,6,10,8,6,3,5,6,8,},
+			{8,0,3,5,6,10,},
+			{0,9,5,5,6,0,0,6,3,3,6,11,},
+			{0,8,1,7,1,8,1,7,5,},
+			{2,10,1,5,0,9,6,0,5,3,0,6,11,3,6,},
+			{8,0,3,1,10,2,},
+			{0,8,1,7,1,8,1,7,5,},
+			{8,9,1,3,8,1,},
+			{8,0,3,1,10,2,},
+			{0,8,3,},
+			{0,8,1,7,1,8,1,7,5,},
+			{3,0,8,2,11,5,1,2,5,5,11,7,},
+			{11,0,8,1,0,11,5,1,11,6,5,11,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{9,0,5,6,5,0,6,0,3,6,3,11,},
+			{10,2,1,0,5,9,0,6,5,0,3,6,3,11,6,},
+			{8,0,1,1,7,8,7,1,5,},
+			{0,8,3,10,1,2,},
+			{0,11,8,0,1,11,1,5,11,5,6,11,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{8,5,9,3,1,10,6,3,10,6,8,3,6,5,8,},
+			{8,0,3,5,6,10,},
+			{8,0,1,1,7,8,7,1,5,},
+			{0,8,3,10,1,2,},
+			{9,8,1,8,3,1,},
+			{8,0,3,},
+			{3,1,7,7,1,5,},
+			{0,8,1,7,1,8,1,7,5,},
+			{8,0,1,1,7,8,7,1,5,},
+			{8,9,1,3,8,1,},
+			{0,8,1,7,1,8,1,7,5,},
+			{8,0,3,1,10,2,},
+			{9,8,1,8,3,1,},
+			{8,0,3,},
+			{8,0,1,1,7,8,7,1,5,},
+			{8,9,1,3,8,1,},
+			{0,8,3,10,1,2,},
+			{0,8,3,},
+			{9,8,1,8,3,1,},
+			{8,0,3,},
+			{0,8,3,},
+			{},
+		};
+    
     //Performs the Marching Cubes algorithm on a single cube
     private static MeshPart marchCube(BlockWorld world, int x, int y, int z, int scale) {
-            int iCorner, iVertex, iVertexTest, iEdge, iTriangle, iEdgeFlags;
+            int /*iCorner,*/ iVertex, iVertexTest/*, iEdge, iTriangle, iEdgeFlags*/;
             char iFlagIndex;
-            float fOffset;
+            //float fOffset;
             boolean[] afCubeValue = new boolean[8];
-            Vector3f[] asEdgeVertex = new Vector3f[12];
-            Vector3f[] asEdgeNorm = new Vector3f[12];
+            //Vector3f[] asEdgeVertex = new Vector3f[12];
+            //Vector3f[] asEdgeNorm = new Vector3f[12];
 
             //Make a local copy of the values at the cube's corners
             for(iVertex = 0; iVertex < 8; iVertex++) {
@@ -61,7 +815,7 @@ public class MarchingCubes implements MeshCreator{
                         iFlagIndex |= 1<<iVertexTest;
                     }
             }
-
+            /*
             //Find which edges are intersected by the surface
             iEdgeFlags = aiCubeEdgeFlags[iFlagIndex];
 
@@ -69,7 +823,7 @@ public class MarchingCubes implements MeshCreator{
             if(iEdgeFlags == 0) {
                 return null;
             }
-
+            
             //Find the point of intersection of the surface with each edge
             //Then find the normal to the surface at those points
             for(iEdge = 0; iEdge < 12; iEdge++)
@@ -86,27 +840,37 @@ public class MarchingCubes implements MeshCreator{
                             asEdgeNorm[iEdge] = getNormal(world, Math.round(asEdgeVertex[iEdge].x), Math.round(asEdgeVertex[iEdge].y), Math.round(asEdgeVertex[iEdge].z));
                     }
             }
+            */
             
             //Compress the vertex && norm arrays
             int nrVertices = 0;
-            for(int i = 0; i < 12; i++) {
-                if(asEdgeVertex[i] != null) {
+            for(int i = 0; i < sVERTICES[iFlagIndex].length; i++) {
+                if(sVERTICES[iFlagIndex][i] != null) {
                     nrVertices++;
                 }
             }
             MeshPart meshPart = new MeshPart();
             meshPart.vertices = new Vector3f[nrVertices];
             meshPart.normals = new Vector3f[nrVertices];
-            int[] mapping = new int[12];
+            meshPart.texCoords = new Vector2f[nrVertices];
+            int[] mapping = new int[sVERTICES[iFlagIndex].length];
             int index = 0;
-            for(int i = 0; i < 12; i++) {
-                if(asEdgeVertex[i] != null) {
-                    meshPart.vertices[index] = asEdgeVertex[i];
-                    meshPart.normals[index] = asEdgeNorm[i];
+            for(int i = 0; i < sVERTICES[iFlagIndex].length; i++) {
+                if(sVERTICES[iFlagIndex][i] != null) {
+                    meshPart.vertices[index] = new Vector3f(x + sVERTICES[iFlagIndex][i][0], y + sVERTICES[iFlagIndex][i][1], z + sVERTICES[iFlagIndex][i][2]);
+                    meshPart.normals[index] = getNormal(world, Math.round(x + sVERTICES[iFlagIndex][i][0]), Math.round(y + sVERTICES[iFlagIndex][i][1]), Math.round(z + sVERTICES[iFlagIndex][i][2]));
+                    meshPart.texCoords[index] = new Vector2f(0, 0);
                     mapping[i] = index;
                     index++;
                 }
             }
+            
+            meshPart.indices = new int[sTRIANGLES[iFlagIndex].length];
+            for(int i = 0; i < sTRIANGLES[iFlagIndex].length; i++) {
+                meshPart.indices[i] = mapping[sTRIANGLES[iFlagIndex][i]];
+            }
+            return meshPart;
+            /*
             int nrTriangles = 0;
             //Calculate number of triangles that were found.  There can be up to five per cube
             for(iTriangle = 0; iTriangle < 5; iTriangle++)
@@ -138,10 +902,23 @@ public class MarchingCubes implements MeshCreator{
                         
                         iVertex = a2iTriangleConnectionTable[iFlagIndex][3*iTriangle+cornerVal];
                         meshPart.indices[index] = mapping[iVertex];
+                        Vector2f texCoord = new Vector2f();
+                        if(iCorner == 0) {
+                            texCoord.x = 0;
+                            texCoord.y = 0;
+                        }else if(iCorner == 1) {
+                            texCoord.x = 1;
+                            texCoord.y = 0;
+                        }else if(iCorner == 2) {
+                            texCoord.x = 1;
+                            texCoord.y = 1;
+                        }
+                        meshPart.texCoords[mapping[iVertex]] = texCoord;
                         index++;
                     }
             }
             return meshPart;
+            */
             
     }
     
@@ -164,6 +941,7 @@ public class MarchingCubes implements MeshCreator{
         }
         Vector3f[] vertices = new Vector3f[meshVertices];
         Vector3f[] normals = new Vector3f[meshVertices];
+        Vector2f[] texCoords = new Vector2f[meshVertices];
         
         int[] indices = new int[meshIndices];
         int verticesIndex = 0;
@@ -176,16 +954,11 @@ public class MarchingCubes implements MeshCreator{
             for(int i = 0; i < meshPart.vertices.length; i++) {
                 vertices[verticesIndex] = meshPart.vertices[i];
                 normals[verticesIndex] = meshPart.normals[i];
+                texCoords[verticesIndex] = meshPart.texCoords[i];
                 verticesIndex++;
             }
         }
-        Vector2f[] texCoords = new Vector2f[meshVertices];
-        for(int i = 0; i < meshVertices-3; i+=4) {
-            texCoords[i] = new Vector2f(0, 0);
-            texCoords[i+1] = new Vector2f(0, 1);
-            texCoords[i+2] = new Vector2f(1, 1);
-            texCoords[i+3] = new Vector2f(1, 0);
-        }
+        
         Mesh mesh = new Mesh();
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
         mesh.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normals));
@@ -223,6 +996,7 @@ public class MarchingCubes implements MeshCreator{
             {0, 0, 1},{0, 0, 1},{ 0, 0, 1},{0,  0, 1}
     };
 
+/*
     // For any edge, if one vertex is inside of the surface and the other is outside of the surface
     //  then the edge intersects the surface
     // For each of the 8 vertices of the cube can be two possible states : either inside or outside of the surface
@@ -255,7 +1029,6 @@ public class MarchingCubes implements MeshCreator{
     //  and corner[1] are inside of the surface, but the rest of the cube is not.
     //
     //  I found this table in an example program someone wrote long ago.  It was probably generated by hand
-
     private static final int[][] a2iTriangleConnectionTable = {
             {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
             {0, 8, 3, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
@@ -514,5 +1287,5 @@ public class MarchingCubes implements MeshCreator{
             {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
             {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
     };
-
+*/
 }
