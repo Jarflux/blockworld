@@ -6,8 +6,6 @@ package mygame.blockworld.chunkgenerators;
 
 import com.jme3.terrain.noise.basis.ImprovedNoise;
 import java.util.Random;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
 import mygame.blockworld.HeightMap;
@@ -22,8 +20,8 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
     private Float[][] fChunkMap;
     private HeightMap fHeightMap;
     //private float fRoughness = 10f;
-    private float fTerrainScale = 32f/2f;
-    private float fTerrainRoughness = 32f*2f;
+    private float fTerrainScale = 32f / 2f;
+    private float fTerrainRoughness = 32f * 2f;
     private float fNoiseZ = 10f;
     private float fMinLocalRoughness = 2f;
 
@@ -35,11 +33,11 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
         fHeightMap = world.getHeightMap("detail");
         int offset = Chunk.CHUNK_SIZE;
         fChunkMap = new Float[offset + 1][offset + 1];
-        
+
 
         //check if map for that chunk not yet exsists
         if (fHeightMap.getHeightMap(cnk.fXC, cnk.fZC) == null) {
-                    
+
             Float[][] fChunkTop = fHeightMap.getHeightMap(cnk.fXC, cnk.fZC + offset);
             Float[][] fChunkTopRight = fHeightMap.getHeightMap(cnk.fXC + offset, cnk.fZC + offset);
             Float[][] fChunkRight = fHeightMap.getHeightMap(cnk.fXC + offset, cnk.fZC);
@@ -106,7 +104,7 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
             }
 
             if (fChunkBottomLeft != null) {
-                if (fChunkMap[0][0] == null){
+                if (fChunkMap[0][0] == null) {
                     fChunkMap[0][0] = fChunkBottomLeft[offset][offset];
                 }
             }
@@ -132,19 +130,33 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
         float roughnessLocal = Math.max(Math.max(fChunkMap[0][0], fChunkMap[offset][0]), Math.max(fChunkMap[0][offset], fChunkMap[offset][offset]));
         roughnessLocal = roughnessLocal - Math.min(Math.min(fChunkMap[0][0], fChunkMap[offset][0]), Math.min(fChunkMap[0][offset], fChunkMap[offset][offset]));
         diamond_Square(0, 0, offset, offset, Math.max(roughnessLocal, fMinLocalRoughness));
-        
+
         // Loop over fChunkMap to create every block
         for (int x = cnk.fXC; x < cnk.fXC + offset; x++) {
             for (int z = cnk.fZC; z < cnk.fZC + offset; z++) {
                 int calculatedHeight = Math.round((fChunkMap[x - cnk.fXC][z - cnk.fZC] + fChunkMap[x - cnk.fXC][z - cnk.fZC + 1] + fChunkMap[x - cnk.fXC + 1][z - cnk.fZC] + fChunkMap[x - cnk.fXC + 1][z - cnk.fZC + 1]) / 4);
                 for (int y = cnk.fYC; y < cnk.fYC + offset; y++) {
-                        if (getBlockType(y, calculatedHeight) != null) {
-                            cnk.addBlock(getBlockType(y, calculatedHeight), x, y, z);
-                        }
+                    if (getBlockType(y, calculatedHeight) != null) {
+                        cnk.addBlock(getBlockType(y, calculatedHeight), x, y, z);
+                    }
                 }
             }
         }
         fHeightMap.setHeightMap(cnk.fXC, cnk.fZC, fChunkMap);
+    }
+
+    public void diamond_Square(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {
+        float currentRandomNumberRange = randomNumberRange / 2;
+        int length = Math.abs(bottomRightX - topLeftX);
+        if (length > 1) {
+            diamond_Step(topLeftX, topLeftY, bottomRightX, bottomRightY, currentRandomNumberRange);
+            square_Step(topLeftX, topLeftY, bottomRightX, bottomRightY, currentRandomNumberRange);
+
+            diamond_Square(topLeftX, topLeftY, topLeftX + (length / 2), topLeftY + (length / 2), currentRandomNumberRange);
+            diamond_Square(topLeftX + (length / 2), topLeftY, topLeftX + length, topLeftY + (length / 2), currentRandomNumberRange);
+            diamond_Square(topLeftX, topLeftY + (length / 2), topLeftX + (length / 2), topLeftY + length, currentRandomNumberRange);
+            diamond_Square(topLeftX + (length / 2), topLeftY + (length / 2), topLeftX + length, topLeftY + length, currentRandomNumberRange);
+        }
     }
 
     public void diamond_Step(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {
@@ -198,20 +210,6 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
         }
     }
 
-    public void diamond_Square(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {
-        float currentRandomNumberRange = randomNumberRange / 2;
-        int length = Math.abs(bottomRightX - topLeftX);
-        if (length > 1) {
-            diamond_Step(topLeftX, topLeftY, bottomRightX, bottomRightY, currentRandomNumberRange);
-            square_Step(topLeftX, topLeftY, bottomRightX, bottomRightY, currentRandomNumberRange);
-
-            diamond_Square(topLeftX, topLeftY, topLeftX + (length / 2), topLeftY + (length / 2), currentRandomNumberRange);
-            diamond_Square(topLeftX + (length / 2), topLeftY, topLeftX + length, topLeftY + (length / 2), currentRandomNumberRange);
-            diamond_Square(topLeftX, topLeftY + (length / 2), topLeftX + (length / 2), topLeftY + length, currentRandomNumberRange);
-            diamond_Square(topLeftX + (length / 2), topLeftY + (length / 2), topLeftX + length, topLeftY + length, currentRandomNumberRange);
-        }
-    }
-
     // block type logic
     private Integer getBlockType(int heigth, int topHeight) {
         Integer blockType = null;
@@ -221,7 +219,7 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
         if (heigth < topHeight) {
             blockType = 0;                       // return dirt
         }
-        if (heigth < (topHeight - 0) - (6* fRandom.nextFloat())) {
+        if (heigth < (topHeight - 0) - (6 * fRandom.nextFloat())) {
             blockType = 3;
         }
         return blockType;                        // return air
