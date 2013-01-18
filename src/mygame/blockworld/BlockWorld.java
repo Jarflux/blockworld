@@ -27,24 +27,23 @@ import mygame.MathUtil;
  * @author Nathan & Ben
  */
 public class BlockWorld {
+
     private static final Logger logger = Logger.getLogger(BlockWorld.class.getName());
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     private ChunkListener fGeneralListener = new ChunkListener() {
-
         public void blockAdded(Chunk chunk, Integer block, int x, int y, int z) {
-            for(ChunkListener listener : fListeners) {
+            for (ChunkListener listener : fListeners) {
                 listener.blockAdded(chunk, block, x, y, z);
             }
         }
 
         public void blockRemoved(Chunk chunk, Integer block, int x, int y, int z) {
-            for(ChunkListener listener : fListeners) {
+            for (ChunkListener listener : fListeners) {
                 listener.blockRemoved(chunk, block, x, y, z);
             }
         }
     };
     private ChunkListener fPhysicsUpdater = new ChunkListener() {
-
         public void blockAdded(Chunk chunk, Integer block, int x, int y, int z) {
             update(x, y, z);
         }
@@ -52,27 +51,27 @@ public class BlockWorld {
         public void blockRemoved(Chunk chunk, Integer block, int x, int y, int z) {
             update(x, y, z);
         }
-        
+
         private void update(int x, int y, int z) {
-            if(x % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x-1, y, z, true).scheduleUpdate();
+            if (x % Chunk.CHUNK_SIZE == 0) {
+                getChunk(x - 1, y, z, true).scheduleUpdate();
             }
-            if(MathUtil.PosMod(x, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x+1, y, z, true).scheduleUpdate();
+            if (MathUtil.PosMod(x, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
+                getChunk(x + 1, y, z, true).scheduleUpdate();
             }
-            if(y % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x, y-1, z, true).scheduleUpdate();
+            if (y % Chunk.CHUNK_SIZE == 0) {
+                getChunk(x, y - 1, z, true).scheduleUpdate();
             }
-            if(MathUtil.PosMod(y, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x, y+1, z, true).scheduleUpdate();
+            if (MathUtil.PosMod(y, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
+                getChunk(x, y + 1, z, true).scheduleUpdate();
             }
-            if(z % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x, y, z-1, true).scheduleUpdate();
+            if (z % Chunk.CHUNK_SIZE == 0) {
+                getChunk(x, y, z - 1, true).scheduleUpdate();
             }
-            if(MathUtil.PosMod(z, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x, y, z+1, true).scheduleUpdate();
+            if (MathUtil.PosMod(z, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
+                getChunk(x, y, z + 1, true).scheduleUpdate();
             }
-        }       
+        }
     };
 
     public void addChunkListener(ChunkListener listener) {
@@ -82,8 +81,8 @@ public class BlockWorld {
     public void removeChunkListener(ChunkListener listener) {
         fListeners.remove(listener);
     }
-    protected Map<Integer, Map<Integer, Map<Integer, Chunk>>> fChunks = new HashMap<Integer, Map<Integer, Map<Integer, Chunk>>>();
-    protected Map<String, HeightMap> fHeightMaps = new HashMap<String, HeightMap>();
+    protected Map<Integer, Map<Integer, ChunkColumn>> fChunkColumns = new HashMap<Integer, Map<Integer, ChunkColumn>>();
+    //protected Map<String, HeightMap> fHeightMaps = new HashMap<String, HeightMap>();
     protected Node fRootNode;
     protected Material fBlockMat;
     protected TextureAtlas fAtlas;
@@ -102,14 +101,14 @@ public class BlockWorld {
         this.fBlockMat = blockMat;
         this.fAtlas = atlas;
         this.fPhysicsState = physicsState;
-        this.fHeightMaps.put("detail", new HeightMap());
+        //this.fHeightMaps.put("detail", new HeightMap());
         fListeners.add(fPhysicsUpdater);
     }
 
     public Chunk getChunk(int x, int y, int z, boolean createChunk) {
         return getChunk(x, y, z, createChunk, true);
     }
-    
+
     public Chunk getChunk(int x, int y, int z, boolean createChunk, boolean generateChunk) {
         double fx = x;
         double fy = y;
@@ -119,39 +118,39 @@ public class BlockWorld {
         int zC = (int) Math.floor(fz / Chunk.CHUNK_SIZE);
 
         Chunk cnk = null;
-        Map<Integer, Map<Integer, Chunk>> mYZ = null;
-        Map<Integer, Chunk> mZ = null;
-        mYZ = fChunks.get(xC);  // zoek chunks met juiste X
-        if (mYZ != null) {
-            mZ = mYZ.get(yC);  // zoek chunks met juiste X en Y 
-            if (mZ != null) {
-                cnk = mZ.get(zC);  // zoek chunks met juiste Z 
+        Map<Integer, ChunkColumn> mX = null;
+        ChunkColumn chunkColumn = null;
+        mX = fChunkColumns.get(xC);
+        if (mX != null) {
+            chunkColumn = mX.get(zC);
+            if (chunkColumn != null) {
+                cnk = chunkColumn.get(yC);
             }
         }
-      
-        if(cnk == null && createChunk){              // Chunk met juiste x, y , z bestaat niet
-           cnk = new Chunk(this, fRootNode, fPhysicsState, xC*Chunk.CHUNK_SIZE, yC*Chunk.CHUNK_SIZE, zC*Chunk.CHUNK_SIZE);
-           if(generateChunk) {
-               cnk.fillChunk();
-           }
-           cnk.addChunkListener(fGeneralListener);
-           if(mZ == null){                            
-               mZ = new HashMap<Integer, Chunk>();
-           }
-           mZ.put(zC, cnk);
-           if(mYZ == null){
-               mYZ = new HashMap<Integer, Map<Integer, Chunk>>();         
-           }
-           mYZ.put(yC, mZ);
-           fChunks.put(xC, mYZ);
+
+        if (cnk == null && createChunk) {              // Chunk met juiste x, y , z bestaat niet
+            cnk = new Chunk(this, fRootNode, fPhysicsState, xC * Chunk.CHUNK_SIZE, yC * Chunk.CHUNK_SIZE, zC * Chunk.CHUNK_SIZE);
+            if (generateChunk) {
+                cnk.fillChunk();
+            }
+            cnk.addChunkListener(fGeneralListener);
+            if (chunkColumn == null) {
+                chunkColumn = new ChunkColumn();
+            }
+            chunkColumn.put(cnk);
+            if (mX == null) {
+                mX = new HashMap<Integer, ChunkColumn>();
+            }
+            mX.put(zC, chunkColumn);
+            fChunkColumns.put(xC, mX);
         }
         return cnk;
     }
-    
+
     public Integer get(int x, int y, int z) {
         return get(x, y, z, false);
     }
-    
+
     public Integer get(int x, int y, int z, boolean createChunk) {
         Chunk cnk = getChunk(x, y, z, createChunk);
         if (cnk != null) {
@@ -166,7 +165,7 @@ public class BlockWorld {
             cnk.removeBlock(x, y, z);
         }
     }
-    
+
     public boolean addBlock(Integer block, int x, int y, int z) {
         return getChunk(x, y, z, true).addBlock(block, x, y, z);
     }
@@ -176,9 +175,9 @@ public class BlockWorld {
             File file = new File(fileName);
             file.createNewFile();
             BufferedWriter fileWriter = new BufferedWriter(new FileWriter(file));
-            for(Map<Integer, Map<Integer, Chunk>> mYZ : fChunks.values()) {
-                for(Map<Integer, Chunk> mZ : mYZ.values()) {
-                    for(Chunk cnk : mZ.values()) {
+            for (Map<Integer, ChunkColumn> mX : fChunkColumns.values()) {
+                for (ChunkColumn chunkColumn : mX.values()) {
+                    for (Chunk cnk : chunkColumn.values()) {
                         cnk.save(fileWriter);
                     }
                 }
@@ -192,9 +191,9 @@ public class BlockWorld {
     public void loadWorld(String fileName) {
         try {
             File file = new File(fileName);
-            if(file.exists()) {
+            if (file.exists()) {
                 BufferedReader fileReader = new BufferedReader(new FileReader(file));
-                while(fileReader.ready()) {
+                while (fileReader.ready()) {
                     String line = fileReader.readLine();
                     String[] coords = line.split(":");
                     int xC = Integer.valueOf(coords[0]);
@@ -208,8 +207,35 @@ public class BlockWorld {
             Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
-    public HeightMap getHeightMap(String name){
-        return fHeightMaps.get(name);
+
+    public Float[][] getHeightMap(int x, int z) {
+        if (fChunkColumns.get(x) != null) {
+            if (fChunkColumns.get(x).get(z) != null) {
+                return (Float[][]) fChunkColumns.get(x).get(z).getHeigthMap();
+            }
+        }
+        return null;
+    }
+
+    public void setHeightMap(int x, int z, Float[][] map) {
+        if (fChunkColumns.get(x) != null) {
+            if (fChunkColumns.get(x).get(z) != null) {
+                fChunkColumns.get(x).get(z).setHeigthMap(map);
+                
+            }
+        }
+        
+        if(fChunkColumns.get(x) == null) { 
+            Map<Integer, ChunkColumn> mX = new HashMap<Integer, ChunkColumn>();
+            ChunkColumn chunkColumn = new ChunkColumn();
+            chunkColumn.setHeigthMap(map);
+            mX.put(z, chunkColumn);
+            fChunkColumns.put(x, mX);
+        }else{
+            ChunkColumn chunkColumn = new ChunkColumn();
+            chunkColumn.setHeigthMap(map);
+            fChunkColumns.get(x).put(z, chunkColumn); 
+        }
+       
     }
 }
