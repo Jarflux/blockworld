@@ -47,7 +47,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private static final float PLAYER_STEPHEIGHT = 0.25f * 4f;
     private static final float PLAYER_HITBOX_HEIGHT = 0.75f * 4f;
     private static final float PLAYER_HITBOX_RADIUS = 0.25f * 4f;
-    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 35, 0);
+    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 25, 0);
     private static final String SAVE_GAME_PATH = "Worlds/world0.dat";  
     
     private Material fBlockMat;

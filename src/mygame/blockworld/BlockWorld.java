@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -211,7 +212,7 @@ public class BlockWorld {
     public Float[][] getHeightMap(int x, int z) {
         if (fChunkColumns.get(x) != null) {
             if (fChunkColumns.get(x).get(z) != null) {
-                return (Float[][]) fChunkColumns.get(x).get(z).getHeigthMap();
+                return fChunkColumns.get(x).get(z).getHeigthMap();
             }
         }
         return null;
@@ -219,23 +220,15 @@ public class BlockWorld {
 
     public void setHeightMap(int x, int z, Float[][] map) {
         if (fChunkColumns.get(x) != null) {
-            if (fChunkColumns.get(x).get(z) != null) {
-                fChunkColumns.get(x).get(z).setHeigthMap(map);
-                
-            }
-        }
-        
-        if(fChunkColumns.get(x) == null) { 
-            Map<Integer, ChunkColumn> mX = new HashMap<Integer, ChunkColumn>();
-            ChunkColumn chunkColumn = new ChunkColumn();
-            chunkColumn.setHeigthMap(map);
-            mX.put(z, chunkColumn);
-            fChunkColumns.put(x, mX);
-        }else{
             ChunkColumn chunkColumn = new ChunkColumn();
             chunkColumn.setHeigthMap(map);
             fChunkColumns.get(x).put(z, chunkColumn); 
+        } else {
+            Map<Integer, ChunkColumn> yMap = new HashMap<Integer, ChunkColumn>();
+            ChunkColumn chunkColumn = new ChunkColumn();
+            chunkColumn.setHeigthMap(map);
+            yMap.put(z, chunkColumn);
+            fChunkColumns.put(x, yMap);
         }
-       
-    }
+    }      
 }

@@ -28,7 +28,7 @@ public class ChunkColumn {
     }
     
     public void put(Chunk cnk){
-        fChunks.put(cnk.getY(), cnk);
+        fChunks.put(cnk.getY()/Chunk.CHUNK_SIZE, cnk);
     }
     
     public Iterable<Chunk> values(){ // needed to save data to file
