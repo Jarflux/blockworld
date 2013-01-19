@@ -5,8 +5,8 @@ Texture2D m_Terrain
 }
  
 Technique {
-    VertexShader GLSL100:   Shaders/Terrain.vert
-    FragmentShader GLSL100: Shaders/Terrain.frag
+    VertexShader GLSL100:   MatDefs/Terrain.vert
+    FragmentShader GLSL100: MatDefs/Terrain.frag
 
 WorldParameters {
     WorldViewProjectionMatrix

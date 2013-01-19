@@ -76,34 +76,31 @@ public class Main extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleInitApp() {
+        int[] test = new int[1];
+        System.out.println(test[0]);
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
+        
         fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
-        Texture tex = assetManager.loadTexture(new TextureKey("Textures/grass.png", true));
-        //text.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
-        //text.setMagFilter(Texture.MagFilter.Bilinear);
-        //text.setWrap(Texture.WrapMode.Repeat);
+        Texture tex = assetManager.loadTexture("Textures/terrain.png");
         fBlockMat.setTexture("m_Terrain", tex);
 
-       // Texture text = assetManager.loadTexture("Textures/dirt.png");
+        //Texture text = assetManager.loadTexture("Textures/dirt.png");
        // text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
        // text.setMagFilter(Texture.MagFilter.Nearest);
-        //fBlockMat.setTexture("DiffuseMap", text);
-       // fBlockMat.setBoolean("VertexLighting", true);
-       // fBlockMat.setBoolean("HighQuality", true);
+        //fBlockMat.setTexture("DiffuseMap", tex);
+        //fBlockMat.setBoolean("VertexLighting", true);
+        //fBlockMat.setBoolean("HighQuality", true);
         //fBlockMat.setBoolean("UseMaterialColors",true);
         //fBlockMat.setBoolean("WardIso", true);
         //fBlockMat.setBoolean("SeparateTexCoord", true);
 
-        //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/dirt.png"));
+        //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/terrain.png"));
         //fBlockMat.setColor("Color", ColorRGBA.Green);
         //fBlockMat.getAdditionalRenderState().setWireframe(true);
         //fBlockMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
-
-        //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/grass.png"));
-        //fBlockMat.setColor("Color", ColorRGBA.Green);
 
         /**
          * Set up Physics
@@ -113,6 +110,7 @@ public class Main extends SimpleApplication implements ActionListener {
 
         // We re-use the flyby camera for rotation, while positioning is handled by physics
         viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
+        //viewPort.setBackgroundColor(new ColorRGBA(0.0f, 0.0f, 0.0f, 1f));
         flyCam.setMoveSpeed(10f);
         cam.setFrustumPerspective(45f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 1000f);
         setUpKeys();
@@ -147,7 +145,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private void setUpLight() {
         // We add light so we see the scene
         AmbientLight al = new AmbientLight();
-        al.setColor(ColorRGBA.White.mult(1.5f));
+        al.setColor(ColorRGBA.White.mult(0.3f));
         rootNode.addLight(al);
 
 //        SkyDome skyDome = new SkyDome(assetManager, cam,
