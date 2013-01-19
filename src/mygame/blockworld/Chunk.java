@@ -44,7 +44,7 @@ public class Chunk {
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
-    protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
+    protected ChunkGenerator fChunkGenerator = new FlatTerrainGenerator();
     protected static MeshCreator fMeshCreator = new MarchingCubes();
     private MeshCreator fPreviousCreator = fMeshCreator;
     

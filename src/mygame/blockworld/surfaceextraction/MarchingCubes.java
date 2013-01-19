@@ -115,8 +115,8 @@ public class MarchingCubes implements MeshCreator{
     }
     
     private static Vector3f[] invert(Vector3f[] filledCase, Vector3f[] vertices) {
-        Vector3f[] result = new Vector3f[filledCase.length];
-        for(int i = 0; i < filledCase.length; i++) {
+        Vector3f[] result = new Vector3f[vertices.length];
+        for(int i = 0; i < vertices.length; i++) {
             boolean found = false;
             for(int j = 0; !found && j < vertices.length; j++) {
                 found |= (vertices[j] != null) && (filledCase[i].distanceSquared(vertices[j]) < .01f);
