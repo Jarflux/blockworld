@@ -55,8 +55,8 @@ public class BasicTriangulation implements MeshCreator {
                         //default darkness
                         Vector4f color = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
                         //if highest block on position x, z then recieve sunlinght 
-                        if (world.getLightMap(chunk.getX(), chunk.getZ()) != null) {
-                            if (world.getLightMap(chunk.getX(), chunk.getZ())[MathUtil.PosMod(i, Chunk.CHUNK_SIZE)][MathUtil.PosMod(k, Chunk.CHUNK_SIZE)] == j) {
+                        if (world.getHighestBlockMap(chunk.getX(), chunk.getZ()) != null) {
+                            if (world.getHighestBlockMap(chunk.getX(), chunk.getZ())[MathUtil.PosMod(i, Chunk.CHUNK_SIZE)][MathUtil.PosMod(k, Chunk.CHUNK_SIZE)] == j) {
                                 color = new Vector4f(1.0f, 0.0f, 0.0f, 0.0f); // LIGHT
                             }
                         }

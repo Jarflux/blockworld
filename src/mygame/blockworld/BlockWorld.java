@@ -123,24 +123,34 @@ public class BlockWorld {
         return getChunk(x, y, z, createChunk, true);
     }
 
-    public Chunk getChunk(int x, int y, int z, boolean createChunk, boolean generateChunk) {
-        double fx = x;
-        double fy = y;
-        double fz = z;
-        int xC = (int) Math.floor(fx / Chunk.CHUNK_SIZE);
-        int yC = (int) Math.floor(fy / Chunk.CHUNK_SIZE);
-        int zC = (int) Math.floor(fz / Chunk.CHUNK_SIZE);
-
-        Chunk cnk = null;
-        Map<Integer, ChunkColumn> mX = null;
-        ChunkColumn chunkColumn = null;
-        mX = fChunkColumns.get(xC);
-        if (mX != null) {
-            chunkColumn = mX.get(zC);
-            if (chunkColumn != null) {
-                cnk = chunkColumn.get(yC);
+    private ChunkColumn getChunkColumn(int x, int z, boolean createChunkColumn) {
+        int xC = (int) Math.floor((double)x / Chunk.CHUNK_SIZE);
+        int zC = (int) Math.floor((double)z / Chunk.CHUNK_SIZE);
+        
+        Map<Integer, ChunkColumn> mX = fChunkColumns.get(xC);
+        ChunkColumn cnkColumn = null;
+        if(mX != null) {
+            cnkColumn = mX.get(zC);
+            if(cnkColumn == null) {
+                cnkColumn = new ChunkColumn();
+                mX.put(zC, cnkColumn);
             }
+        }else if(createChunkColumn) {
+            mX = new HashMap<Integer, ChunkColumn>();
+            fChunkColumns.put(xC, mX);
+            cnkColumn = new ChunkColumn();
+            mX.put(zC, cnkColumn);
         }
+        return cnkColumn;
+    }
+    
+    public Chunk getChunk(int x, int y, int z, boolean createChunk, boolean generateChunk) {
+        int xC = (int) Math.floor((double)x / Chunk.CHUNK_SIZE);
+        int yC = (int) Math.floor((double)y / Chunk.CHUNK_SIZE);
+        int zC = (int) Math.floor((double)z / Chunk.CHUNK_SIZE);
+
+        ChunkColumn chunkColumn = getChunkColumn(x, z, createChunk);
+        Chunk cnk = chunkColumn.get(yC);
 
         if (cnk == null && createChunk) {              // Chunk met juiste x, y , z bestaat niet
             cnk = new Chunk(this, fRootNode, fPhysicsState, xC * Chunk.CHUNK_SIZE, yC * Chunk.CHUNK_SIZE, zC * Chunk.CHUNK_SIZE);
@@ -152,11 +162,6 @@ public class BlockWorld {
                 chunkColumn = new ChunkColumn();
             }
             chunkColumn.put(cnk);
-            if (mX == null) {
-                mX = new HashMap<Integer, ChunkColumn>();
-                fChunkColumns.put(xC, mX);
-            }
-            mX.put(zC, chunkColumn);
         }
         return cnk;
     }
@@ -222,49 +227,26 @@ public class BlockWorld {
         }
     }
 
+    
     public Float[][] getHeightMap(int x, int z) {
-        double fx = x;
-        double fz = z;
-        int xC = (int) Math.floor(fx / Chunk.CHUNK_SIZE);
-        int zC = (int) Math.floor(fz / Chunk.CHUNK_SIZE);
-
-        if (fChunkColumns.get(xC) != null) {
-            if (fChunkColumns.get(xC).get(zC) != null) {
-                return fChunkColumns.get(xC).get(zC).getHeightMap();
-            }
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if(column != null) {
+            return column.getHeightMap();
         }
         return null;
     }
 
     public void setHeightMap(int x, int z, Float[][] map) {
-        double fx = x;
-        double fz = z;
-        int xC = (int) Math.floor(fx / Chunk.CHUNK_SIZE);
-        int zC = (int) Math.floor(fz / Chunk.CHUNK_SIZE);
-
-        if (fChunkColumns.get(xC) != null) {
-            ChunkColumn chunkColumn = new ChunkColumn();
-            chunkColumn.setHeightMap(map);
-            fChunkColumns.get(xC).put(zC, chunkColumn); 
-        } else {
-            Map<Integer, ChunkColumn> yMap = new HashMap<Integer, ChunkColumn>();
-            ChunkColumn chunkColumn = new ChunkColumn();
-            chunkColumn.setHeightMap(map);
-            yMap.put(zC, chunkColumn);
-            fChunkColumns.put(xC, yMap);
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if(column != null) {
+            column.setHeightMap(map);
         }
     }  
     
-    public int[][] getLightMap(int x, int z) {
-        double fx = x;
-        double fz = z;
-        int xC = (int) Math.floor(fx / Chunk.CHUNK_SIZE);
-        int zC = (int) Math.floor(fz / Chunk.CHUNK_SIZE);
-
-        if (fChunkColumns.get(xC) != null) {
-            if (fChunkColumns.get(xC).get(zC) != null) {
-                return fChunkColumns.get(xC).get(zC).getHighestBlockMap();
-            }
+    public int[][] getHighestBlockMap(int x, int z) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if(column != null) {
+            return column.getHighestBlockMap();
         }
         return null;
     }
