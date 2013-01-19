@@ -1,0 +1,14 @@
+MaterialDef Terrain{
+ 
+MaterialParameters {
+Texture2D m_Terrain
+}
+ 
+Technique {
+    VertexShader GLSL100:   MatDefs/Terrain.vert
+    FragmentShader GLSL100: MatDefs/Terrain.frag
+
+WorldParameters {
+    WorldViewProjectionMatrix
+}
+}

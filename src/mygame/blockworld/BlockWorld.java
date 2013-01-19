@@ -82,6 +82,7 @@ public class BlockWorld {
     public void removeChunkListener(ChunkListener listener) {
         fListeners.remove(listener);
     }
+    
     protected Map<Integer, Map<Integer, ChunkColumn>> fChunkColumns = new HashMap<Integer, Map<Integer, ChunkColumn>>();
     //protected Map<String, HeightMap> fHeightMaps = new HashMap<String, HeightMap>();
     protected Node fRootNode;
@@ -212,7 +213,7 @@ public class BlockWorld {
     public Float[][] getHeightMap(int x, int z) {
         if (fChunkColumns.get(x) != null) {
             if (fChunkColumns.get(x).get(z) != null) {
-                return fChunkColumns.get(x).get(z).getHeigthMap();
+                return fChunkColumns.get(x).get(z).getHeightMap();
             }
         }
         return null;
@@ -221,14 +222,23 @@ public class BlockWorld {
     public void setHeightMap(int x, int z, Float[][] map) {
         if (fChunkColumns.get(x) != null) {
             ChunkColumn chunkColumn = new ChunkColumn();
-            chunkColumn.setHeigthMap(map);
+            chunkColumn.setHeightMap(map);
             fChunkColumns.get(x).put(z, chunkColumn); 
         } else {
             Map<Integer, ChunkColumn> yMap = new HashMap<Integer, ChunkColumn>();
             ChunkColumn chunkColumn = new ChunkColumn();
-            chunkColumn.setHeigthMap(map);
+            chunkColumn.setHeightMap(map);
             yMap.put(z, chunkColumn);
             fChunkColumns.put(x, yMap);
         }
-    }      
+    }  
+    
+        public int[][] getLightMap(int x, int z) {
+        if (fChunkColumns.get(x) != null) {
+            if (fChunkColumns.get(x).get(z) != null) {
+                return fChunkColumns.get(x).get(z).getHighestBlockMap();
+            }
+        }
+        return null;
+    }
 }
