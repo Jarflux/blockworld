@@ -43,9 +43,9 @@ public class BasicTriangulation implements MeshCreator{
         List<Vector2f> texCoord = new ArrayList<Vector2f>();
         List<Integer> indexes = new ArrayList<Integer>();
         int index = 0;
-        for(int i = chunk.fXC; i < chunk.fXC + Chunk.CHUNK_SIZE; i++) {
-            for(int j = chunk.fYC; j < chunk.fYC + Chunk.CHUNK_SIZE; j++) {
-                for(int k = chunk.fZC; k < chunk.fZC + Chunk.CHUNK_SIZE; k++) {
+        for(int i = chunk.getX(); i < chunk.getX() + Chunk.CHUNK_SIZE; i++) {
+            for(int j = chunk.getY(); j < chunk.getY() + Chunk.CHUNK_SIZE; j++) {
+                for(int k = chunk.getZ(); k < chunk.getZ() + Chunk.CHUNK_SIZE; k++) {
                     Integer block = world.get(i, j, k);
                     if(block != null) {
                         //Check top

@@ -14,9 +14,9 @@ import mygame.blockworld.Chunk;
 public class FlatTerrainGenerator implements ChunkGenerator {
 
     public void fillChunk(BlockWorld world, Chunk cnk) {
-        for (int x = cnk.fXC; x < cnk.fXC + Chunk.CHUNK_SIZE; x++) {
-            for (int z = cnk.fZC; z < cnk.fZC + Chunk.CHUNK_SIZE; z++) {
-                for (int y = cnk.fYC; y < cnk.fYC + Chunk.CHUNK_SIZE; y++) {
+        for (int x = cnk.getX(); x < cnk.getX() + Chunk.CHUNK_SIZE; x++) {
+            for (int z = cnk.getZ(); z < cnk.getZ() + Chunk.CHUNK_SIZE; z++) {
+                for (int y = cnk.getY(); y < cnk.getY() + Chunk.CHUNK_SIZE; y++) {
                     if (y < -5) {
                         cnk.addBlock(3, x, y, z);
                     } else if (y < 0) {

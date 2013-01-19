@@ -927,9 +927,9 @@ private static int[][] sTRIANGLES = {
         List<MeshPart> meshParts = new ArrayList<MeshPart>();
         int meshVertices = 0;
         int meshIndices = 0;
-        for(int x = chunk.fXC; x < chunk.fXC + Chunk.CHUNK_SIZE; x++) {
-            for(int y = chunk.fYC; y < chunk.fYC + Chunk.CHUNK_SIZE; y++) {
-                for(int z = chunk.fZC; z < chunk.fZC + Chunk.CHUNK_SIZE; z++) {
+        for(int x = chunk.getX(); x < chunk.getX() + Chunk.CHUNK_SIZE; x++) {
+            for(int y = chunk.getY(); y < chunk.getY() + Chunk.CHUNK_SIZE; y++) {
+                for(int z = chunk.getZ(); z < chunk.getZ() + Chunk.CHUNK_SIZE; z++) {
                     MeshPart meshPart = marchCube(world, x, y, z, 1);
                     if(meshPart != null) {
                         meshParts.add(meshPart);
