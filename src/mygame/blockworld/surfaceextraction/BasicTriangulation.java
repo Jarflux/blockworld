@@ -46,7 +46,6 @@ public class BasicTriangulation implements MeshCreator {
         List<Integer> indexes = new ArrayList<Integer>();
         List<Vector4f> light = new ArrayList<Vector4f>();
         int index = 0;
-        System.out.println(chunk.getX() + " " + chunk.getY() + " " + chunk.getZ());
         for (int i = chunk.getX(); i < chunk.getX() + Chunk.CHUNK_SIZE; i++) {
             for (int j = chunk.getY(); j < chunk.getY() + Chunk.CHUNK_SIZE; j++) {
                 for (int k = chunk.getZ(); k < chunk.getZ() + Chunk.CHUNK_SIZE; k++) {

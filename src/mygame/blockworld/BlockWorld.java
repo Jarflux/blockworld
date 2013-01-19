@@ -55,22 +55,40 @@ public class BlockWorld {
 
         private void update(int x, int y, int z) {
             if (x % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x - 1, y, z, true).scheduleUpdate();
+                Chunk cnk = getChunk(x - 1, y, z, false);
+                if(cnk != null) {
+                    cnk.scheduleUpdate();
+                }
             }
             if (MathUtil.PosMod(x, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x + 1, y, z, true).scheduleUpdate();
+                Chunk cnk = getChunk(x + 1, y, z, false);
+                if(cnk != null) {
+                    cnk.scheduleUpdate();
+                }
             }
             if (y % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x, y - 1, z, true).scheduleUpdate();
+                Chunk cnk = getChunk(x, y - 1, z, false);
+                if(cnk != null) {
+                    cnk.scheduleUpdate();
+                }
             }
             if (MathUtil.PosMod(y, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x, y + 1, z, true).scheduleUpdate();
+                Chunk cnk = getChunk(x, y + 1, z, false);
+                if(cnk != null) {
+                    cnk.scheduleUpdate();
+                }
             }
             if (z % Chunk.CHUNK_SIZE == 0) {
-                getChunk(x, y, z - 1, true).scheduleUpdate();
+                Chunk cnk = getChunk(x, y, z - 1, false);
+                if(cnk != null) {
+                    cnk.scheduleUpdate();
+                }
             }
             if (MathUtil.PosMod(z, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                getChunk(x, y, z + 1, true).scheduleUpdate();
+                Chunk cnk = getChunk(x, y, z + 1, false);
+                if(cnk != null) {
+                    cnk.scheduleUpdate();
+                }
             }
         }
     };
@@ -87,21 +105,15 @@ public class BlockWorld {
     //protected Map<String, HeightMap> fHeightMaps = new HashMap<String, HeightMap>();
     protected Node fRootNode;
     protected Material fBlockMat;
-    protected TextureAtlas fAtlas;
-
-    public TextureAtlas getAtlas() {
-        return fAtlas;
-    }
 
     public Material getBlockMat() {
         return fBlockMat;
     }
     protected BulletAppState fPhysicsState;
 
-    public BlockWorld(Node rootNode, Material blockMat, TextureAtlas atlas, BulletAppState physicsState) {
+    public BlockWorld(Node rootNode, Material blockMat, BulletAppState physicsState) {
         this.fRootNode = rootNode;
         this.fBlockMat = blockMat;
-        this.fAtlas = atlas;
         this.fPhysicsState = physicsState;
         //this.fHeightMaps.put("detail", new HeightMap());
         fListeners.add(fPhysicsUpdater);
@@ -142,9 +154,9 @@ public class BlockWorld {
             chunkColumn.put(cnk);
             if (mX == null) {
                 mX = new HashMap<Integer, ChunkColumn>();
+                fChunkColumns.put(xC, mX);
             }
             mX.put(zC, chunkColumn);
-            fChunkColumns.put(xC, mX);
         }
         return cnk;
     }
@@ -211,32 +223,47 @@ public class BlockWorld {
     }
 
     public Float[][] getHeightMap(int x, int z) {
-        if (fChunkColumns.get(x) != null) {
-            if (fChunkColumns.get(x).get(z) != null) {
-                return fChunkColumns.get(x).get(z).getHeightMap();
+        double fx = x;
+        double fz = z;
+        int xC = (int) Math.floor(fx / Chunk.CHUNK_SIZE);
+        int zC = (int) Math.floor(fz / Chunk.CHUNK_SIZE);
+
+        if (fChunkColumns.get(xC) != null) {
+            if (fChunkColumns.get(xC).get(zC) != null) {
+                return fChunkColumns.get(xC).get(zC).getHeightMap();
             }
         }
         return null;
     }
 
     public void setHeightMap(int x, int z, Float[][] map) {
-        if (fChunkColumns.get(x) != null) {
+        double fx = x;
+        double fz = z;
+        int xC = (int) Math.floor(fx / Chunk.CHUNK_SIZE);
+        int zC = (int) Math.floor(fz / Chunk.CHUNK_SIZE);
+
+        if (fChunkColumns.get(xC) != null) {
             ChunkColumn chunkColumn = new ChunkColumn();
             chunkColumn.setHeightMap(map);
-            fChunkColumns.get(x).put(z, chunkColumn); 
+            fChunkColumns.get(xC).put(zC, chunkColumn); 
         } else {
             Map<Integer, ChunkColumn> yMap = new HashMap<Integer, ChunkColumn>();
             ChunkColumn chunkColumn = new ChunkColumn();
             chunkColumn.setHeightMap(map);
-            yMap.put(z, chunkColumn);
-            fChunkColumns.put(x, yMap);
+            yMap.put(zC, chunkColumn);
+            fChunkColumns.put(xC, yMap);
         }
     }  
     
-        public int[][] getLightMap(int x, int z) {
-        if (fChunkColumns.get(x) != null) {
-            if (fChunkColumns.get(x).get(z) != null) {
-                return fChunkColumns.get(x).get(z).getHighestBlockMap();
+    public int[][] getLightMap(int x, int z) {
+        double fx = x;
+        double fz = z;
+        int xC = (int) Math.floor(fx / Chunk.CHUNK_SIZE);
+        int zC = (int) Math.floor(fz / Chunk.CHUNK_SIZE);
+
+        if (fChunkColumns.get(xC) != null) {
+            if (fChunkColumns.get(xC).get(zC) != null) {
+                return fChunkColumns.get(xC).get(zC).getHighestBlockMap();
             }
         }
         return null;

@@ -57,7 +57,6 @@ public class Main extends SimpleApplication implements ActionListener {
     
     private Material fBlockMat;
     private BlockWorld fBlockWorld;
-    private TextureAtlas fAtlas;
     private BlockWorldViewport fBlockWorldView;
     private BulletAppState bulletAppState;
     private CharacterControl player;
@@ -76,8 +75,6 @@ public class Main extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleInitApp() {
-        int[] test = new int[1];
-        System.out.println(test[0]);
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
@@ -133,7 +130,7 @@ public class Main extends SimpleApplication implements ActionListener {
         // to make them appear in the game world.
         bulletAppState.getPhysicsSpace().add(player);
         //cam.setLocation(new Vector3f(0, 30, 0));
-        fBlockWorld = new BlockWorld(rootNode, fBlockMat, fAtlas, bulletAppState);
+        fBlockWorld = new BlockWorld(rootNode, fBlockMat, bulletAppState);
         /*Chunk cnk = fBlockWorld.getChunk(0, 0, 0, true, true);
          cnk.setVisible(true);
          cnk.update();*/
