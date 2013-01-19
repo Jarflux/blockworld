@@ -45,7 +45,7 @@ public class Chunk {
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
     protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
-    protected static MeshCreator fMeshCreator = new BasicTriangulation();
+    protected static MeshCreator fMeshCreator = new MarchingCubes();
     private MeshCreator fPreviousCreator = fMeshCreator;
     
     public Chunk(BlockWorld world, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {

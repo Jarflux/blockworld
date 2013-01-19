@@ -16,7 +16,6 @@ import com.jme3.scene.Node;
  */
 public class Lighting {
 
-    private static final int MAX_LIGHT = 15;
     private static final int SUN_LIGHT = 15;
     private static final int MOON_LIGHT = 4;
     private int[][][] skyLight;

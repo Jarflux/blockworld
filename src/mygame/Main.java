@@ -1,6 +1,7 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
+import com.jme3.asset.TextureKey;
 import com.jme3.audio.AudioNode;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
@@ -19,8 +20,12 @@ import com.jme3.math.Vector3f;
 import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Sphere;
+import com.jme3.shader.Shader;
 import com.jme3.texture.Texture;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
@@ -47,7 +52,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private static final float PLAYER_STEPHEIGHT = 0.25f * 4f;
     private static final float PLAYER_HITBOX_HEIGHT = 0.75f * 4f;
     private static final float PLAYER_HITBOX_RADIUS = 0.25f * 4f;
-    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 25, 0);
+    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 35, 0);
     private static final String SAVE_GAME_PATH = "Worlds/world0.dat";  
     
     private Material fBlockMat;
@@ -72,19 +77,25 @@ public class Main extends SimpleApplication implements ActionListener {
     @Override
     public void simpleInitApp() {
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
+        fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
+        Texture tex = assetManager.loadTexture(new TextureKey("Textures/grass.png", true));
+        //text.setMinFilter(Texture.MinFilter.BilinearNearestMipMap);
+        //text.setMagFilter(Texture.MagFilter.Bilinear);
+        //text.setWrap(Texture.WrapMode.Repeat);
+        fBlockMat.setTexture("m_Terrain", tex);
 
-        Texture text = assetManager.loadTexture("Textures/dirt.png");
-        text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
-        text.setMagFilter(Texture.MagFilter.Nearest);
-        fBlockMat.setTexture("DiffuseMap", text);
-        fBlockMat.setBoolean("VertexLighting", true);
-        fBlockMat.setBoolean("HighQuality", true);
+       // Texture text = assetManager.loadTexture("Textures/dirt.png");
+       // text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+       // text.setMagFilter(Texture.MagFilter.Nearest);
+        //fBlockMat.setTexture("DiffuseMap", text);
+       // fBlockMat.setBoolean("VertexLighting", true);
+       // fBlockMat.setBoolean("HighQuality", true);
         //fBlockMat.setBoolean("UseMaterialColors",true);
-        fBlockMat.setBoolean("WardIso", true);
-        fBlockMat.setBoolean("SeparateTexCoord", true);
+        //fBlockMat.setBoolean("WardIso", true);
+        //fBlockMat.setBoolean("SeparateTexCoord", true);
 
         //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/dirt.png"));
         //fBlockMat.setColor("Color", ColorRGBA.Green);
@@ -101,7 +112,7 @@ public class Main extends SimpleApplication implements ActionListener {
         stateManager.attach(bulletAppState);
 
         // We re-use the flyby camera for rotation, while positioning is handled by physics
-        //viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
+        viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
         flyCam.setMoveSpeed(10f);
         cam.setFrustumPerspective(45f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 1000f);
         setUpKeys();
@@ -139,37 +150,37 @@ public class Main extends SimpleApplication implements ActionListener {
         al.setColor(ColorRGBA.White.mult(1.5f));
         rootNode.addLight(al);
 
-        SkyDome skyDome = new SkyDome(assetManager, cam,
-                "Models/Skies/SkyDome.j3o",
-                "Textures/Skies/SkyNight_L.png",
-                "Textures/Skies/Moon_L.png",
-                "Textures/Skies/Sun_L.png",
-                "Textures/Skies/Clouds_L.png",
-                "Textures/Skies/Fog_Alpha.png");
-        Node sky = new Node();
-        sky.setQueueBucket(Bucket.Sky);
-        sky.addControl(skyDome);
-        sky.setCullHint(Spatial.CullHint.Never);
+//        SkyDome skyDome = new SkyDome(assetManager, cam,
+//                "Models/Skies/SkyDome.j3o",
+//                "Textures/Skies/SkyNight_L.png",
+//                "Textures/Skies/Moon_L.png",
+//                "Textures/Skies/Sun_L.png",
+//                "Textures/Skies/Clouds_L.png",
+//                "Textures/Skies/Fog_Alpha.png");
+       // Node sky = new Node();
+       // sky.setQueueBucket(Bucket.Sky);
+       // sky.addControl(skyDome);
+       // sky.setCullHint(Spatial.CullHint.Never);
 
         // Either add a reference to the control for the existing JME fog filter or use the one I posted…
         // But… REMEMBER!  If you use JME’s… the sky dome will have fog rendered over it.
         // Sorta pointless at that point
-        FogFilter fog = new FogFilter();
-        skyDome.setFogFilter(fog, viewPort);
+       // FogFilter fog = new FogFilter();
+       // skyDome.setFogFilter(fog, viewPort);
 
         // Set some fog colors… or not (defaults are cool)
         //skyDome.setFogColor(fogColor);
         //skyDome.setFogNightColor(fogNightColor);
 
         // Enable the control to modify the fog filter
-        skyDome.setControlFog(true);
+        //skyDome.setControlFog(true);
 
         // Add the directional light you use for sun… or not
-        DirectionalLight sun = new DirectionalLight();
-        sun.setColor(ColorRGBA.White.mult(0.9f));
-        sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
-        rootNode.addLight(sun);
-        skyDome.setSun(sun);
+       // DirectionalLight sun = new DirectionalLight();
+       // sun.setColor(ColorRGBA.White.mult(0.9f));
+       // sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
+       // rootNode.addLight(sun);
+       // skyDome.setSun(sun);
         //skyDome.setDayNightTransitionSpeed(1f);
         //skyDome.setMoonSpeed(0.5f);
 
@@ -178,13 +189,13 @@ public class Main extends SimpleApplication implements ActionListener {
         //skyDome.setSunNightLight(nightLight);
 
         // Enable the control to modify your sunlight
-        skyDome.setControlSun(true);
+        //skyDome.setControlSun(true);
         //skyDome.cycleDayToNight();
         // Enable the control
-        skyDome.setEnabled(true);
+        //skyDome.setEnabled(true);
 
         // Add the skydome to the root… or where ever
-        rootNode.attachChild(sky);
+        //rootNode.attachChild(sky);
 
     }
 
