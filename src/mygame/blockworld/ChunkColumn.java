@@ -23,7 +23,7 @@ public class ChunkColumn {
 
         public void blockRemoved(Chunk chunk, Integer block, int x, int y, int z) {
             if (fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)] == y) {
-                fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)]--; // lower block must be found
+                fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)] = findBlockHeightBelowMe(x,y,z); 
             }
         }
     };
@@ -48,7 +48,7 @@ public class ChunkColumn {
     }
 
     public void setHeightMap(Float[][] map) {
-        fHeightMap = map.clone();
+        fHeightMap = map;
     }
 
     public Chunk get(int y) {
@@ -74,4 +74,17 @@ public class ChunkColumn {
     public Iterable<Chunk> values() { // needed to save data to file
         return fChunks.values();
     }
+    
+    private int findBlockHeightBelowMe(int x, int y, int z){
+        for(int i= y-1; i>-128; i-- ){
+            Chunk chunk = get((i)/Chunk.CHUNK_SIZE);
+            if (chunk != null){
+                if (chunk.get(x, i, z) != null){
+                    return i;
+                }
+            }
+        }
+        return -128;
+    }
+    
 }

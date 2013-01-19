@@ -46,18 +46,20 @@ public class BasicTriangulation implements MeshCreator {
         List<Integer> indexes = new ArrayList<Integer>();
         List<Vector4f> light = new ArrayList<Vector4f>();
         int index = 0;
+        int[][] fHighestBlockMap = world.getHighestBlockMap(chunk.getX(), chunk.getZ());
+
         for (int i = chunk.getX(); i < chunk.getX() + Chunk.CHUNK_SIZE; i++) {
             for (int j = chunk.getY(); j < chunk.getY() + Chunk.CHUNK_SIZE; j++) {
                 for (int k = chunk.getZ(); k < chunk.getZ() + Chunk.CHUNK_SIZE; k++) {
                     Integer block = world.get(i, j, k);
                     if (block != null) {
-                        //shader
-                        //default darkness
-                        Vector4f color = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
+
+                        Vector4f lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
+                        Boolean hasLight = false;
                         //if highest block on position x, z then recieve sunlinght 
-                        if (world.getHighestBlockMap(chunk.getX(), chunk.getZ()) != null) {
-                            if (world.getHighestBlockMap(chunk.getX(), chunk.getZ())[MathUtil.PosMod(i, Chunk.CHUNK_SIZE)][MathUtil.PosMod(k, Chunk.CHUNK_SIZE)] == j) {
-                                color = new Vector4f(1.0f, 0.0f, 0.0f, 0.0f); // LIGHT
+                        if (fHighestBlockMap != null) {
+                            if (fHighestBlockMap[MathUtil.PosMod(i, Chunk.CHUNK_SIZE)][MathUtil.PosMod(k, Chunk.CHUNK_SIZE)] == j) {
+                                hasLight = true;
                             }
                         }
                         //Check top
@@ -70,10 +72,6 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, 1, 0));
                             normals.add(new Vector3f(0, 1, 0));
                             normals.add(new Vector3f(0, 1, 0));
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
                             addTextureCoords(texCoord, BlockInfo.TopSides[block], false);
                             indexes.add(index);
                             indexes.add(index + 1);
@@ -82,6 +80,16 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
+                            
+                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
+                            if(hasLight){
+                                lightAlpha = new Vector4f(1.0f, 0.0f, 0.0f, 0.0f); 
+                            }
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            
                         }
                         //Check bottom
                         if (world.getChunk(i, j - 1, k, true).get(i, j - 1, k) == null) {
@@ -93,10 +101,6 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, -1, 0));
                             normals.add(new Vector3f(0, -1, 0));
                             normals.add(new Vector3f(0, -1, 0));
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
                             addTextureCoords(texCoord, BlockInfo.BottomSides[block], false);
                             indexes.add(index);
                             indexes.add(index + 1);
@@ -105,6 +109,17 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
+                            
+                            // bottom can have sunlight?
+                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
+                            if(hasLight){
+                                lightAlpha = new Vector4f(0.3f, 0.0f, 0.0f, 0.0f); 
+                            }
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            
                         }
                         //Check right
                         if (world.getChunk(i + 1, j, k, true).get(i + 1, j, k) == null) {
@@ -116,10 +131,6 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(1, 0, 0));
                             normals.add(new Vector3f(1, 0, 0));
                             normals.add(new Vector3f(1, 0, 0));
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
                             addTextureCoords(texCoord, BlockInfo.RightSides[block], true);
                             indexes.add(index);
                             indexes.add(index + 1);
@@ -128,6 +139,15 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
+                            
+                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
+                            if(hasLight){
+                                lightAlpha = new Vector4f(0.85f, 0.0f, 0.0f, 0.0f); 
+                            }
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
                         }
                         //Check left
                         if (world.getChunk(i - 1, j, k, true).get(i - 1, j, k) == null) {
@@ -139,10 +159,6 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(-1, 0, 0));
                             normals.add(new Vector3f(-1, 0, 0));
                             normals.add(new Vector3f(-1, 0, 0));
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
                             addTextureCoords(texCoord, BlockInfo.LeftSides[block], false);
                             indexes.add(index);
                             indexes.add(index + 1);
@@ -151,6 +167,15 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
+                            
+                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
+                            if(hasLight){
+                                lightAlpha = new Vector4f(0.85f, 0.0f, 0.0f, 0.0f); 
+                            }
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
                         }
                         //Check back
                         if (world.getChunk(i, j, k + 1, true).get(i, j, k + 1) == null) {
@@ -162,10 +187,6 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, 0, 1));
                             normals.add(new Vector3f(0, 0, 1));
                             normals.add(new Vector3f(0, 0, 1));
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
                             addTextureCoords(texCoord, BlockInfo.BackSides[block], false);
                             indexes.add(index);
                             indexes.add(index + 1);
@@ -174,6 +195,15 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
+                            
+                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
+                            if(hasLight){
+                                lightAlpha = new Vector4f(0.85f, 0.0f, 0.0f, 0.0f); 
+                            }
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
                         }
                         //Check front
                         if (world.getChunk(i, j, k - 1, true).get(i, j, k - 1) == null) {
@@ -185,10 +215,6 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, 0, -1));
                             normals.add(new Vector3f(0, 0, -1));
                             normals.add(new Vector3f(0, 0, -1));
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
-                            light.add(color);
                             addTextureCoords(texCoord, BlockInfo.FrontSides[block], true);
                             indexes.add(index);
                             indexes.add(index + 1);
@@ -197,6 +223,15 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
+                            
+                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
+                            if(hasLight){
+                                lightAlpha = new Vector4f(0.85f, 0.0f, 0.0f, 0.0f); 
+                            }
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
+                            light.add(lightAlpha);
                         }
                     }
                 }
