@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jme3tools.optimize.TextureAtlas;
+import mygame.Lighting;
 import mygame.MathUtil;
 
 /**
@@ -249,5 +250,13 @@ public class BlockWorld {
             return column.getHighestBlockMap();
         }
         return null;
+    }
+
+    public float getDirectSunlight(int x, int y, int z) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if(column != null) {
+            return column.getDirectSunlight(x, y, z);
+        }
+        return Lighting.MIN_LIGHT_VALUE;
     }
 }

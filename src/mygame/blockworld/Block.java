@@ -10,6 +10,7 @@ public class Block {
     private Boolean isDestructable;
     private int fblockValue;
     private int flightValue;
+    private int fNaturalLightValue;
     private int fXC, fYC, fZC;
     
     public Block(int x, int y, int z, int blockValue){

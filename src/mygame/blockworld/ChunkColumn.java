@@ -6,6 +6,7 @@ package mygame.blockworld;
 
 import java.util.HashMap;
 import java.util.Map;
+import mygame.Lighting;
 import mygame.MathUtil;
 
 /**
@@ -13,7 +14,7 @@ import mygame.MathUtil;
  * @author Fusion
  */
 public class ChunkColumn {
-
+    
     private ChunkListener fLightMapUpdater = new ChunkListener() {
         public void blockAdded(Chunk chunk, Integer block, int x, int y, int z) {
             if (fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)] < y) {
@@ -38,7 +39,7 @@ public class ChunkColumn {
             }
         }
     }
-
+    
     public Float[][] getHeightMap() {
         return fHeightMap;
     }
@@ -76,7 +77,7 @@ public class ChunkColumn {
     }
     
     private int findBlockHeightBelowMe(int x, int y, int z){
-        for(int i= y-1; i>-128; i-- ){
+        for(int i= y-1; i>Lighting.TOTAL_DARKNESS_HEIGHT; i-- ){
             Chunk chunk = get((i)/Chunk.CHUNK_SIZE);
             if (chunk != null){
                 if (chunk.get(x, i, z) != null){
@@ -84,7 +85,23 @@ public class ChunkColumn {
                 }
             }
         }
-        return -128;
+        return Lighting.TOTAL_DARKNESS_HEIGHT;
+    }
+    
+    public float getDirectSunlight(int x, int y, int z){     
+        float lightValue = Lighting.MIN_LIGHT_VALUE;
+        int highestBlock = fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)];
+        //if(y <= highestBlock){
+        //    return MIN_LIGHT_VALUE;
+        //}
+        if(y > highestBlock && y >= 0){
+            lightValue = Lighting.MAX_LIGHT_VALUE;
+        }
+        if(y > highestBlock && y < 0){
+            double calcValue = Math.pow(0.75f,(-y)); 
+            lightValue = Math.max(Lighting.MIN_LIGHT_VALUE, (float)Math.pow(Lighting.SUNLIGHT_DEGRADING_CONSTANT,(-y)));
+        }
+        return lightValue;
     }
     
 }

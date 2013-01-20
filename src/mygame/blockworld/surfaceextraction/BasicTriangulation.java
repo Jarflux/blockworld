@@ -47,6 +47,10 @@ public class BasicTriangulation implements MeshCreator {
         List<Vector4f> light = new ArrayList<Vector4f>();
         int index = 0;
         int[][] fHighestBlockMap = world.getHighestBlockMap(chunk.getX(), chunk.getZ());
+        
+        //lichtwaarde triangle topkant van blok x, y, z = lichtwaarde van block x, y+1, z
+        //lichtwaarde triangle bodemkant van blok x, y, z = lichtwaarde van block x, y-1, z   
+        //lichtwaarde triangle links van block x, y, z = lichtwaarde van block x-1, y, z * 1/4 * (1-constant)
 
         for (int i = chunk.getX(); i < chunk.getX() + Chunk.CHUNK_SIZE; i++) {
             for (int j = chunk.getY(); j < chunk.getY() + Chunk.CHUNK_SIZE; j++) {
@@ -55,13 +59,7 @@ public class BasicTriangulation implements MeshCreator {
                     if (block != null) {
 
                         Vector4f lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
-                        Boolean hasLight = false;
                         //if highest block on position x, z then recieve sunlinght 
-                        if (fHighestBlockMap != null) {
-                            if (fHighestBlockMap[MathUtil.PosMod(i, Chunk.CHUNK_SIZE)][MathUtil.PosMod(k, Chunk.CHUNK_SIZE)] == j) {
-                                hasLight = true;
-                            }
-                        }
                         //Check top
                         if (world.getChunk(i, j + 1, k, true).get(i, j + 1, k) == null) {
                             vertices.add(new Vector3f(i - .5f, j + .5f, k - .5f));
@@ -81,10 +79,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
-                            if(hasLight){
-                                lightAlpha = new Vector4f(1.0f, 0.0f, 0.0f, 0.0f); 
-                            }
+                            lightAlpha = new Vector4f(world.getDirectSunlight(i, j+1, k), 0.0f, 0.0f, 0.0f);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -111,10 +106,7 @@ public class BasicTriangulation implements MeshCreator {
                             index = index + 4;
                             
                             // bottom can have sunlight?
-                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
-                            if(hasLight){
-                                lightAlpha = new Vector4f(0.3f, 0.0f, 0.0f, 0.0f); 
-                            }
+                            lightAlpha = new Vector4f(world.getDirectSunlight(i, j-1, k), 0.0f, 0.0f, 0.0f);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -140,10 +132,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
-                            if(hasLight){
-                                lightAlpha = new Vector4f(0.85f, 0.0f, 0.0f, 0.0f); 
-                            }
+                            lightAlpha = new Vector4f(world.getDirectSunlight(i+1, j, k), 0.0f, 0.0f, 0.0f);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -168,10 +157,8 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
-                            if(hasLight){
-                                lightAlpha = new Vector4f(0.85f, 0.0f, 0.0f, 0.0f); 
-                            }
+                            lightAlpha = new Vector4f(world.getDirectSunlight(i-1, j, k), 0.0f, 0.0f, 0.0f);
+                            
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -196,10 +183,8 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
-                            if(hasLight){
-                                lightAlpha = new Vector4f(0.85f, 0.0f, 0.0f, 0.0f); 
-                            }
+                            lightAlpha = new Vector4f(world.getDirectSunlight(i, j, k+1), 0.0f, 0.0f, 0.0f);
+                            
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -224,10 +209,8 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f);
-                            if(hasLight){
-                                lightAlpha = new Vector4f(0.85f, 0.0f, 0.0f, 0.0f); 
-                            }
+                            lightAlpha = new Vector4f(world.getDirectSunlight(i, j, k-1), 0.0f, 0.0f, 0.0f);
+                            
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
