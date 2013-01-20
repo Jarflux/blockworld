@@ -33,7 +33,7 @@ public class Chunk {
     
     private static final Logger logger = Logger.getLogger(Chunk.class.getName());
     public static final int CHUNK_SIZE = 16;
-    protected Integer[][][] fBlocks = new Integer[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+    protected Block[][][] fBlocks = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     protected Geometry fChunkMesh = null;
     protected Node fRootNode;
@@ -162,7 +162,10 @@ public class Chunk {
         xC = MathUtil.PosMod(x, CHUNK_SIZE);
         yC = MathUtil.PosMod(y, CHUNK_SIZE);
         zC = MathUtil.PosMod(z, CHUNK_SIZE);
-        return fBlocks[xC][yC][zC];
+        if (fBlocks[xC][yC][zC] != null){
+            return fBlocks[xC][yC][zC].getBlockValue();
+        }
+        return null;
     }
     
     public void fillChunk() {
@@ -176,12 +179,12 @@ public class Chunk {
         zC = MathUtil.PosMod(z, CHUNK_SIZE);
         if(fBlocks[xC][yC][zC] != null) {
             fBlocks[xC][yC][zC] = null;
-            blockRemoved(fBlocks[xC][yC][zC], x, y, z);
+            blockRemoved(null, x, y, z);
             fNeedsUpdate = true;
         }
     }
     
-    public boolean addBlock(Integer block, int x, int y, int z) {
+    public boolean addBlock(Integer blockValue, int x, int y, int z) {
         int xC, yC, zC;
         xC = MathUtil.PosMod(x, CHUNK_SIZE);
         yC = MathUtil.PosMod(y, CHUNK_SIZE);
@@ -189,8 +192,8 @@ public class Chunk {
         if(fBlocks[xC][yC][zC] != null) {
             return false;
         }else{
-            fBlocks[xC][yC][zC] = block;
-            blockAdded(block, x, y, z);
+            fBlocks[xC][yC][zC] = new Block(x,y,z, blockValue);
+            blockAdded(blockValue, x, y, z);
             fNeedsUpdate = true;
             return true;
         }
@@ -202,7 +205,7 @@ public class Chunk {
             for(int j = 0; j < CHUNK_SIZE; j++) {
                 for(int k = 0; k < CHUNK_SIZE; k++) {
                     if(fBlocks[i][j][k] != null) {
-                        fileWriter.write(fBlocks[i][j][k]);
+                        fileWriter.write(fBlocks[i][j][k].getBlockValue());
                     }else{
                         fileWriter.write(-1);
                     }
@@ -217,11 +220,11 @@ public class Chunk {
             String line = fileReader.readLine();
             for(int j = 0; j < CHUNK_SIZE; j++) {
                 for(int k = 0; k < CHUNK_SIZE; k++) {
-                    int block = line.charAt(j * CHUNK_SIZE + k);
-                    if(block == 65535) {
+                    int blockValue = line.charAt(j * CHUNK_SIZE + k);
+                    if(blockValue == 65535) {
                         fBlocks[i][j][k] = null;
                     }else{
-                        fBlocks[i][j][k] = block;
+                        fBlocks[i][j][k] = new Block(getX()+i, getY()+j, getZ()+k, blockValue);
                     }
                 }
             }
