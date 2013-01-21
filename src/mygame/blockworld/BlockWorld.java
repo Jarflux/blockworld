@@ -57,37 +57,37 @@ public class BlockWorld {
         private void update(int x, int y, int z) {
             if (x % Chunk.CHUNK_SIZE == 0) {
                 Chunk cnk = getChunk(x - 1, y, z, false);
-                if(cnk != null) {
+                if (cnk != null) {
                     cnk.scheduleUpdate();
                 }
             }
             if (MathUtil.PosMod(x, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
                 Chunk cnk = getChunk(x + 1, y, z, false);
-                if(cnk != null) {
+                if (cnk != null) {
                     cnk.scheduleUpdate();
                 }
             }
             if (y % Chunk.CHUNK_SIZE == 0) {
                 Chunk cnk = getChunk(x, y - 1, z, false);
-                if(cnk != null) {
+                if (cnk != null) {
                     cnk.scheduleUpdate();
                 }
             }
             if (MathUtil.PosMod(y, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
                 Chunk cnk = getChunk(x, y + 1, z, false);
-                if(cnk != null) {
+                if (cnk != null) {
                     cnk.scheduleUpdate();
                 }
             }
             if (z % Chunk.CHUNK_SIZE == 0) {
                 Chunk cnk = getChunk(x, y, z - 1, false);
-                if(cnk != null) {
+                if (cnk != null) {
                     cnk.scheduleUpdate();
                 }
             }
             if (MathUtil.PosMod(z, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
                 Chunk cnk = getChunk(x, y, z + 1, false);
-                if(cnk != null) {
+                if (cnk != null) {
                     cnk.scheduleUpdate();
                 }
             }
@@ -101,15 +101,9 @@ public class BlockWorld {
     public void removeChunkListener(ChunkListener listener) {
         fListeners.remove(listener);
     }
-    
     protected Map<Integer, Map<Integer, ChunkColumn>> fChunkColumns = new HashMap<Integer, Map<Integer, ChunkColumn>>();
-    //protected Map<String, HeightMap> fHeightMaps = new HashMap<String, HeightMap>();
     protected Node fRootNode;
     protected Material fBlockMat;
-
-    public Material getBlockMat() {
-        return fBlockMat;
-    }
     protected BulletAppState fPhysicsState;
 
     public BlockWorld(Node rootNode, Material blockMat, BulletAppState physicsState) {
@@ -120,23 +114,27 @@ public class BlockWorld {
         fListeners.add(fPhysicsUpdater);
     }
 
+    public Material getBlockMat() {
+        return fBlockMat;
+    }
+
     public Chunk getChunk(int x, int y, int z, boolean createChunk) {
         return getChunk(x, y, z, createChunk, true);
     }
 
     private ChunkColumn getChunkColumn(int x, int z, boolean createChunkColumn) {
-        int xC = (int) Math.floor((double)x / Chunk.CHUNK_SIZE);
-        int zC = (int) Math.floor((double)z / Chunk.CHUNK_SIZE);
-        
+        int xC = (int) Math.floor((double) x / Chunk.CHUNK_SIZE);
+        int zC = (int) Math.floor((double) z / Chunk.CHUNK_SIZE);
+
         Map<Integer, ChunkColumn> mX = fChunkColumns.get(xC);
         ChunkColumn cnkColumn = null;
-        if(mX != null) {
+        if (mX != null) {
             cnkColumn = mX.get(zC);
-            if(cnkColumn == null) {
+            if (cnkColumn == null) {
                 cnkColumn = new ChunkColumn();
                 mX.put(zC, cnkColumn);
             }
-        }else if(createChunkColumn) {
+        } else if (createChunkColumn) {
             mX = new HashMap<Integer, ChunkColumn>();
             fChunkColumns.put(xC, mX);
             cnkColumn = new ChunkColumn();
@@ -144,17 +142,17 @@ public class BlockWorld {
         }
         return cnkColumn;
     }
-    
+
     public Chunk getChunk(int x, int y, int z, boolean createChunk, boolean generateChunk) {
-        int xC = (int) Math.floor((double)x / Chunk.CHUNK_SIZE);
-        int yC = (int) Math.floor((double)y / Chunk.CHUNK_SIZE);
-        int zC = (int) Math.floor((double)z / Chunk.CHUNK_SIZE);
+        int xC = (int) Math.floor((double) x / Chunk.CHUNK_SIZE);
+        int yC = (int) Math.floor((double) y / Chunk.CHUNK_SIZE);
+        int zC = (int) Math.floor((double) z / Chunk.CHUNK_SIZE);
 
         ChunkColumn chunkColumn = getChunkColumn(x, z, createChunk);
         Chunk cnk = chunkColumn.get(yC);
 
         if (cnk == null && createChunk) {              // Chunk met juiste x, y , z bestaat niet
-            cnk = new Chunk(this, fRootNode, fPhysicsState, xC * Chunk.CHUNK_SIZE, yC * Chunk.CHUNK_SIZE, zC * Chunk.CHUNK_SIZE);
+            cnk = new Chunk(this, chunkColumn, fRootNode, fPhysicsState, xC * Chunk.CHUNK_SIZE, yC * Chunk.CHUNK_SIZE, zC * Chunk.CHUNK_SIZE);
             if (generateChunk) {
                 cnk.fillChunk();
             }
@@ -228,10 +226,9 @@ public class BlockWorld {
         }
     }
 
-    
     public Float[][] getHeightMap(int x, int z) {
         ChunkColumn column = getChunkColumn(x, z, false);
-        if(column != null) {
+        if (column != null) {
             return column.getHeightMap();
         }
         return null;
@@ -239,24 +236,42 @@ public class BlockWorld {
 
     public void setHeightMap(int x, int z, Float[][] map) {
         ChunkColumn column = getChunkColumn(x, z, false);
-        if(column != null) {
+        if (column != null) {
             column.setHeightMap(map);
         }
-    }  
-    
+    }
+
     public int[][] getHighestBlockMap(int x, int z) {
         ChunkColumn column = getChunkColumn(x, z, false);
-        if(column != null) {
+        if (column != null) {
             return column.getHighestBlockMap();
         }
         return null;
     }
 
-    public float getDirectSunlight(int x, int y, int z) {
+    public float getSunlightValue(int x, int y, int z) {
         ChunkColumn column = getChunkColumn(x, z, false);
-        if(column != null) {
+        if (column != null) {
+            Chunk chunk = column.get(y);
+            if (chunk != null) {
+                Float value = chunk.getSunlightValue(x, y, z);
+                if (value != null) {
+                    return value;
+                }  
+            }
             return column.getDirectSunlight(x, y, z);
         }
         return Lighting.MIN_LIGHT_VALUE;
+
+    }
+
+    public void setSunlightValue(int x, int y, int z, float value) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if (column != null) {
+            Chunk chunk = column.get(y);
+            if (chunk != null) {
+                chunk.setSunlightValue(x, y, z, value);
+            }
+        }
     }
 }

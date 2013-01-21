@@ -23,6 +23,7 @@ TODO's Optimizations:
 - Triangle merging (especialy potent because it happens alot that 2 or more blocks of the same material are adjecent)
 - Implement LevelOfDetail
 - Buffer chunks that will/could be needed
+- BlockWorld change nested hashmap to map<string,chunkcolumn>
 
 TODO's Refactoring:
 - Everything :(
