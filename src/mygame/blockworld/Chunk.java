@@ -92,12 +92,12 @@ public class Chunk {
         for (int i = 0; i < CHUNK_SIZE; i++) {
             for (int j = 0; j < CHUNK_SIZE; j++) {
                 int highestBlockY = highestBlockMap[i][j];
-                if ((highestBlockY > getY()) && (highestBlockY < (getY() + CHUNK_SIZE))) {
-                    float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, i + getX(), highestBlockY, j + getZ(), Lighting.MAX_LIGHT_VALUE); // fChunkColumn.getDirectSunlight(i + getX(), highestBlockY, j + getZ()
+                if ((highestBlockY >= getY()) && (highestBlockY < (getY() + CHUNK_SIZE))) {
+                    float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, i + getX(), highestBlockY, j + getZ(), fChunkColumn.getDirectSunlight(i + getX(), highestBlockY-1, j + getZ()));
                     for (int xd = 0; xd < diffuseMap.length; xd++) {
                         for (int yd = 0; yd < diffuseMap.length; yd++) {
                             for (int zd = 0; zd < diffuseMap.length; zd++) {
-                                if(diffuseMap[xd][yd][zd] > 0.001f){ // doesnt come here
+                                if(diffuseMap[xd][yd][zd] > 0.001f){ 
                                     int xA = i + getX() + xd - (int)Math.floor(diffuseMap.length/2);
                                     int yA = highestBlockY + yd - (int)Math.floor(diffuseMap.length/2);
                                     int zA = j + getZ() + zd - (int)Math.floor(diffuseMap.length/2);

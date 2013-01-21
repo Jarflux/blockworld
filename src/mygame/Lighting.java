@@ -2,7 +2,6 @@
 package mygame;
 
 import mygame.blockworld.BlockWorld;
-import mygame.blockworld.Chunk;
 
 /**
  *
@@ -16,9 +15,9 @@ public class Lighting {
     public static final int TOTAL_DARKNESS_HEIGHT = -17;//-128;
     
     private float[][][] fLightValues;
-    private boolean[][][] fisAlreadyAdjusted;
+    private boolean[][][] fIsAlreadyAdjusted;
     private BlockWorld fWorld;
-    private int fxOffset, fyOffset, fzOffset;
+    private int fXOffset, fYOffset, fZOffset;
     private static float DIVIDER = 2f;
     private static int RECURSION_DEPTH = 4;
 
@@ -32,11 +31,11 @@ public class Lighting {
         int arraySize = (RECURSION_DEPTH * 2) + 1;
         int middle = arraySize / 2;
         fLightValues = new float[arraySize][arraySize][arraySize];
-        fisAlreadyAdjusted = new boolean[arraySize][arraySize][arraySize];
+        fIsAlreadyAdjusted = new boolean[arraySize][arraySize][arraySize];
         fWorld = world;
-        fxOffset = x - RECURSION_DEPTH;
-        fyOffset = y - RECURSION_DEPTH;
-        fzOffset = z - RECURSION_DEPTH;
+        fXOffset = x - RECURSION_DEPTH;
+        fYOffset = y - RECURSION_DEPTH;
+        fZOffset = z - RECURSION_DEPTH;
         setLight(middle, middle, middle, lightValue, RECURSION_DEPTH);
     }
 
@@ -53,6 +52,7 @@ public class Lighting {
 
     private void calcNeighboursLight(int x, int y, int z, int recursionDepth) {
         recursionDepth--;
+        if(recursionDepth < 0) {
         float newValue = fLightValues[x][y][z] / DIVIDER;
         //top
         setLight(x, y, z - 1, newValue, recursionDepth);
@@ -66,17 +66,18 @@ public class Lighting {
         setLight(x, y + 1, z, newValue, recursionDepth);
         //back
         setLight(x, y - 1, z, newValue, recursionDepth);
+        }
     }
 
     private void setLight(int x, int y, int z, float value, int recursionDepth) {
-        if(value > MIN_LIGHT_VALUE && !(fWorld.get(x + fxOffset, y + fyOffset, z + fzOffset) == null)) {
+        if(value > MIN_LIGHT_VALUE && (fWorld.get(x + fXOffset, y + fYOffset, z + fZOffset) != null)) {
             if (fLightValues[x][y][z] < value) {
                 fLightValues[x][y][z] = value;
-                fisAlreadyAdjusted[x][y][z] = false;
+                fIsAlreadyAdjusted[x][y][z] = false;
             } else if (Math.abs(fLightValues[x][y][z] - value) < 0.0001f) {
-                if (!fisAlreadyAdjusted[x][y][z]) {
+                if (!fIsAlreadyAdjusted[x][y][z]) {
                     fLightValues[x][y][z] += value * (DIVIDER/4f);
-                    fisAlreadyAdjusted[x][y][z] = true;
+                    fIsAlreadyAdjusted[x][y][z] = true;
                 } else {
                     return;
                 }
