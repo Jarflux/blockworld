@@ -21,21 +21,23 @@ public class Lighting {
     private static float DIVIDER = 2f;
     private static int RECURSION_DEPTH = 4;
 
-    public static float[][][] calculateDiffuseMap(BlockWorld world, int x, int y, int z, float lightValue) {
-        Lighting li = new Lighting(world, x, y, z, lightValue);
-        //System.out.println("x:" + x + " y:" + y + " z:" + z + " Light:"+ lightValue );
+    public static float[][][] calculateDiffuseMap(BlockWorld world, int xAbs, int yAbs, int zAbs, float lightValue) {
+        Lighting li = new Lighting(world, xAbs, yAbs, zAbs, lightValue);
+        //System.out.println("x:" + xAbs + " y:" + yAbs + " z:" + zAbs + " Light:"+ lightValue );
+        //System.out.println(world.get(xAbs, yAbs, zAbs));
+        //li.print(4);
         return li.fLightValues;
     }
 
-    public Lighting(BlockWorld world, int x, int y, int z, float lightValue) {
+    public Lighting(BlockWorld world, int xAbs, int yAbs, int zAbs, float lightValue) {
         int arraySize = (RECURSION_DEPTH * 2) + 1;
         int middle = arraySize / 2;
         fLightValues = new float[arraySize][arraySize][arraySize];
         fIsAlreadyAdjusted = new boolean[arraySize][arraySize][arraySize];
         fWorld = world;
-        fXOffset = x - RECURSION_DEPTH;
-        fYOffset = y - RECURSION_DEPTH;
-        fZOffset = z - RECURSION_DEPTH;
+        fXOffset = xAbs - RECURSION_DEPTH;
+        fYOffset = yAbs - RECURSION_DEPTH;
+        fZOffset = zAbs - RECURSION_DEPTH;
         setLight(middle, middle, middle, lightValue, RECURSION_DEPTH);
     }
 
@@ -49,10 +51,11 @@ public class Lighting {
         }
         System.out.println("----------------------------------------------------------------");
     }
-
+    
+    // uses relative coordinates for the light array
     private void calcNeighboursLight(int x, int y, int z, int recursionDepth) {
         recursionDepth--;
-        if(recursionDepth < 0) {
+        if(recursionDepth > 0) {
         float newValue = fLightValues[x][y][z] / DIVIDER;
         //top
         setLight(x, y, z - 1, newValue, recursionDepth);
@@ -68,9 +71,10 @@ public class Lighting {
         setLight(x, y - 1, z, newValue, recursionDepth);
         }
     }
-
+    
+    // uses relative coordinates for the light array
     private void setLight(int x, int y, int z, float value, int recursionDepth) {
-        if(value > MIN_LIGHT_VALUE && (fWorld.get(x + fXOffset, y + fYOffset, z + fZOffset) != null)) {
+        if((value > MIN_LIGHT_VALUE) && (fWorld.get(x + fXOffset, y + fYOffset, z + fZOffset) == null)) {
             if (fLightValues[x][y][z] < value) {
                 fLightValues[x][y][z] = value;
                 fIsAlreadyAdjusted[x][y][z] = false;

@@ -134,7 +134,7 @@ public class Main extends SimpleApplication implements ActionListener {
          cnk.setVisible(true);
          cnk.update();*/
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
-        setUpdAudio();
+        setUpdAudio(); 
         setUpHud();
     }
 
@@ -196,14 +196,14 @@ public class Main extends SimpleApplication implements ActionListener {
     private void setUpdAudio() {
         audio_removeBlock = new AudioNode(assetManager, "Sounds/Effects/RemoveBlock.ogg", false);
         audio_removeBlock.setLooping(false);
-        audio_removeBlock.setVolume(.1f);
+        audio_removeBlock.setVolume(.1f);  
         rootNode.attachChild(audio_removeBlock);
 
         audio_nature = new AudioNode(assetManager, "Sounds/Environment/Nature.ogg", false);
         audio_nature.setLooping(true);  // activate continuous playing
         audio_nature.setPositional(true);
         audio_nature.setLocalTranslation(Vector3f.ZERO.clone());
-        audio_nature.setVolume(.5f);
+        audio_nature.setVolume(0.0f); //GOT SICK OF THE BIRDS =P
         rootNode.attachChild(audio_nature);
         audio_nature.play(); // play continuously!
     }
