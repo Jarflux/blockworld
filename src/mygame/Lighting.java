@@ -19,7 +19,7 @@ public class Lighting {
     private BlockWorld fWorld;
     private int fXOffset, fYOffset, fZOffset;
     private static float DIVIDER = 2f;
-    private static int RECURSION_DEPTH = 4;
+    public static int RECURSION_DEPTH = 3;
 
     public static float[][][] calculateDiffuseMap(BlockWorld world, int xAbs, int yAbs, int zAbs, float lightValue) {
         Lighting li = new Lighting(world, xAbs, yAbs, zAbs, lightValue);
