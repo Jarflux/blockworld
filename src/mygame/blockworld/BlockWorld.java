@@ -122,7 +122,7 @@ public class BlockWorld {
         return getChunk(x, y, z, createChunk, true);
     }
 
-    private ChunkColumn getChunkColumn(int x, int z, boolean createChunkColumn) {
+    public ChunkColumn getChunkColumn(int x, int z, boolean createChunkColumn) {
         int xC = (int) Math.floor((double) x / Chunk.CHUNK_SIZE);
         int zC = (int) Math.floor((double) z / Chunk.CHUNK_SIZE);
 
@@ -149,7 +149,7 @@ public class BlockWorld {
         int zC = (int) Math.floor((double) z / Chunk.CHUNK_SIZE);
 
         ChunkColumn chunkColumn = getChunkColumn(x, z, createChunk);
-        Chunk cnk = chunkColumn.get(yC);
+        Chunk cnk = chunkColumn.get(y);
 
         if (cnk == null && createChunk) {              // Chunk met juiste x, y , z bestaat niet
             cnk = new Chunk(this, chunkColumn, fRootNode, fPhysicsState, xC * Chunk.CHUNK_SIZE, yC * Chunk.CHUNK_SIZE, zC * Chunk.CHUNK_SIZE);

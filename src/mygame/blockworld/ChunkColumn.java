@@ -56,12 +56,12 @@ public class ChunkColumn {
     }
 
     public Chunk get(int y) {
-        return fChunks.get(y);
+        return fChunks.get((int) Math.floor((double) y / Chunk.CHUNK_SIZE));
     }
 
     public void put(Chunk chunk) {
         chunk.addChunkListener(fLightMapUpdater);
-        fChunks.put(chunk.getY() / Chunk.CHUNK_SIZE, chunk);
+        fChunks.put((int) Math.floor((double) chunk.getY() / Chunk.CHUNK_SIZE), chunk);
         for (int i = 0; i < Chunk.CHUNK_SIZE; i++) {
             for (int j = 0; j < Chunk.CHUNK_SIZE; j++) {
                 for (int k = 0; k < Chunk.CHUNK_SIZE; k++) {
