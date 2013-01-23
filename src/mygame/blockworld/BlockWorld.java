@@ -149,8 +149,11 @@ public class BlockWorld {
         int zC = (int) Math.floor((double) z / Chunk.CHUNK_SIZE);
 
         ChunkColumn chunkColumn = getChunkColumn(x, z, createChunk);
-        Chunk cnk = chunkColumn.get(y);
-
+        Chunk cnk = null;
+        if(chunkColumn != null) {
+            cnk = chunkColumn.get(y);
+        }
+        
         if (cnk == null && createChunk) {              // Chunk met juiste x, y , z bestaat niet
             cnk = new Chunk(this, chunkColumn, fRootNode, fPhysicsState, xC * Chunk.CHUNK_SIZE, yC * Chunk.CHUNK_SIZE, zC * Chunk.CHUNK_SIZE);
             if (generateChunk) {

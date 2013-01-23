@@ -44,14 +44,14 @@ import mygame.blockworld.surfaceextraction.MeshCreator;
  */
 public class Main extends SimpleApplication implements ActionListener {
 
-    private static final int PLAYER_GRAVITY = 0;
+    private static final int PLAYER_GRAVITY = 30; //30
     private static final int PLAYER_FALLSPEED = 30;
-    private static final int PLAYER_JUMPSPEED = 15;
-    private static final float PLAYER_WALKSPEED = 0.1f * 4f;
-    private static final float PLAYER_STEPHEIGHT = 0.25f * 4f;
-    private static final float PLAYER_HITBOX_HEIGHT = 0.75f * 4f;
-    private static final float PLAYER_HITBOX_RADIUS = 0.25f * 4f;
-    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 0, 0);
+    private static final int PLAYER_JUMPSPEED = 8;
+    private static final float PLAYER_WALKSPEED = 0.1f;// * 4f;
+    private static final float PLAYER_STEPHEIGHT = 0.25f;// * 4f;
+    private static final float PLAYER_HITBOX_HEIGHT = 0.75f;// * 4f;
+    private static final float PLAYER_HITBOX_RADIUS = 0.25f;// * 4f;
+    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 55, 0);
     private static final String SAVE_GAME_PATH = "Worlds/world0.dat";  
     
     private Material fBlockMat;
@@ -239,7 +239,7 @@ public class Main extends SimpleApplication implements ActionListener {
             up = value;
         } else if (binding.equals("Down")) {
             down = value;
-        } else if (binding.equals("Jump")) {
+        } else if (binding.equals("Jump") && value) {
             player.jump();
         } else if (binding.equals("RemoveBlock") && value) {
             // 1. Reset results list.
@@ -343,7 +343,7 @@ public class Main extends SimpleApplication implements ActionListener {
         }
         player.setWalkDirection(walkDirection);
         Vector3f camPos = player.getPhysicsLocation();
-        camPos.y = camPos.y + .75f * 4f * 2f;
+        camPos.y = camPos.y + PLAYER_HITBOX_HEIGHT;
         cam.setLocation(camPos);
         listener.setLocation(cam.getLocation());
 

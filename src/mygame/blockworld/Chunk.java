@@ -79,7 +79,7 @@ public class Chunk {
         if (fNeedsUpdate || fPreviousCreator != fMeshCreator) {
             updateLight();
             updateVisualMesh();
-            //updatePhysicsMesh();
+            updatePhysicsMesh();
             fNeedsUpdate = false;
             fPreviousCreator = fMeshCreator;
         }

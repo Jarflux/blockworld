@@ -20,15 +20,12 @@ public class ChunkColumn {
             if (fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)] < y) {
                 fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)] = y;
             }
-            System.out.println("Block added at position X:" + x +" Y:"+ y + " Z:"+ z);
-            }
+        }
 
         public void blockRemoved(Chunk chunk, Integer block, int x, int y, int z) {
             if (fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)] == y) {
                 fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)] = findBlockHeightBelowMe(x, y, z);
             }
-            System.out.println("Block removed from position X:" + x +" Y:"+ y + " Z:"+ z);
-            System.out.println("Light at position X:" + x +" Y:"+ y + " Z:"+ z + " is now "+ chunk.getSunlightValue(x, y, z));  
         }
     };
     private Map<Integer, Chunk> fChunks = new HashMap<Integer, Chunk>();
