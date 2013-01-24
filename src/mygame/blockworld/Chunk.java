@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 import mygame.Lighting;
 import mygame.MathUtil;
 import mygame.blockworld.chunkgenerators.ChunkGenerator;
+import mygame.blockworld.surfaceextraction.BasicTriangulation;
 import mygame.blockworld.surfaceextraction.MarchingCubes;
 import mygame.blockworld.surfaceextraction.MeshCreator;
 
@@ -55,7 +56,7 @@ public class Chunk {
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
     protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
-    protected static MeshCreator fMeshCreator = new MarchingCubes();
+    protected static MeshCreator fMeshCreator = new BasicTriangulation();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
     public Chunk(BlockWorld world, ChunkColumn chunkColumn, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
@@ -84,7 +85,7 @@ public class Chunk {
         if (fNeedsUpdate || fPreviousCreator != fMeshCreator) {
             updateLight();
             updateVisualMesh();
-            //updatePhysicsMesh();
+            updatePhysicsMesh();
             fNeedsUpdate = false;
             fPreviousCreator = fMeshCreator;
         }

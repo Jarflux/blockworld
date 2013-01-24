@@ -49,14 +49,14 @@ import mygame.blockworld.surfaceextraction.MeshCreator;
  */
 public class Main extends SimpleApplication implements ActionListener {
 
-    private static final int PLAYER_GRAVITY = 0; //30
+    private static final int PLAYER_GRAVITY = 30; //30
     private static final int PLAYER_FALLSPEED = 30;
     private static final int PLAYER_JUMPSPEED = 8;
     private static final float PLAYER_WALKSPEED = 0.1f;// * 4f;
     private static final float PLAYER_STEPHEIGHT = 0.25f;// * 4f;
     private static final float PLAYER_HITBOX_HEIGHT = 0.75f;// * 4f;
     private static final float PLAYER_HITBOX_RADIUS = 0.25f;// * 4f;
-    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 35, 0);
+    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 55, 0);
     private static final String SAVE_GAME_PATH = "Worlds/world0.dat";  
     
     private Material fBlockMat;
@@ -82,21 +82,23 @@ public class Main extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleInitApp() {
-        //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
-        /*
+        
         fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
         Texture tex = assetManager.loadTexture("Textures/terrain.png");
         tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         tex.setMagFilter(Texture.MagFilter.Nearest);
         fBlockMat.setTexture("m_Terrain", tex);
-        */
+        
+        /*
         Texture text = assetManager.loadTexture("Textures/dirt.png");
         text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
         fBlockMat.setTexture("DiffuseMap", text);
+        */
         //fBlockMat.setBoolean("VertexLighting", true);
         //fBlockMat.setBoolean("HighQuality", true);
         //fBlockMat.setBoolean("UseMaterialColors",true);
@@ -107,7 +109,7 @@ public class Main extends SimpleApplication implements ActionListener {
         //fBlockMat.setColor("Color", ColorRGBA.Green);
         //fBlockMat.getAdditionalRenderState().setWireframe(true);
         //fBlockMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
-
+        
         /**
          * Set up Physics
          */
@@ -149,6 +151,15 @@ public class Main extends SimpleApplication implements ActionListener {
     }
 
     private void setUpLight() {
+        fpp=new FilterPostProcessor(assetManager);
+        //fpp.setNumSamples(4);
+        fog=new FogFilter();
+        fog.setFogColor(new ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f));
+        fog.setFogDistance(3200);
+        fog.setFogDensity(-2.6f);
+        fpp.addFilter(fog);
+        viewPort.addProcessor(fpp);
+        
         // We add light so we see the scene
         AmbientLight al = new AmbientLight();
         al.setColor(ColorRGBA.White.mult(0.3f));
