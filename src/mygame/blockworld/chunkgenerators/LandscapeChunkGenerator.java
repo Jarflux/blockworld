@@ -17,9 +17,8 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
 
     private Random fRandom;
     private Float[][] fChunkMap;
-    //private float fRoughness = 10f;
     private float fTerrainScale = 32f / 2f;
-    private float fTerrainRoughness = 32f * 2f;
+    private float fTerrainRoughness = 32f;// * 2f;
     private float fNoiseZ = 10f;
     private float fMinLocalRoughness = 2f;
 
@@ -209,7 +208,7 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
     // block type logic
     private Integer getBlockType(int heigth, int topHeight) {
         Integer blockType = null;
-        if (heigth == topHeight) {
+        if (heigth - topHeight < 0.001f) {
             blockType = 1;                       // return grass
         }
         if (heigth < topHeight) {

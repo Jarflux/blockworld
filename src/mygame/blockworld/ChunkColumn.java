@@ -78,7 +78,7 @@ public class ChunkColumn {
 
     private int findBlockHeightBelowMe(int x, int y, int z) {
         for (int i = y - 1; i > Lighting.TOTAL_DARKNESS_HEIGHT; i--) {
-            Chunk chunk = get((i) / Chunk.CHUNK_SIZE);
+            Chunk chunk = get(i);
             if (chunk != null) {
                 if (chunk.get(x, i, z) != null) {
                     return i;
@@ -97,7 +97,8 @@ public class ChunkColumn {
             lightValue = Lighting.MAX_LIGHT_VALUE;
         }
         if (y > highestBlock && y < 0) {
-            lightValue = Math.max(Lighting.MIN_LIGHT_VALUE, (float) Math.pow(Lighting.SUNLIGHT_DEGRADING_CONSTANT, (-y)));
+            lightValue = Lighting.MAX_LIGHT_VALUE;
+            //lightValue = Math.max(Lighting.MIN_LIGHT_VALUE, (float) Math.pow(Lighting.SUNLIGHT_DEGRADING_CONSTANT, (-y)));
         }
         return lightValue;
     }
