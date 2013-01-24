@@ -9,7 +9,10 @@ import com.jme3.bullet.control.CharacterControl;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
+import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.AnalogListener;
+import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -17,6 +20,8 @@ import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.DepthOfFieldFilter;
 import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.queue.RenderQueue.Bucket;
@@ -61,6 +66,9 @@ public class Main extends SimpleApplication implements ActionListener {
     private CharacterControl player;
     private AudioNode audio_nature;
     private AudioNode audio_removeBlock;
+    private DepthOfFieldFilter dofFilter;
+    private FilterPostProcessor fpp;
+    private FogFilter fog;
     private BitmapText hudPosition;
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false;
@@ -81,6 +89,8 @@ public class Main extends SimpleApplication implements ActionListener {
         /*
         fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
         Texture tex = assetManager.loadTexture("Textures/terrain.png");
+        tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        tex.setMagFilter(Texture.MagFilter.Nearest);
         fBlockMat.setTexture("m_Terrain", tex);
         */
         Texture text = assetManager.loadTexture("Textures/dirt.png");

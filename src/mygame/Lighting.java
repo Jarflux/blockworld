@@ -18,8 +18,8 @@ public class Lighting {
     private boolean[][][] fIsAlreadyAdjusted;
     private BlockWorld fWorld;
     private int fXOffset, fYOffset, fZOffset;
-    private static float DIVIDER = 2f;
-    public static int RECURSION_DEPTH = 3;
+    private static float DIVIDER = 1.5f;
+    public static int RECURSION_DEPTH = 6;
 
     public static float[][][] calculateDiffuseMap(BlockWorld world, int xAbs, int yAbs, int zAbs, float lightValue) {
         Lighting li = new Lighting(world, xAbs, yAbs, zAbs, lightValue);
@@ -74,7 +74,8 @@ public class Lighting {
     
     // uses relative coordinates for the light array
     private void setLight(int x, int y, int z, float value, int recursionDepth) {
-        if((value > MIN_LIGHT_VALUE) && (fWorld.get(x + fXOffset, y + fYOffset, z + fZOffset) == null)) {
+        //if((value > MIN_LIGHT_VALUE) && (fWorld.get(x + fXOffset, y + fYOffset, z + fZOffset) == null)) {
+        if((value > 0.00f) && (fWorld.get(x + fXOffset, y + fYOffset, z + fZOffset) == null)) {
             if (fLightValues[x][y][z] < value) {
                 fLightValues[x][y][z] = value;
                 fIsAlreadyAdjusted[x][y][z] = false;

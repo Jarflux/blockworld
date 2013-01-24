@@ -22,7 +22,8 @@ import mygame.blockworld.Chunk;
  * @author Nathan
  */
 public class BasicTriangulation implements MeshCreator {
-
+    private int textureSize = 1024;
+    
     private static void addTextureCoords(List<Vector2f> texCoord, int texId, boolean swap) {
         float texIdX = texId % 16;
         float texIdY = (texId - texIdX) / 16;
