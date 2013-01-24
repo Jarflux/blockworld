@@ -44,14 +44,14 @@ import mygame.blockworld.surfaceextraction.MeshCreator;
  */
 public class Main extends SimpleApplication implements ActionListener {
 
-    private static final int PLAYER_GRAVITY = 30; //30
+    private static final int PLAYER_GRAVITY = 0; //30
     private static final int PLAYER_FALLSPEED = 30;
     private static final int PLAYER_JUMPSPEED = 8;
     private static final float PLAYER_WALKSPEED = 0.1f;// * 4f;
     private static final float PLAYER_STEPHEIGHT = 0.25f;// * 4f;
     private static final float PLAYER_HITBOX_HEIGHT = 0.75f;// * 4f;
     private static final float PLAYER_HITBOX_RADIUS = 0.25f;// * 4f;
-    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 55, 0);
+    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 35, 0);
     private static final String SAVE_GAME_PATH = "Worlds/world0.dat";  
     
     private Material fBlockMat;
@@ -75,25 +75,25 @@ public class Main extends SimpleApplication implements ActionListener {
     @Override
     public void simpleInitApp() {
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
-        
+        /*
         fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
         Texture tex = assetManager.loadTexture("Textures/terrain.png");
         fBlockMat.setTexture("m_Terrain", tex);
-
-        //Texture text = assetManager.loadTexture("Textures/dirt.png");
-       // text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
-       // text.setMagFilter(Texture.MagFilter.Nearest);
-        //fBlockMat.setTexture("DiffuseMap", tex);
+        */
+        Texture text = assetManager.loadTexture("Textures/dirt.png");
+        text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        text.setMagFilter(Texture.MagFilter.Nearest);
+        fBlockMat.setTexture("DiffuseMap", text);
         //fBlockMat.setBoolean("VertexLighting", true);
         //fBlockMat.setBoolean("HighQuality", true);
         //fBlockMat.setBoolean("UseMaterialColors",true);
         //fBlockMat.setBoolean("WardIso", true);
         //fBlockMat.setBoolean("SeparateTexCoord", true);
 
-        //fBlockMat.setTexture("ColorMap", assetManager.loadTexture("Textures/terrain.png"));
+        //fBlockMat.setTexture("ColorMap", text);
         //fBlockMat.setColor("Color", ColorRGBA.Green);
         //fBlockMat.getAdditionalRenderState().setWireframe(true);
         //fBlockMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
@@ -170,10 +170,10 @@ public class Main extends SimpleApplication implements ActionListener {
         //skyDome.setControlFog(true);
 
         // Add the directional light you use for sun… or not
-       // DirectionalLight sun = new DirectionalLight();
-       // sun.setColor(ColorRGBA.White.mult(0.9f));
-       // sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
-       // rootNode.addLight(sun);
+        DirectionalLight sun = new DirectionalLight();
+        sun.setColor(ColorRGBA.White.mult(0.9f));
+        sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
+        rootNode.addLight(sun);
        // skyDome.setSun(sun);
         //skyDome.setDayNightTransitionSpeed(1f);
         //skyDome.setMoonSpeed(0.5f);
