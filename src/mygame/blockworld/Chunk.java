@@ -93,27 +93,33 @@ public class Chunk {
 
     protected void updateLight() {
         fLightMap.clear();
-        for (int y = getY() + CHUNK_SIZE; y > getY(); y--) {
+        int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
+        for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {
             for (int x = 0; x < CHUNK_SIZE; x++) {
                 for (int z = 0; z < CHUNK_SIZE; z++) {
+                    if(y > highestBlockMap[x][z] || get(x, y, z) != null) {
+                        continue;
+                    }
                     float lightValue = fChunkColumn.getSunlightValue(x, y + 1, z);
                     if (lightValue > 0) {
                         setSunlightValue(x, y, z, lightValue);
                         continue;
                     }
                     float constante = 0.5f;
-                    if((fWorld.get(x - 1, y, z) == null) && fChunkColumn.getSunlightValue(x - 1, y + 1, z) > 0 ){
-                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x - 1, y+1, z) * constante));
+                    lightValue = getSunlightValue(x, y, z);
+                    if((fWorld.get(x - 1, y, z) == null) && fWorld.getSunlightValue(x - 1, y + 1, z) > 0 ){
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x - 1, y+1, z) * constante));
                     }
-                    if((fWorld.get(x + 1, y, z) == null) && fChunkColumn.getSunlightValue(x + 1, y + 1, z) > 0 ){
-                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x + 1, y+1, z) * constante));
+                    if((fWorld.get(x + 1, y, z) == null) && fWorld.getSunlightValue(x + 1, y + 1, z) > 0 ){
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x + 1, y+1, z) * constante));
                     }
-                    if((fWorld.get(x, y, z-1) == null) && fChunkColumn.getSunlightValue(x, y + 1, z-1) > 0 ){
-                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x, y+1, z-1) * constante));
+                    if((fWorld.get(x, y, z-1) == null) && fWorld.getSunlightValue(x, y + 1, z-1) > 0 ){
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y+1, z-1) * constante));
                     }
-                    if((fWorld.get(x, y, z+1) == null) && fChunkColumn.getSunlightValue(x, y + 1, z+1) > 0 ){
-                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x, y+1, z+1) * constante));
-                    }                             
+                    if((fWorld.get(x, y, z+1) == null) && fWorld.getSunlightValue(x, y + 1, z+1) > 0 ){
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y+1, z+1) * constante));
+                    }
+                    setSunlightValue(x, y, z, lightValue);
                 }
             }
         }

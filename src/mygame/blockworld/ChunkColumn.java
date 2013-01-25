@@ -88,7 +88,7 @@ public class ChunkColumn {
         return Lighting.TOTAL_DARKNESS_HEIGHT;
     }
 
-    public float getDirectSunlight(int x, int y, int z) {
+    protected float getDirectSunlight(int x, int y, int z) {
         // return de waarde van het zonlight op dit punt
         // zonlicht is steeds 1 hoger dan de hoogste block
         float lightValue = Lighting.MIN_LIGHT_VALUE;
@@ -104,6 +104,9 @@ public class ChunkColumn {
     }
 
     public float getSunlightValue(int x, int y, int z) {
+        if(y > fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)]) {
+            return getDirectSunlight(x, y, z);
+        }
         Chunk chunk = get(y);
         if (chunk != null) {
             Float value = chunk.getSunlightValue(x, y, z);
@@ -111,6 +114,6 @@ public class ChunkColumn {
                 return value;
             }
         }
-        return getDirectSunlight(x, y, z);
+        return Lighting.MIN_LIGHT_VALUE;
     }
 }

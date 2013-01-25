@@ -255,17 +255,9 @@ public class BlockWorld {
     public float getSunlightValue(int x, int y, int z) {
         ChunkColumn column = getChunkColumn(x, z, false);
         if (column != null) {
-            Chunk chunk = column.get(y);
-            if (chunk != null) {
-                Float value = chunk.getSunlightValue(x, y, z);
-                if (value != null) {
-                    return value;
-                }  
-            }
-            return column.getDirectSunlight(x, y, z);
+            return column.getSunlightValue(x, y, z);
         }
         return Lighting.MIN_LIGHT_VALUE;
-
     }
 
     public void setSunlightValue(int x, int y, int z, float value) {
