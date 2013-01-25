@@ -82,23 +82,23 @@ public class Main extends SimpleApplication implements ActionListener {
 
     @Override
     public void simpleInitApp() {
-        fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
+        fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
-        
+        /*
         fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
         Texture tex = assetManager.loadTexture("Textures/terrain.png");
         tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         tex.setMagFilter(Texture.MagFilter.Nearest);
         fBlockMat.setTexture("m_Terrain", tex);
+        */
         
-        /*
         Texture text = assetManager.loadTexture("Textures/dirt.png");
         text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
         fBlockMat.setTexture("DiffuseMap", text);
-        */
+        
         //fBlockMat.setBoolean("VertexLighting", true);
         //fBlockMat.setBoolean("HighQuality", true);
         //fBlockMat.setBoolean("UseMaterialColors",true);
@@ -151,6 +151,7 @@ public class Main extends SimpleApplication implements ActionListener {
     }
 
     private void setUpLight() {
+        /*
         fpp=new FilterPostProcessor(assetManager);
         //fpp.setNumSamples(4);
         fog=new FogFilter();
@@ -159,6 +160,7 @@ public class Main extends SimpleApplication implements ActionListener {
         fog.setFogDensity(-2.6f);
         fpp.addFilter(fog);
         viewPort.addProcessor(fpp);
+        */
         
         // We add light so we see the scene
         AmbientLight al = new AmbientLight();

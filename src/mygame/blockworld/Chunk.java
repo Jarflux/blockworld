@@ -56,7 +56,7 @@ public class Chunk {
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
     protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
-    protected static MeshCreator fMeshCreator = new BasicTriangulation();
+    protected static MeshCreator fMeshCreator = new MarchingCubes();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
     public Chunk(BlockWorld world, ChunkColumn chunkColumn, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
@@ -129,7 +129,6 @@ public class Chunk {
             fRootNode.detachChild(fChunkMesh);
         }
         Mesh mesh = fMeshCreator.calculateMesh(fWorld, this);
-        //mesh = fixMesh(mesh);
         if (mesh == null) {
             fChunkMesh = null;
             return;
@@ -139,91 +138,6 @@ public class Chunk {
         fRootNode.attachChild(fChunkMesh);
     }
 
-    private Mesh fixMesh(Mesh mesh) {
-        int triangleCount = mesh.getTriangleCount();
-        int[] indices = new int[3];
-        Set<Entry<Integer, Integer>> unmatched = new HashSet<Entry<Integer, Integer>>();
-        for(int i = 0; i < triangleCount; i++) {
-            mesh.getTriangle(i, indices);
-            for(int j = 0; j < 3; j++) {
-                int lowIndex = Math.min(indices[j], indices[(j+1)%3]);
-                int highIndex = Math.max(indices[j], indices[(j+1)%3]);
-                Entry<Integer, Integer> edge = new HashMap.SimpleEntry<Integer, Integer>(lowIndex, highIndex);
-                boolean isBorderEdge = false;
-                for(int k = 0; k < 3; k++) {
-                    int posLow = Math.round((Float)mesh.getBuffer(VertexBuffer.Type.Position).getElementComponent(lowIndex, k)) % CHUNK_SIZE;
-                    int posHigh = Math.round((Float)mesh.getBuffer(VertexBuffer.Type.Position).getElementComponent(highIndex, k)) % CHUNK_SIZE;
-                    isBorderEdge |= (posLow == 0 && posHigh == 0);
-                    isBorderEdge |= (posLow == CHUNK_SIZE - 1 && posHigh == CHUNK_SIZE - 1);
-                }
-                if(isBorderEdge) {
-                    continue;
-                }
-                if(unmatched.contains(edge)) {
-                    unmatched.remove(edge);
-                }else{
-                    unmatched.add(edge);
-                }
-            }
-        }
-        List<Integer> newTriangles = new ArrayList<Integer>(unmatched.size());
-        Set<Entry<Integer, Integer>> loneEdges = new HashSet<Entry<Integer, Integer>>();
-        while(!unmatched.isEmpty()) {
-            Entry<Integer, Integer> edge = unmatched.iterator().next();
-            unmatched.remove(edge);
-            List<Entry<Integer, Integer>> neighbours = new ArrayList<Entry<Integer, Integer>>(2);
-            for(Entry<Integer, Integer> it : unmatched) {
-                if(edge.getKey() == it.getKey() || edge.getKey() == it.getValue()
-                        || edge.getValue() == it.getKey() || edge.getValue() == it.getValue()) {
-                    neighbours.add(it);
-                }
-            }
-            for(Entry<Integer, Integer> it : neighbours) {
-                unmatched.remove(it);
-            }
-            if(neighbours.isEmpty()) {
-                loneEdges.add(edge);
-            }else if(neighbours.size() == 1 || neighbours.size() == 2) {
-                int otherIndex = neighbours.get(0).getKey();
-                if(otherIndex == edge.getKey()) {
-                    otherIndex = neighbours.get(0).getValue();
-                    if(neighbours.size() == 1) {
-                        unmatched.add(new HashMap.SimpleEntry<Integer, Integer>(otherIndex, edge.getValue()));
-                    }else{
-                        if( !( (neighbours.get(1).getKey() == otherIndex && neighbours.get(1).getValue() == edge.getValue()) 
-                                || (neighbours.get(1).getKey() == edge.getValue() && neighbours.get(1).getValue() == otherIndex) ) ) {
-                            throw new UnknownError();
-                        }
-                    }
-                }else if(otherIndex == edge.getValue()) {
-                    otherIndex = neighbours.get(0).getValue();
-                    
-                }else{
-                    
-                }
-                
-                newTriangles.add(edge.getKey());
-                newTriangles.add(edge.getValue());
-                newTriangles.add(otherIndex);
-                
-                newTriangles.add(edge.getKey());
-                newTriangles.add(otherIndex);
-                newTriangles.add(edge.getValue());
-                
-                
-            }else{
-                throw new UnknownError();
-            }
-        }
-        if(unmatched.size() > 0) {
-            System.out.println("Number of unmatched edges = " + unmatched.size());
-            System.out.println("Total number of unmatched edges = " + NrUnmatchedEdges);
-        }
-        return mesh;
-    }
-    
-    public static int NrUnmatchedEdges = 0;
-    
     protected void updatePhysicsMesh() {
         if (!isVisible()) {
             return;
@@ -238,8 +152,13 @@ public class Chunk {
         if (fChunkPhysics != null) {
             fChunkMesh.removeControl(fChunkPhysics);
         }
+        Mesh shape = BasicTriangulation.basicTriangulation(fWorld, this);
+        if(shape == null) {
+            return;
+        }
+        Geometry nodeShape = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, shape);
         CollisionShape chunkShape =
-                CollisionShapeFactory.createMeshShape(fChunkMesh);
+                CollisionShapeFactory.createMeshShape(nodeShape);
         fChunkPhysics = new RigidBodyControl(chunkShape, 0);
         fChunkMesh.addControl(fChunkPhysics);
         fPhysicsState.getPhysicsSpace().add(fChunkPhysics);

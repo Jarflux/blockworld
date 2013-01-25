@@ -11,7 +11,11 @@ import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
 
@@ -959,6 +963,145 @@ private static int[][] sTRIANGLES = {
             }
         }
         
+        return fixMesh(vertices, normals, texCoords, indices);
+        /*
+        Mesh mesh = new Mesh();
+        mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
+        mesh.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normals));
+        mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(texCoords));   
+        mesh.setBuffer(VertexBuffer.Type.Index, 1, BufferUtils.createIntBuffer(indices));
+        mesh.updateCounts();
+        mesh.updateBound();
+        return mesh;*/
+    }
+    
+    private static Mesh fixMesh(Vector3f[] vertices, Vector3f[] normals, Vector2f[] texCoords, int[] indices) {
+        Map<Vector3f, Integer> verticesIndexes = new HashMap<Vector3f, Integer>();
+        Set<Map.Entry<Vector3f, Vector3f>> unmatched = new HashSet<Map.Entry<Vector3f, Vector3f>>();
+        for(int i = 0; i < indices.length; i++) {
+            int index1 = indices[i];
+            Vector3f v1 = vertices[index1];
+            int index2 = indices[(i/3)*3 + (i+1)%3];
+            Vector3f v2 = vertices[index2];
+            int indexSwap = 0;
+            Vector3f swap = null;
+            if(v1.z > v2.z) {
+                indexSwap = index1;
+                index1 = index2;
+                index2 = indexSwap;
+                swap = v1;
+                v1 = v2;
+                v2 = swap;
+            }
+            if(v1.y > v2.y) {
+                indexSwap = index1;
+                index1 = index2;
+                index2 = indexSwap;
+                swap = v1;
+                v1 = v2;
+                v2 = swap;
+            }
+            if(v1.x > v2.x) {
+                indexSwap = index1;
+                index1 = index2;
+                index2 = indexSwap;
+                swap = v1;
+                v1 = v2;
+                v2 = swap;
+            }
+            Map.Entry<Vector3f, Vector3f> edge = new HashMap.SimpleEntry<Vector3f, Vector3f>(v1, v2);
+            boolean isBorderEdge = false;
+            if(Math.abs( v1.x - Math.floor(v1.x) ) == 0f && v1.x == v2.x) {
+                int val = Math.round(v1.x) % Chunk.CHUNK_SIZE;
+                isBorderEdge |= val == 0;
+                isBorderEdge |= val == Chunk.CHUNK_SIZE - 1;
+            }
+            if(Math.abs( v1.y - Math.floor(v1.y) ) == 0f && v1.y == v2.y) {
+                int val = Math.round(v1.y) % Chunk.CHUNK_SIZE;
+                isBorderEdge |= val == 0;
+                isBorderEdge |= val == Chunk.CHUNK_SIZE - 1;
+            }
+            if(Math.abs( v1.z - Math.floor(v1.z) ) == 0f && v1.z == v2.z) {
+                int val = Math.round(v1.z) % Chunk.CHUNK_SIZE;
+                isBorderEdge |= val == 0;
+                isBorderEdge |= val == Chunk.CHUNK_SIZE - 1;
+            }
+            if(isBorderEdge) {
+                continue;
+            }
+            if(unmatched.contains(edge)) {
+                unmatched.remove(edge);
+            }else{
+                unmatched.add(edge);
+                verticesIndexes.put(v1, index1);
+                verticesIndexes.put(v2, index2);
+            }
+        }
+        
+        if(unmatched.size() > 0) {
+            System.out.println("Number of unmatched edges = " + unmatched.size());
+            for(Map.Entry<Vector3f, Vector3f> edge : unmatched) {
+                System.out.println("Unmatched edge going from " + edge.getKey() + " to " + edge.getValue());
+            }
+        }
+        /*
+        List<Integer> newTriangles = new ArrayList<Integer>(unmatched.size());
+        Set<Map.Entry<Vector3f, Vector3f>> loneEdges = new HashSet<Map.Entry<Vector3f, Vector3f>>();
+        while(!unmatched.isEmpty()) {
+            Map.Entry<Vector3f, Vector3f> edge = unmatched.iterator().next();
+            unmatched.remove(edge);
+            List<Map.Entry<Vector3f, Vector3f>> neighbours = new ArrayList<Map.Entry<Vector3f, Vector3f>>(2);
+            for(Map.Entry<Vector3f, Vector3f> it : unmatched) {
+                if(edge.getKey().equals(it.getKey()) || edge.getKey().equals(it.getValue())
+                        || edge.getValue().equals(it.getKey()) || edge.getValue().equals(it.getValue())) {
+                    neighbours.add(it);
+                }
+            }
+            for(Map.Entry<Vector3f, Vector3f> it : neighbours) {
+                unmatched.remove(it);
+            }
+            if(neighbours.isEmpty()) {
+                loneEdges.add(edge);
+            }else if(neighbours.size() == 1 || neighbours.size() == 2) {
+                Vector3f otherV = neighbours.get(0).getKey();
+                Vector3f connectingV = null;
+                if(otherV.equals(edge.getKey())) {
+                    otherV = neighbours.get(0).getValue();
+                    connectingV = edge.getValue();
+                }else if(otherV.equals(edge.getValue())) {
+                    otherV = neighbours.get(0).getValue();
+                    connectingV = edge.getKey();
+                }else{
+                    throw new UnknownError();
+                }
+                if(neighbours.size() == 1) {
+                    unmatched.add(new HashMap.SimpleEntry<Vector3f, Vector3f>(otherV, connectingV));
+                }
+                
+                newTriangles.add(verticesIndexes.get(edge.getKey()));
+                newTriangles.add(verticesIndexes.get(edge.getValue()));
+                newTriangles.add(verticesIndexes.get(otherV));
+                
+                newTriangles.add(verticesIndexes.get(edge.getKey()));
+                newTriangles.add(verticesIndexes.get(otherV));
+                newTriangles.add(verticesIndexes.get(edge.getValue()));
+                
+                
+            }else{
+                throw new UnknownError();
+            }
+        }
+        
+        if(loneEdges.size() > 0) {
+            System.out.println("Number of lone edges = " + loneEdges.size());
+        }
+        
+        int[] newIndices = new int[indices.length + newTriangles.size()];
+        System.arraycopy(indices, 0, newIndices, 0, indices.length);
+        for(int i = 0; i < newTriangles.size(); i++) {
+            newIndices[i+indices.length] = newTriangles.get(i);
+        }
+        */
         Mesh mesh = new Mesh();
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(vertices));
         mesh.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normals));
