@@ -160,9 +160,6 @@ public class BlockWorld {
                 cnk.fillChunk();
             }
             cnk.addChunkListener(fGeneralListener);
-            if (chunkColumn == null) {
-                chunkColumn = new ChunkColumn();
-            }
             chunkColumn.put(cnk);
         }
         return cnk;
