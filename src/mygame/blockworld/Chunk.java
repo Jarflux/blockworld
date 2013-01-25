@@ -93,32 +93,56 @@ public class Chunk {
 
     protected void updateLight() {
         fLightMap.clear();
-
-        int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
-        for (int i = 0; i < CHUNK_SIZE; i++) {
-            for (int j = 0; j < CHUNK_SIZE; j++) {
-                int highestBlockY = highestBlockMap[i][j];
-                if ((highestBlockY >= getY()) && (highestBlockY < (getY() + CHUNK_SIZE))) {
-                    // highestblock +1 because u need the sunlight value above the highest block
-                    float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, i + getX(), highestBlockY+1, j + getZ(), fChunkColumn.getDirectSunlight(i + getX(), highestBlockY+1, j + getZ()));
-                    for (int xd = 0; xd < diffuseMap.length; xd++) {
-                        for (int yd = 0; yd < diffuseMap.length; yd++) {
-                            for (int zd = 0; zd < diffuseMap.length; zd++) {
-                                if(diffuseMap[xd][yd][zd] > 0.001f){ 
-                                    int xA = i + getX() + xd - (diffuseMap.length/2);
-                                    int yA = highestBlockY + 1 + yd - (diffuseMap.length/2);
-                                    int zA = j + getZ() + zd - (diffuseMap.length/2);
-                                    float sunlightValue = fWorld.getSunlightValue(xA, yA, zA);
-                                    
-                                    float newSunlightValue = (sunlightValue + diffuseMap[xd][yd][zd]) / (1 + (sunlightValue * diffuseMap[xd][yd][zd]));
-                                    fWorld.setSunlightValue(xA, yA, zA, newSunlightValue );                
-                                }
-                            }
-                        }
+        for (int y = getY() + CHUNK_SIZE; y > getY(); y--) {
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                for (int z = 0; z < CHUNK_SIZE; z++) {
+                    float lightValue = fChunkColumn.getSunlightValue(x, y + 1, z);
+                    if (lightValue > 0) {
+                        setSunlightValue(x, y, z, lightValue);
+                        continue;
                     }
+                    float constante = 0.5f;
+                    if((fWorld.get(x - 1, y, z) == null) && fChunkColumn.getSunlightValue(x - 1, y + 1, z) > 0 ){
+                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x - 1, y+1, z) * constante));
+                    }
+                    if((fWorld.get(x + 1, y, z) == null) && fChunkColumn.getSunlightValue(x + 1, y + 1, z) > 0 ){
+                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x + 1, y+1, z) * constante));
+                    }
+                    if((fWorld.get(x, y, z-1) == null) && fChunkColumn.getSunlightValue(x, y + 1, z-1) > 0 ){
+                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x, y+1, z-1) * constante));
+                    }
+                    if((fWorld.get(x, y, z+1) == null) && fChunkColumn.getSunlightValue(x, y + 1, z+1) > 0 ){
+                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x, y+1, z+1) * constante));
+                    }                             
                 }
             }
         }
+
+//        int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
+//        for (int i = 0; i < CHUNK_SIZE; i++) {
+//            for (int j = 0; j < CHUNK_SIZE; j++) {
+//                int highestBlockY = highestBlockMap[i][j];
+//                if ((highestBlockY >= getY()) && (highestBlockY < (getY() + CHUNK_SIZE))) {
+//                    // highestblock +1 because u need the sunlight value above the highest block
+//                    float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, i + getX(), highestBlockY+1, j + getZ(), fChunkColumn.getDirectSunlight(i + getX(), highestBlockY+1, j + getZ()));
+//                    for (int xd = 0; xd < diffuseMap.length; xd++) {
+//                        for (int yd = 0; yd < diffuseMap.length; yd++) {
+//                            for (int zd = 0; zd < diffuseMap.length; zd++) {
+//                                if(diffuseMap[xd][yd][zd] > 0.001f){ 
+//                                    int xA = i + getX() + xd - (diffuseMap.length/2);
+//                                    int yA = highestBlockY + 1 + yd - (diffuseMap.length/2);
+//                                    int zA = j + getZ() + zd - (diffuseMap.length/2);
+//                                    float sunlightValue = fWorld.getSunlightValue(xA, yA, zA);
+//                                    
+//                                    float newSunlightValue = (sunlightValue + diffuseMap[xd][yd][zd]) / (1 + (sunlightValue * diffuseMap[xd][yd][zd]));
+//                                    fWorld.setSunlightValue(xA, yA, zA, newSunlightValue );                
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
     protected void updateVisualMesh() {
@@ -322,7 +346,7 @@ public class Chunk {
             return value;
         }
     }
-    
+
     public void setSunlightValue(int x, int y, int z, float value) {
         setLight(x, y, z, value);
     }

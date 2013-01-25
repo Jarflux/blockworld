@@ -74,8 +74,7 @@ public class Lighting {
     
     // uses relative coordinates for the light array
     private void setLight(int x, int y, int z, float value, int recursionDepth) {
-        //if((value > MIN_LIGHT_VALUE) && (fWorld.get(x + fXOffset, y + fYOffset, z + fZOffset) == null)) {
-        if((value > 0.00f) && (fWorld.get(x + fXOffset, y + fYOffset, z + fZOffset) == null)) {
+        if((value > MIN_LIGHT_VALUE) && (fWorld.get(x + fXOffset, y + fYOffset, z + fZOffset) == null) ) {
             if (fLightValues[x][y][z] < value) {
                 fLightValues[x][y][z] = value;
                 fIsAlreadyAdjusted[x][y][z] = false;

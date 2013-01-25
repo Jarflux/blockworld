@@ -66,7 +66,6 @@ public class Main extends SimpleApplication implements ActionListener {
     private CharacterControl player;
     private AudioNode audio_nature;
     private AudioNode audio_removeBlock;
-    private DepthOfFieldFilter dofFilter;
     private FilterPostProcessor fpp;
     private FogFilter fog;
     private BitmapText hudPosition;
