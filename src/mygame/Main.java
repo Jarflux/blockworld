@@ -66,7 +66,6 @@ public class Main extends SimpleApplication implements ActionListener {
     private CharacterControl player;
     private AudioNode audio_nature;
     private AudioNode audio_removeBlock;
-    private DepthOfFieldFilter dofFilter;
     private FilterPostProcessor fpp;
     private FogFilter fog;
     private BitmapText hudPosition;
@@ -151,14 +150,13 @@ public class Main extends SimpleApplication implements ActionListener {
     }
 
     private void setUpLight() {
-        fpp=new FilterPostProcessor(assetManager);
-        //fpp.setNumSamples(4);
-        fog=new FogFilter();
-        fog.setFogColor(new ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f));
-        fog.setFogDistance(3200);
-        fog.setFogDensity(-2.6f);
-        fpp.addFilter(fog);
-        viewPort.addProcessor(fpp);
+//        fpp=new FilterPostProcessor(assetManager);
+//        fog=new FogFilter();
+//        fog.setFogColor(new ColorRGBA(0.9f, 0.9f, 0.9f, 1.0f));
+//        fog.setFogDistance(4000);
+//        fog.setFogDensity(1.0f);
+//        fpp.addFilter(fog);
+//        viewPort.addProcessor(fpp);
         
         // We add light so we see the scene
         AmbientLight al = new AmbientLight();

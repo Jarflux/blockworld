@@ -93,32 +93,56 @@ public class Chunk {
 
     protected void updateLight() {
         fLightMap.clear();
-
-        int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
-        for (int i = 0; i < CHUNK_SIZE; i++) {
-            for (int j = 0; j < CHUNK_SIZE; j++) {
-                int highestBlockY = highestBlockMap[i][j];
-                if ((highestBlockY >= getY()) && (highestBlockY < (getY() + CHUNK_SIZE))) {
-                    // highestblock +1 because u need the sunlight value above the highest block
-                    float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, i + getX(), highestBlockY+1, j + getZ(), fChunkColumn.getDirectSunlight(i + getX(), highestBlockY+1, j + getZ()));
-                    for (int xd = 0; xd < diffuseMap.length; xd++) {
-                        for (int yd = 0; yd < diffuseMap.length; yd++) {
-                            for (int zd = 0; zd < diffuseMap.length; zd++) {
-                                if(diffuseMap[xd][yd][zd] > 0.001f){ 
-                                    int xA = i + getX() + xd - (diffuseMap.length/2);
-                                    int yA = highestBlockY + 1 + yd - (diffuseMap.length/2);
-                                    int zA = j + getZ() + zd - (diffuseMap.length/2);
-                                    float sunlightValue = fWorld.getSunlightValue(xA, yA, zA);
-                                    
-                                    float newSunlightValue = (sunlightValue + diffuseMap[xd][yd][zd]) / (1 + (sunlightValue * diffuseMap[xd][yd][zd]));
-                                    fWorld.setSunlightValue(xA, yA, zA, newSunlightValue );                
-                                }
-                            }
-                        }
+        for (int y = getY() + CHUNK_SIZE; y > getY(); y--) {
+            for (int x = 0; x < CHUNK_SIZE; x++) {
+                for (int z = 0; z < CHUNK_SIZE; z++) {
+                    float lightValue = fChunkColumn.getSunlightValue(x, y + 1, z);
+                    if (lightValue > 0) {
+                        setSunlightValue(x, y, z, lightValue);
+                        continue;
                     }
+                    float constante = 0.5f;
+                    if((fWorld.get(x - 1, y, z) == null) && fChunkColumn.getSunlightValue(x - 1, y + 1, z) > 0 ){
+                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x - 1, y+1, z) * constante));
+                    }
+                    if((fWorld.get(x + 1, y, z) == null) && fChunkColumn.getSunlightValue(x + 1, y + 1, z) > 0 ){
+                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x + 1, y+1, z) * constante));
+                    }
+                    if((fWorld.get(x, y, z-1) == null) && fChunkColumn.getSunlightValue(x, y + 1, z-1) > 0 ){
+                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x, y+1, z-1) * constante));
+                    }
+                    if((fWorld.get(x, y, z+1) == null) && fChunkColumn.getSunlightValue(x, y + 1, z+1) > 0 ){
+                        setSunlightValue(x, y, z, getSunlightValue(x, y, z) + (fChunkColumn.getSunlightValue(x, y+1, z+1) * constante));
+                    }                             
                 }
             }
         }
+
+//        int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
+//        for (int i = 0; i < CHUNK_SIZE; i++) {
+//            for (int j = 0; j < CHUNK_SIZE; j++) {
+//                int highestBlockY = highestBlockMap[i][j];
+//                if ((highestBlockY >= getY()) && (highestBlockY < (getY() + CHUNK_SIZE))) {
+//                    // highestblock +1 because u need the sunlight value above the highest block
+//                    float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, i + getX(), highestBlockY+1, j + getZ(), fChunkColumn.getDirectSunlight(i + getX(), highestBlockY+1, j + getZ()));
+//                    for (int xd = 0; xd < diffuseMap.length; xd++) {
+//                        for (int yd = 0; yd < diffuseMap.length; yd++) {
+//                            for (int zd = 0; zd < diffuseMap.length; zd++) {
+//                                if(diffuseMap[xd][yd][zd] > 0.001f){ 
+//                                    int xA = i + getX() + xd - (diffuseMap.length/2);
+//                                    int yA = highestBlockY + 1 + yd - (diffuseMap.length/2);
+//                                    int zA = j + getZ() + zd - (diffuseMap.length/2);
+//                                    float sunlightValue = fWorld.getSunlightValue(xA, yA, zA);
+//                                    
+//                                    float newSunlightValue = (sunlightValue + diffuseMap[xd][yd][zd]) / (1 + (sunlightValue * diffuseMap[xd][yd][zd]));
+//                                    fWorld.setSunlightValue(xA, yA, zA, newSunlightValue );                
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
     protected void updateVisualMesh() {
@@ -143,87 +167,85 @@ public class Chunk {
         int triangleCount = mesh.getTriangleCount();
         int[] indices = new int[3];
         Set<Entry<Integer, Integer>> unmatched = new HashSet<Entry<Integer, Integer>>();
-        for(int i = 0; i < triangleCount; i++) {
+        for (int i = 0; i < triangleCount; i++) {
             mesh.getTriangle(i, indices);
-            for(int j = 0; j < 3; j++) {
-                int lowIndex = Math.min(indices[j], indices[(j+1)%3]);
-                int highIndex = Math.max(indices[j], indices[(j+1)%3]);
+            for (int j = 0; j < 3; j++) {
+                int lowIndex = Math.min(indices[j], indices[(j + 1) % 3]);
+                int highIndex = Math.max(indices[j], indices[(j + 1) % 3]);
                 Entry<Integer, Integer> edge = new HashMap.SimpleEntry<Integer, Integer>(lowIndex, highIndex);
                 boolean isBorderEdge = false;
-                for(int k = 0; k < 3; k++) {
-                    int posLow = Math.round((Float)mesh.getBuffer(VertexBuffer.Type.Position).getElementComponent(lowIndex, k)) % CHUNK_SIZE;
-                    int posHigh = Math.round((Float)mesh.getBuffer(VertexBuffer.Type.Position).getElementComponent(highIndex, k)) % CHUNK_SIZE;
+                for (int k = 0; k < 3; k++) {
+                    int posLow = Math.round((Float) mesh.getBuffer(VertexBuffer.Type.Position).getElementComponent(lowIndex, k)) % CHUNK_SIZE;
+                    int posHigh = Math.round((Float) mesh.getBuffer(VertexBuffer.Type.Position).getElementComponent(highIndex, k)) % CHUNK_SIZE;
                     isBorderEdge |= (posLow == 0 && posHigh == 0);
                     isBorderEdge |= (posLow == CHUNK_SIZE - 1 && posHigh == CHUNK_SIZE - 1);
                 }
-                if(isBorderEdge) {
+                if (isBorderEdge) {
                     continue;
                 }
-                if(unmatched.contains(edge)) {
+                if (unmatched.contains(edge)) {
                     unmatched.remove(edge);
-                }else{
+                } else {
                     unmatched.add(edge);
                 }
             }
         }
         List<Integer> newTriangles = new ArrayList<Integer>(unmatched.size());
         Set<Entry<Integer, Integer>> loneEdges = new HashSet<Entry<Integer, Integer>>();
-        while(!unmatched.isEmpty()) {
+        while (!unmatched.isEmpty()) {
             Entry<Integer, Integer> edge = unmatched.iterator().next();
             unmatched.remove(edge);
             List<Entry<Integer, Integer>> neighbours = new ArrayList<Entry<Integer, Integer>>(2);
-            for(Entry<Integer, Integer> it : unmatched) {
-                if(edge.getKey() == it.getKey() || edge.getKey() == it.getValue()
+            for (Entry<Integer, Integer> it : unmatched) {
+                if (edge.getKey() == it.getKey() || edge.getKey() == it.getValue()
                         || edge.getValue() == it.getKey() || edge.getValue() == it.getValue()) {
                     neighbours.add(it);
                 }
             }
-            for(Entry<Integer, Integer> it : neighbours) {
+            for (Entry<Integer, Integer> it : neighbours) {
                 unmatched.remove(it);
             }
-            if(neighbours.isEmpty()) {
+            if (neighbours.isEmpty()) {
                 loneEdges.add(edge);
-            }else if(neighbours.size() == 1 || neighbours.size() == 2) {
+            } else if (neighbours.size() == 1 || neighbours.size() == 2) {
                 int otherIndex = neighbours.get(0).getKey();
-                if(otherIndex == edge.getKey()) {
+                if (otherIndex == edge.getKey()) {
                     otherIndex = neighbours.get(0).getValue();
-                    if(neighbours.size() == 1) {
+                    if (neighbours.size() == 1) {
                         unmatched.add(new HashMap.SimpleEntry<Integer, Integer>(otherIndex, edge.getValue()));
-                    }else{
-                        if( !( (neighbours.get(1).getKey() == otherIndex && neighbours.get(1).getValue() == edge.getValue()) 
-                                || (neighbours.get(1).getKey() == edge.getValue() && neighbours.get(1).getValue() == otherIndex) ) ) {
+                    } else {
+                        if (!((neighbours.get(1).getKey() == otherIndex && neighbours.get(1).getValue() == edge.getValue())
+                                || (neighbours.get(1).getKey() == edge.getValue() && neighbours.get(1).getValue() == otherIndex))) {
                             throw new UnknownError();
                         }
                     }
-                }else if(otherIndex == edge.getValue()) {
+                } else if (otherIndex == edge.getValue()) {
                     otherIndex = neighbours.get(0).getValue();
-                    
-                }else{
-                    
+
+                } else {
                 }
-                
+
                 newTriangles.add(edge.getKey());
                 newTriangles.add(edge.getValue());
                 newTriangles.add(otherIndex);
-                
+
                 newTriangles.add(edge.getKey());
                 newTriangles.add(otherIndex);
                 newTriangles.add(edge.getValue());
-                
-                
-            }else{
+
+
+            } else {
                 throw new UnknownError();
             }
         }
-        if(unmatched.size() > 0) {
+        if (unmatched.size() > 0) {
             System.out.println("Number of unmatched edges = " + unmatched.size());
             System.out.println("Total number of unmatched edges = " + NrUnmatchedEdges);
         }
         return mesh;
     }
-    
     public static int NrUnmatchedEdges = 0;
-    
+
     protected void updatePhysicsMesh() {
         if (!isVisible()) {
             return;
@@ -403,7 +425,7 @@ public class Chunk {
             return value;
         }
     }
-    
+
     public void setSunlightValue(int x, int y, int z, float value) {
         setLight(x, y, z, value);
     }

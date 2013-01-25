@@ -102,4 +102,15 @@ public class ChunkColumn {
         }
         return lightValue;
     }
+
+    public float getSunlightValue(int x, int y, int z) {
+        Chunk chunk = get(y);
+        if (chunk != null) {
+            Float value = chunk.getSunlightValue(x, y, z);
+            if (value != null) {
+                return value;
+            }
+        }
+        return getDirectSunlight(x, y, z);
+    }
 }
