@@ -16,15 +16,15 @@ import mygame.MathUtil;
 public class ChunkColumn {
 
     private ChunkListener fLightMapUpdater = new ChunkListener() {
-        public void blockAdded(Chunk chunk, Integer block, int x, int y, int z) {
-            if (fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)] < y) {
-                fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)] = y;
+        public void blockAdded(Chunk chunk, Block block) {
+            if (fHightestBlockMap[MathUtil.PosMod(block.getX(), Chunk.CHUNK_SIZE)][MathUtil.PosMod(block.getZ(), Chunk.CHUNK_SIZE)] < block.getY()) {
+                fHightestBlockMap[MathUtil.PosMod(block.getX(), Chunk.CHUNK_SIZE)][MathUtil.PosMod(block.getZ(), Chunk.CHUNK_SIZE)] = block.getY();
             }
         }
 
-        public void blockRemoved(Chunk chunk, Integer block, int x, int y, int z) {
-            if (fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)] == y) {
-                fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)] = findBlockHeightBelowMe(x, y, z);
+        public void blockRemoved(Chunk chunk, Block block) {
+            if (fHightestBlockMap[MathUtil.PosMod(block.getX(), Chunk.CHUNK_SIZE)][MathUtil.PosMod(block.getZ(), Chunk.CHUNK_SIZE)] == block.getY()) {
+                fHightestBlockMap[MathUtil.PosMod(block.getX(), Chunk.CHUNK_SIZE)][MathUtil.PosMod(block.getZ(), Chunk.CHUNK_SIZE)] = findBlockHeightBelowMe(block.getX(), block.getY(), block.getZ());
             }
         }
     };

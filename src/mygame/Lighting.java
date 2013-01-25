@@ -9,7 +9,7 @@ import mygame.blockworld.BlockWorld;
  */
 public class Lighting {
 
-    public static final float MIN_LIGHT_VALUE = 0.08f;
+    public static final float MIN_LIGHT_VALUE = 0.045f;
     public static final float MAX_LIGHT_VALUE = 1.0f;
     public static final float SUNLIGHT_DEGRADING_CONSTANT = 26f / 27f;//26/27;
     public static final int TOTAL_DARKNESS_HEIGHT = -128;//-128;
@@ -19,12 +19,12 @@ public class Lighting {
     private BlockWorld fWorld;
     private int fXOffset, fYOffset, fZOffset;
     private static float DIVIDER = 1.5f;
-    public static int RECURSION_DEPTH = 6;
+    public static int RECURSION_DEPTH = 8;
 
     public static float[][][] calculateDiffuseMap(BlockWorld world, int xAbs, int yAbs, int zAbs, float lightValue) {
         Lighting li = new Lighting(world, xAbs, yAbs, zAbs, lightValue);
         //System.out.println("x:" + xAbs + " y:" + yAbs + " z:" + zAbs + " Light:"+ lightValue );
-        //System.out.println(world.get(xAbs, yAbs, zAbs));
+        //System.out.println(world.getBlock(xAbs, yAbs, zAbs));
         //li.print(4);
         return li.fLightValues;
     }
@@ -74,7 +74,8 @@ public class Lighting {
     
     // uses relative coordinates for the light array
     private void setLight(int x, int y, int z, float value, int recursionDepth) {
-        if((value > MIN_LIGHT_VALUE) && (fWorld.get(x + fXOffset, y + fYOffset, z + fZOffset) == null) ) {
+        if((value > MIN_LIGHT_VALUE) && (fWorld.getBlock(x + fXOffset, y + fYOffset, z + fZOffset) == null)
+                || (recursionDepth == RECURSION_DEPTH) && (fWorld.getBlock(x + fXOffset, y + fYOffset, z + fZOffset).isLightSource())) {
             if (fLightValues[x][y][z] < value) {
                 fLightValues[x][y][z] = value;
                 fIsAlreadyAdjusted[x][y][z] = false;

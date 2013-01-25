@@ -30,9 +30,9 @@ public class MarchingCubes implements MeshCreator{
     private static Vector3f getNormal(BlockWorld world, int x, int y, int z)
     {
             Vector3f normal = new Vector3f();
-            normal.x = ((world.get(x-1, y, z)==null)? 0f : 1f) - ((world.get(x+1, y, z)==null)? 0f : 1f);
-            normal.y = ((world.get(x, y-1, z)==null)? 0f : 1f) - ((world.get(x, y+1, z)==null)? 0f : 1f);
-            normal.z = ((world.get(x, y, z-1)==null)? 0f : 1f) - ((world.get(x, y, z+1)==null)? 0f : 1f);
+            normal.x = ((world.getBlock(x-1, y, z)==null)? 0f : 1f) - ((world.getBlock(x+1, y, z)==null)? 0f : 1f);
+            normal.y = ((world.getBlock(x, y-1, z)==null)? 0f : 1f) - ((world.getBlock(x, y+1, z)==null)? 0f : 1f);
+            normal.z = ((world.getBlock(x, y, z-1)==null)? 0f : 1f) - ((world.getBlock(x, y, z+1)==null)? 0f : 1f);
             return normal.normalizeLocal();
     }
     
@@ -806,7 +806,7 @@ private static int[][] sTRIANGLES = {
 
             //Make a local copy of the values at the cube's corners
             for(iVertex = 0; iVertex < 8; iVertex++) {
-                    afCubeValue[iVertex] = world.get(x + a2fVertexOffset[iVertex][0],
+                    afCubeValue[iVertex] = world.getBlock(x + a2fVertexOffset[iVertex][0],
                                                 y + a2fVertexOffset[iVertex][1],
                                                 z + a2fVertexOffset[iVertex][2], true)
                                                 != null;
@@ -1063,13 +1063,13 @@ private static int[][] sTRIANGLES = {
             if(neighbours.isEmpty()) {
                 loneEdges.add(edge);
             }else if(neighbours.size() == 1 || neighbours.size() == 2) {
-                Vector3f otherV = neighbours.get(0).getKey();
+                Vector3f otherV = neighbours.getBlock(0).getKey();
                 Vector3f connectingV = null;
                 if(otherV.equals(edge.getKey())) {
-                    otherV = neighbours.get(0).getValue();
+                    otherV = neighbours.getBlock(0).getValue();
                     connectingV = edge.getValue();
                 }else if(otherV.equals(edge.getValue())) {
-                    otherV = neighbours.get(0).getValue();
+                    otherV = neighbours.getBlock(0).getValue();
                     connectingV = edge.getKey();
                 }else{
                     throw new UnknownError();
@@ -1078,13 +1078,13 @@ private static int[][] sTRIANGLES = {
                     unmatched.add(new HashMap.SimpleEntry<Vector3f, Vector3f>(otherV, connectingV));
                 }
                 
-                newTriangles.add(verticesIndexes.get(edge.getKey()));
-                newTriangles.add(verticesIndexes.get(edge.getValue()));
-                newTriangles.add(verticesIndexes.get(otherV));
+                newTriangles.add(verticesIndexes.getBlock(edge.getKey()));
+                newTriangles.add(verticesIndexes.getBlock(edge.getValue()));
+                newTriangles.add(verticesIndexes.getBlock(otherV));
                 
-                newTriangles.add(verticesIndexes.get(edge.getKey()));
-                newTriangles.add(verticesIndexes.get(otherV));
-                newTriangles.add(verticesIndexes.get(edge.getValue()));
+                newTriangles.add(verticesIndexes.getBlock(edge.getKey()));
+                newTriangles.add(verticesIndexes.getBlock(otherV));
+                newTriangles.add(verticesIndexes.getBlock(edge.getValue()));
                 
                 
             }else{
@@ -1099,7 +1099,7 @@ private static int[][] sTRIANGLES = {
         int[] newIndices = new int[indices.length + newTriangles.size()];
         System.arraycopy(indices, 0, newIndices, 0, indices.length);
         for(int i = 0; i < newTriangles.size(); i++) {
-            newIndices[i+indices.length] = newTriangles.get(i);
+            newIndices[i+indices.length] = newTriangles.getBlock(i);
         }
         */
         Mesh mesh = new Mesh();

@@ -33,25 +33,25 @@ public class BlockWorld {
     private static final Logger logger = Logger.getLogger(BlockWorld.class.getName());
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     private ChunkListener fGeneralListener = new ChunkListener() {
-        public void blockAdded(Chunk chunk, Integer block, int x, int y, int z) {
+        public void blockAdded(Chunk chunk, Block block) {
             for (ChunkListener listener : fListeners) {
-                listener.blockAdded(chunk, block, x, y, z);
+                listener.blockAdded(chunk, block);
             }
         }
 
-        public void blockRemoved(Chunk chunk, Integer block, int x, int y, int z) {
+        public void blockRemoved(Chunk chunk, Block block) {
             for (ChunkListener listener : fListeners) {
-                listener.blockRemoved(chunk, block, x, y, z);
+                listener.blockRemoved(chunk, block);
             }
         }
     };
     private ChunkListener fPhysicsUpdater = new ChunkListener() {
-        public void blockAdded(Chunk chunk, Integer block, int x, int y, int z) {
-            update(x, y, z);
+        public void blockAdded(Chunk chunk, Block block) {
+            update(block.getX(), block.getY(), block.getZ());
         }
 
-        public void blockRemoved(Chunk chunk, Integer block, int x, int y, int z) {
-            update(x, y, z);
+        public void blockRemoved(Chunk chunk, Block block) {
+            update(block.getX(), block.getY(), block.getZ());
         }
 
         private void update(int x, int y, int z) {
@@ -165,11 +165,11 @@ public class BlockWorld {
         return cnk;
     }
 
-    public Integer get(int x, int y, int z) {
-        return get(x, y, z, false);
+    public Block getBlock(int x, int y, int z) {
+        return getBlock(x, y, z, false);
     }
 
-    public Integer get(int x, int y, int z, boolean createChunk) {
+    public Block getBlock(int x, int y, int z, boolean createChunk) {
         Chunk cnk = getChunk(x, y, z, createChunk);
         if (cnk != null) {
             return cnk.get(x, y, z);
@@ -184,8 +184,8 @@ public class BlockWorld {
         }
     }
 
-    public boolean addBlock(Integer block, int x, int y, int z) {
-        return getChunk(x, y, z, true).addBlock(block, x, y, z);
+    public boolean addBlock(Block block) {
+        return getChunk(block.getX(), block.getY(), block.getZ(), true).addBlock(block);
     }
 
     public void saveWorld(String fileName) {

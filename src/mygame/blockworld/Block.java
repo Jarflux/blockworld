@@ -9,19 +9,26 @@ public class Block {
     private Boolean isTranparent;
     private Boolean isDestructable;
     private int fblockValue;
-    private int flightValue;
+    private float flightValue;
     private int fNaturalLightValue;
     private int fXC, fYC, fZC;
     
-    public Block(int x, int y, int z, int blockValue){
-        setIsLightSource(false);
+    public Block(int x, int y, int z, int blockValue, boolean isLightSource){
+        setIsLightSource(isLightSource);
+        if(isLightSource()){
+            setLightValue(1.0f);
+        }
         setIsTranparent(false);
         setIsDestructable(true);
         setBlockValue(blockValue);
         setX(x);setY(y);setZ(z);
     }
+    
+    public Block(int x, int y, int z, int blockValue){
+        this(x, y, z, blockValue, false);
+    }
 
-    public Boolean getIsLightSource() {
+    public Boolean isLightSource() {
         return isLightSource;
     }
 
@@ -29,7 +36,7 @@ public class Block {
         this.isLightSource = isLightSource;
     }
 
-    public Boolean getIsTranparent() {
+    public Boolean isTranparent() {
         return isTranparent;
     }
 
@@ -37,7 +44,7 @@ public class Block {
         this.isTranparent = isTranparent;
     }
 
-    public Boolean getIsDestructable() {
+    public Boolean isDestructable() {
         return isDestructable;
     }
 
@@ -53,11 +60,11 @@ public class Block {
         this.fblockValue = fblockValue;
     }
     
-    public int getLightValue() {
+    public float getLightValue() {
         return flightValue;
     }
 
-    public void setLightValue(int lightValue) {
+    public void setLightValue(float lightValue) {
         this.flightValue = lightValue;
     }
 
@@ -83,8 +90,5 @@ public class Block {
 
     private void setZ(int fZC) {
         this.fZC = fZC;
-    }
-    
-    
-     
+    }   
 }

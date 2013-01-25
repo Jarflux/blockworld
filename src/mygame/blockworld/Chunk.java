@@ -44,6 +44,7 @@ public class Chunk {
     public static final int CHUNK_SIZE = 16;
     protected Block[][][] fBlocks = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
     protected Map<String, Float> fLightMap = new HashMap<String, Float>();
+    protected List<Block> fLightSources = new ArrayList<Block>();
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     protected Geometry fChunkMesh = null;
     protected Node fRootNode;
@@ -97,7 +98,7 @@ public class Chunk {
         for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {
             for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
                 for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
-                    if(y > highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] || get(x, y, z) != null) {
+                    if (y > highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] || get(x, y, z) != null) {
                         continue;
                     }
                     float lightValue = fChunkColumn.getSunlightValue(x, y + 1, z);
@@ -107,23 +108,40 @@ public class Chunk {
                     }
                     float constante = 0.5f;
                     lightValue = getSunlightValue(x, y, z);
-                    if((fWorld.get(x - 1, y, z) == null) && fWorld.getSunlightValue(x - 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE ){
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x - 1, y+1, z) * constante));
+                    if ((fWorld.getBlock(x - 1, y, z) == null) && fWorld.getSunlightValue(x - 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x - 1, y + 1, z) * constante));
                     }
-                    if((fWorld.get(x + 1, y, z) == null) && fWorld.getSunlightValue(x + 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE ){
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x + 1, y+1, z) * constante));
+                    if ((fWorld.getBlock(x + 1, y, z) == null) && fWorld.getSunlightValue(x + 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x + 1, y + 1, z) * constante));
                     }
-                    if((fWorld.get(x, y, z-1) == null) && fWorld.getSunlightValue(x, y + 1, z-1) > Lighting.MIN_LIGHT_VALUE ){
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y+1, z-1) * constante));
+                    if ((fWorld.getBlock(x, y, z - 1) == null) && fWorld.getSunlightValue(x, y + 1, z - 1) > Lighting.MIN_LIGHT_VALUE) {
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y + 1, z - 1) * constante));
                     }
-                    if((fWorld.get(x, y, z+1) == null) && fWorld.getSunlightValue(x, y + 1, z+1) > Lighting.MIN_LIGHT_VALUE ){
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y+1, z+1) * constante));
+                    if ((fWorld.getBlock(x, y, z + 1) == null) && fWorld.getSunlightValue(x, y + 1, z + 1) > Lighting.MIN_LIGHT_VALUE) {
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y + 1, z + 1) * constante));
                     }
                     setSunlightValue(x, y, z, lightValue);
                 }
             }
         }
+        for (Block b : fLightSources) {
+            float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getLightValue());
+            for (int xd = 0; xd < diffuseMap.length; xd++) {
+                for (int yd = 0; yd < diffuseMap.length; yd++) {
+                    for (int zd = 0; zd < diffuseMap.length; zd++) {
+                        if (diffuseMap[xd][yd][zd] > 0.001f) {
+                            int xA = b.getX() + xd - (diffuseMap.length / 2);
+                            int yA = b.getY() + yd - (diffuseMap.length / 2);
+                            int zA = b.getZ() + zd - (diffuseMap.length / 2);
+                            float sunlightValue = fWorld.getSunlightValue(xA, yA, zA);
 
+                            float newSunlightValue = (sunlightValue + diffuseMap[xd][yd][zd]) / (1 + (sunlightValue * diffuseMap[xd][yd][zd]));
+                            fWorld.setSunlightValue(xA, yA, zA, newSunlightValue);
+                        }
+                    }
+                }
+            }
+        }
 //        int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
 //        for (int i = 0; i < CHUNK_SIZE; i++) {
 //            for (int j = 0; j < CHUNK_SIZE; j++) {
@@ -183,7 +201,7 @@ public class Chunk {
             fChunkMesh.removeControl(fChunkPhysics);
         }
         Mesh shape = BasicTriangulation.basicTriangulation(fWorld, this);
-        if(shape == null) {
+        if (shape == null) {
             return;
         }
         Geometry nodeShape = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, shape);
@@ -225,25 +243,25 @@ public class Chunk {
         return fVisible;
     }
 
-    protected void blockAdded(Integer block, int x, int y, int z) {
+    protected void blockAdded(Block block) {
         for (ChunkListener listener : fListeners) {
-            listener.blockAdded(this, block, x, y, z);
+            listener.blockAdded(this, block);
         }
     }
 
-    protected void blockRemoved(Integer block, int x, int y, int z) {
+    protected void blockRemoved(Block block) {
         for (ChunkListener listener : fListeners) {
-            listener.blockRemoved(this, block, x, y, z);
+            listener.blockRemoved(this, block);
         }
     }
 
-    public Integer get(int x, int y, int z) {
+    public Block get(int x, int y, int z) {
         int xC, yC, zC;
         xC = MathUtil.PosMod(x, CHUNK_SIZE);
         yC = MathUtil.PosMod(y, CHUNK_SIZE);
         zC = MathUtil.PosMod(z, CHUNK_SIZE);
         if (fBlocks[xC][yC][zC] != null) {
-            return fBlocks[xC][yC][zC].getBlockValue();
+            return fBlocks[xC][yC][zC];
         }
         return null;
     }
@@ -258,22 +276,29 @@ public class Chunk {
         yC = MathUtil.PosMod(y, CHUNK_SIZE);
         zC = MathUtil.PosMod(z, CHUNK_SIZE);
         if (fBlocks[xC][yC][zC] != null) {
+            Block b = fBlocks[xC][yC][zC];
+            if(b.isLightSource()){
+                fLightSources.remove(b);
+            }
             fBlocks[xC][yC][zC] = null;
-            blockRemoved(null, x, y, z);
+            blockRemoved(b);
             fNeedsUpdate = true;
         }
     }
 
-    public boolean addBlock(Integer blockValue, int x, int y, int z) {
+    public boolean addBlock(Block b) {
         int xC, yC, zC;
-        xC = MathUtil.PosMod(x, CHUNK_SIZE);
-        yC = MathUtil.PosMod(y, CHUNK_SIZE);
-        zC = MathUtil.PosMod(z, CHUNK_SIZE);
+        xC = MathUtil.PosMod(b.getX(), CHUNK_SIZE);
+        yC = MathUtil.PosMod(b.getY(), CHUNK_SIZE);
+        zC = MathUtil.PosMod(b.getZ(), CHUNK_SIZE);
         if (fBlocks[xC][yC][zC] != null) {
             return false;
         } else {
-            fBlocks[xC][yC][zC] = new Block(x, y, z, blockValue);
-            blockAdded(blockValue, x, y, z);
+            fBlocks[xC][yC][zC] = b;
+            if(b.isLightSource()){
+                fLightSources.add(b);
+            }
+            blockAdded(b);
             fNeedsUpdate = true;
             return true;
         }

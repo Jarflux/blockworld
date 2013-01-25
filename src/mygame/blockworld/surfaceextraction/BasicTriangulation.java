@@ -13,6 +13,7 @@ import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
 import java.util.List;
 import mygame.MathUtil;
+import mygame.blockworld.Block;
 import mygame.blockworld.BlockInfo;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
@@ -52,7 +53,7 @@ public class BasicTriangulation implements MeshCreator {
         for (int i = chunk.getX(); i < chunk.getX() + Chunk.CHUNK_SIZE; i++) {
             for (int j = chunk.getY(); j < chunk.getY() + Chunk.CHUNK_SIZE; j++) {
                 for (int k = chunk.getZ(); k < chunk.getZ() + Chunk.CHUNK_SIZE; k++) {
-                    Integer block = world.get(i, j, k);
+                    Block block = world.getBlock(i, j, k);
                     if (block != null) {
 
                         Vector4f lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f); 
@@ -66,7 +67,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, 1, 0));
                             normals.add(new Vector3f(0, 1, 0));
                             normals.add(new Vector3f(0, 1, 0));
-                            addTextureCoords(texCoord, BlockInfo.TopSides[block], false);
+                            addTextureCoords(texCoord, BlockInfo.TopSides[block.getBlockValue()], false);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1
@@ -92,7 +93,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, -1, 0));
                             normals.add(new Vector3f(0, -1, 0));
                             normals.add(new Vector3f(0, -1, 0));
-                            addTextureCoords(texCoord, BlockInfo.BottomSides[block], false);
+                            addTextureCoords(texCoord, BlockInfo.BottomSides[block.getBlockValue()], false);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1
@@ -119,7 +120,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(1, 0, 0));
                             normals.add(new Vector3f(1, 0, 0));
                             normals.add(new Vector3f(1, 0, 0));
-                            addTextureCoords(texCoord, BlockInfo.RightSides[block], true);
+                            addTextureCoords(texCoord, BlockInfo.RightSides[block.getBlockValue()], true);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1
@@ -144,7 +145,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(-1, 0, 0));
                             normals.add(new Vector3f(-1, 0, 0));
                             normals.add(new Vector3f(-1, 0, 0));
-                            addTextureCoords(texCoord, BlockInfo.LeftSides[block], false);
+                            addTextureCoords(texCoord, BlockInfo.LeftSides[block.getBlockValue()], false);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1
@@ -170,7 +171,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, 0, 1));
                             normals.add(new Vector3f(0, 0, 1));
                             normals.add(new Vector3f(0, 0, 1));
-                            addTextureCoords(texCoord, BlockInfo.BackSides[block], false);
+                            addTextureCoords(texCoord, BlockInfo.BackSides[block.getBlockValue()], false);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1
@@ -196,7 +197,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, 0, -1));
                             normals.add(new Vector3f(0, 0, -1));
                             normals.add(new Vector3f(0, 0, -1));
-                            addTextureCoords(texCoord, BlockInfo.FrontSides[block], true);
+                            addTextureCoords(texCoord, BlockInfo.FrontSides[block.getBlockValue()], true);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1

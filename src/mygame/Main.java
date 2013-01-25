@@ -36,6 +36,7 @@ import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jme3tools.optimize.TextureAtlas;
+import mygame.blockworld.Block;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.BlockWorldViewport;
 import mygame.blockworld.Chunk;
@@ -162,9 +163,9 @@ public class Main extends SimpleApplication implements ActionListener {
         */
         
         // We add light so we see the scene
-        AmbientLight al = new AmbientLight();
-        al.setColor(ColorRGBA.White.mult(0.3f));
-        rootNode.addLight(al);
+       // AmbientLight al = new AmbientLight();
+       // al.setColor(ColorRGBA.White.mult(0.3f));
+       // rootNode.addLight(al);
 
 //        SkyDome skyDome = new SkyDome(assetManager, cam,
 //                "Models/Skies/SkyDome.j3o",
@@ -308,7 +309,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 int x = Math.round(contactPoint.x + contactNormal.x * .5f);
                 int y = Math.round(contactPoint.y + contactNormal.y * .5f);
                 int z = Math.round(contactPoint.z + contactNormal.z * .5f);
-                fBlockWorld.addBlock(2, x, y, z);
+                fBlockWorld.addBlock(new Block(x, y, z, 2, true));
                 /*int sphereSize = 1;
                 for (int i = -sphereSize; i < sphereSize + 1; i++) {
                     for (int j = -sphereSize; j < sphereSize + 1; j++) {
