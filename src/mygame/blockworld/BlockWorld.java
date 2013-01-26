@@ -54,43 +54,122 @@ public class BlockWorld {
             update(block.getX(), block.getY(), block.getZ());
         }
 
-        private void update(int x, int y, int z) {
-            if (x % Chunk.CHUNK_SIZE == 0) {
-                Chunk cnk = getChunk(x - 1, y, z, false);
-                if (cnk != null) {
-                    cnk.scheduleUpdate();
-                }
+        private void update(int x, int y, int z) {            
+            Chunk cnk = getChunk(x - Chunk.CHUNK_SIZE, y- Chunk.CHUNK_SIZE, z- Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
             }
-            if (MathUtil.PosMod(x, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                Chunk cnk = getChunk(x + 1, y, z, false);
-                if (cnk != null) {
-                    cnk.scheduleUpdate();
-                }
+            cnk = getChunk(x, y- Chunk.CHUNK_SIZE, z- Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
             }
-            if (y % Chunk.CHUNK_SIZE == 0) {
-                Chunk cnk = getChunk(x, y - 1, z, false);
-                if (cnk != null) {
-                    cnk.scheduleUpdate();
-                }
+            cnk = getChunk(x + Chunk.CHUNK_SIZE, y- Chunk.CHUNK_SIZE, z- Chunk.CHUNK_SIZE, false);
+            if (cnk != null) {
+                cnk.scheduleUpdate();
             }
-            if (MathUtil.PosMod(y, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                Chunk cnk = getChunk(x, y + 1, z, false);
-                if (cnk != null) {
-                    cnk.scheduleUpdate();
-                }
+            
+            cnk = getChunk(x - Chunk.CHUNK_SIZE, y, z- Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
             }
-            if (z % Chunk.CHUNK_SIZE == 0) {
-                Chunk cnk = getChunk(x, y, z - 1, false);
-                if (cnk != null) {
-                    cnk.scheduleUpdate();
-                }
+            cnk = getChunk(x, y, z- Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
             }
-            if (MathUtil.PosMod(z, Chunk.CHUNK_SIZE) == Chunk.CHUNK_SIZE - 1) {
-                Chunk cnk = getChunk(x, y, z + 1, false);
-                if (cnk != null) {
-                    cnk.scheduleUpdate();
-                }
+            cnk = getChunk(x + Chunk.CHUNK_SIZE, y, z- Chunk.CHUNK_SIZE, false);
+            if (cnk != null) {
+                cnk.scheduleUpdate();
             }
+            
+            cnk = getChunk(x - Chunk.CHUNK_SIZE, y+ Chunk.CHUNK_SIZE, z- Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x, y+ Chunk.CHUNK_SIZE, z- Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x + Chunk.CHUNK_SIZE, y+ Chunk.CHUNK_SIZE, z- Chunk.CHUNK_SIZE, false);
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            
+            cnk = getChunk(x - Chunk.CHUNK_SIZE, y- Chunk.CHUNK_SIZE, z, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x, y- Chunk.CHUNK_SIZE, z, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x + Chunk.CHUNK_SIZE, y- Chunk.CHUNK_SIZE, z, false);
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            
+            cnk = getChunk(x - Chunk.CHUNK_SIZE, y, z, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            
+            
+            cnk = getChunk(x + Chunk.CHUNK_SIZE, y, z, false);
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            
+            cnk = getChunk(x - Chunk.CHUNK_SIZE, y+ Chunk.CHUNK_SIZE, z, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x, y+ Chunk.CHUNK_SIZE, z, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x + Chunk.CHUNK_SIZE, y+ Chunk.CHUNK_SIZE, z, false);
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            
+            cnk = getChunk(x - Chunk.CHUNK_SIZE, y- Chunk.CHUNK_SIZE, z+ Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x, y- Chunk.CHUNK_SIZE, z+ Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x + Chunk.CHUNK_SIZE, y- Chunk.CHUNK_SIZE, z+ Chunk.CHUNK_SIZE, false);
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            
+            cnk = getChunk(x - Chunk.CHUNK_SIZE, y, z+ Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x, y, z+ Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x + Chunk.CHUNK_SIZE, y, z+ Chunk.CHUNK_SIZE, false);
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            
+            cnk = getChunk(x - Chunk.CHUNK_SIZE, y+ Chunk.CHUNK_SIZE, z+ Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x, y+ Chunk.CHUNK_SIZE, z+ Chunk.CHUNK_SIZE, false); 
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            cnk = getChunk(x + Chunk.CHUNK_SIZE, y+ Chunk.CHUNK_SIZE, z+ Chunk.CHUNK_SIZE, false);
+            if (cnk != null) {
+                cnk.scheduleUpdate();
+            }
+            
         }
     };
 
@@ -150,10 +229,10 @@ public class BlockWorld {
 
         ChunkColumn chunkColumn = getChunkColumn(x, z, createChunk);
         Chunk cnk = null;
-        if(chunkColumn != null) {
+        if (chunkColumn != null) {
             cnk = chunkColumn.get(y);
         }
-        
+
         if (cnk == null && createChunk) {              // Chunk met juiste x, y , z bestaat niet
             cnk = new Chunk(this, chunkColumn, fRootNode, fPhysicsState, xC * Chunk.CHUNK_SIZE, yC * Chunk.CHUNK_SIZE, zC * Chunk.CHUNK_SIZE);
             if (generateChunk) {

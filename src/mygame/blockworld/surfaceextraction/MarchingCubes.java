@@ -241,41 +241,41 @@ public class MarchingCubes implements MeshCreator{
             }
         }
         int nullCount = 0;
-        System.out.println("private static float[][][] vertices = {");
+        //System.out.println("private static float[][][] vertices = {");
         for(int i = 0; i < 256; i++) {
-            System.out.print("\t\t\t{");
+            //System.out.print("\t\t\t{");
             if(resultingVertices[i] == null) {
-                System.out.println("case is null, problem !!!},");
+                //System.out.println("case is null, problem !!!},");
                 nullCount++;
                 continue;
             }
             for(int j = 0; j < resultingVertices[i].length; j++) {
                 if(resultingVertices[i][j] == null) {
-                    System.out.print("null,");
+                   // System.out.print("null,");
                 }else{
-                    System.out.print("{" + resultingVertices[i][j].x + "f," + resultingVertices[i][j].y + "f," + resultingVertices[i][j].z + "f},");
+                  //  System.out.print("{" + resultingVertices[i][j].x + "f," + resultingVertices[i][j].y + "f," + resultingVertices[i][j].z + "f},");
                 }
             }
-            System.out.println("},");
+            //System.out.println("},");
         }
-        System.out.println("\t\t};");
+        //System.out.println("\t\t};");
         if(nullCount != 0) {
-            System.out.println("Number of errors = " + nullCount);
+            //System.out.println("Number of errors = " + nullCount);
             return;
         }
-        System.out.println("private static int[][] triangles = {");
+        //System.out.println("private static int[][] triangles = {");
         for(int i = 0; i < 256; i++) {
-            System.out.print("\t\t\t{");
+            //System.out.print("\t\t\t{");
             if(resultingTriangles[i] == null) {
-                System.out.println("case is null, problem !!!},");
+                //System.out.println("case is null, problem !!!},");
                 continue;
             }
             for(int j = 0; j < resultingTriangles[i].length; j++) {
-                System.out.print(resultingTriangles[i][j] + ",");
+               // System.out.print(resultingTriangles[i][j] + ",");
             }
-            System.out.println("},");
+           // System.out.println("},");
         }
-        System.out.println("\t\t};");
+        //System.out.println("\t\t};");
     }
     
     private static float[][][] sVERTICES = {
@@ -1039,9 +1039,9 @@ private static int[][] sTRIANGLES = {
         }
         
         if(unmatched.size() > 0) {
-            System.out.println("Number of unmatched edges = " + unmatched.size());
+           // System.out.println("Number of unmatched edges = " + unmatched.size());
             for(Map.Entry<Vector3f, Vector3f> edge : unmatched) {
-                System.out.println("Unmatched edge going from " + edge.getKey() + " to " + edge.getValue());
+             //   System.out.println("Unmatched edge going from " + edge.getKey() + " to " + edge.getValue());
             }
         }
         /*

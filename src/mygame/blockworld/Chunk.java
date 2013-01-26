@@ -82,18 +82,32 @@ public class Chunk {
         fNeedsUpdate = true;
     }
 
-    public void update() {
-        if (fNeedsUpdate || fPreviousCreator != fMeshCreator) {
-            updateLight();
-            updateVisualMesh();
-            updatePhysicsMesh();
-            fNeedsUpdate = false;
-            fPreviousCreator = fMeshCreator;
+    public void removeLight() {
+        fLightMap.clear();
+    }
+        
+    public void updateLight() {
+        if (fNeedsUpdate){
+            updateChunkLight();
         }
     }
 
-    protected void updateLight() {
-        fLightMap.clear();
+    public void updateVisualMesh() {
+        if (fNeedsUpdate || fPreviousCreator != fMeshCreator) {
+            updateChunkVisualMesh();
+            fMeshCreator = fPreviousCreator;
+        }   
+    }
+
+    public void updatePhysicsMesh() {
+        if (fNeedsUpdate) {
+            updateChunkPhysicsMesh();
+            fNeedsUpdate = false;
+        }
+    }
+
+    protected void updateChunkLight() {
+        //fLightMap.clear(); 
         int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
         for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {
             for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
@@ -141,7 +155,9 @@ public class Chunk {
                     }
                 }
             }
+
         }
+    }
 //        int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
 //        for (int i = 0; i < CHUNK_SIZE; i++) {
 //            for (int j = 0; j < CHUNK_SIZE; j++) {
@@ -167,9 +183,10 @@ public class Chunk {
 //                }
 //            }
 //        }
-    }
 
-    protected void updateVisualMesh() {
+
+    protected void updateChunkVisualMesh() {
+        fPreviousCreator = fMeshCreator;
         if (!isVisible()) {
             return;
         }
@@ -184,9 +201,10 @@ public class Chunk {
         fChunkMesh = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, mesh);
         fChunkMesh.setMaterial(fWorld.getBlockMat());
         fRootNode.attachChild(fChunkMesh);
+
     }
 
-    protected void updatePhysicsMesh() {
+    protected void updateChunkPhysicsMesh() {
         if (!isVisible()) {
             return;
         }
@@ -277,7 +295,7 @@ public class Chunk {
         zC = MathUtil.PosMod(z, CHUNK_SIZE);
         if (fBlocks[xC][yC][zC] != null) {
             Block b = fBlocks[xC][yC][zC];
-            if(b.isLightSource()){
+            if (b.isLightSource()) {
                 fLightSources.remove(b);
             }
             fBlocks[xC][yC][zC] = null;
@@ -295,7 +313,7 @@ public class Chunk {
             return false;
         } else {
             fBlocks[xC][yC][zC] = b;
-            if(b.isLightSource()){
+            if (b.isLightSource()) {
                 fLightSources.add(b);
             }
             blockAdded(b);
