@@ -2,6 +2,7 @@ MaterialDef Terrain{
  
 MaterialParameters {
 Texture2D m_Terrain
+Float DayAlpha
 }
  
 Technique {

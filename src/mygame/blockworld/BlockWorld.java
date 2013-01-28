@@ -241,4 +241,22 @@ public class BlockWorld {
             }
         }
     }
+
+    public float getArtificialLightValue(int x, int y, int z) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if (column != null) {
+            return column.getArtificialLightValue(x, y, z);
+        }
+        return 0.0f;
+    }
+
+    public void setArtificialLightValue(int x, int y, int z, float value) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if (column != null) {
+            Chunk chunk = column.get(y);
+            if (chunk != null) {
+                chunk.setArtificialLightValue(x, y, z, value);
+            }
+        }
+    }
 }

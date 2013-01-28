@@ -68,6 +68,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private AudioNode audio_nature;
     private AudioNode audio_removeBlock;
     private FilterPostProcessor fpp;
+    private float fDayAlpha;
     private FogFilter fog;
     private BitmapText hudPosition;
     private Vector3f walkDirection = new Vector3f();
@@ -123,6 +124,7 @@ public class Main extends SimpleApplication implements ActionListener {
         cam.setFrustumPerspective(45f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 1000f);
         setUpKeys();
         setUpLight();
+        setUpDayNightCycle();
         initCrossHairs();
 
         // We set up collision detection for the player by creating
@@ -149,7 +151,7 @@ public class Main extends SimpleApplication implements ActionListener {
         setUpdAudio(); 
         setUpHud();
     }
-
+    
     private void setUpLight() {
         /*
         fpp=new FilterPostProcessor(assetManager);
@@ -161,11 +163,7 @@ public class Main extends SimpleApplication implements ActionListener {
         fpp.addFilter(fog);
         viewPort.addProcessor(fpp);
         */
-        
-        // We add light so we see the scene
-       // AmbientLight al = new AmbientLight();
-       // al.setColor(ColorRGBA.White.mult(0.3f));
-       // rootNode.addLight(al);
+            
 
 //        SkyDome skyDome = new SkyDome(assetManager, cam,
 //                "Models/Skies/SkyDome.j3o",
@@ -216,6 +214,30 @@ public class Main extends SimpleApplication implements ActionListener {
 
     }
 
+   private void setUpDayNightCycle() {
+        fDayAlpha = 1.0f; // set dayAlpha value to Day;
+        fBlockMat.setFloat("DayAlpha", 1.0f); // set shader to dayAlpha
+        //viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f)); // Day Color
+        //viewPort.setBackgroundColor(new ColorRGBA(0.0f, 0.0f, 0.0f, 1f)); // Night Color
+        setBackground(1.0f);
+    }
+   
+   private void setBackground(float value){
+       viewPort.setBackgroundColor(mixColors(new ColorRGBA(0.0f, 0.0f, 0.0f, 1f), new ColorRGBA(0.7f, 0.8f, 1f, 1f), value));
+   }
+   
+   private void updateDayNightCycle(float value){
+       fDayAlpha += value;
+       float newvalue = (float) Math.min(1, 2- Math.pow(2,Math.sin(fDayAlpha*2*Math.PI)));
+       fBlockMat.setFloat("DayAlpha", newvalue);
+       setBackground(newvalue);
+   }
+    private ColorRGBA mixColors(ColorRGBA colorNight, ColorRGBA colorDay, float alpha){
+        ColorRGBA mixedColor = new ColorRGBA();
+        mixedColor.interpolate(colorNight, colorDay, alpha);
+        return mixedColor;
+    }
+        
     private void setUpdAudio() {
         audio_removeBlock = new AudioNode(assetManager, "Sounds/Effects/RemoveBlock.ogg", false);
         audio_removeBlock.setLooping(false);
@@ -369,7 +391,7 @@ public class Main extends SimpleApplication implements ActionListener {
         camPos.y = camPos.y + PLAYER_HITBOX_HEIGHT;
         cam.setLocation(camPos);
         listener.setLocation(cam.getLocation());
-
+        updateDayNightCycle(0.01f*tpf);
         //Vector3f camPos = cam.getLocation();
         fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.y), Math.round(camPos.z));
     }
@@ -398,4 +420,9 @@ public class Main extends SimpleApplication implements ActionListener {
         Logger.getLogger("").setLevel(Level.SEVERE);
         //Logger.getLogger(Main.class.getName()).setLevel(Level.ALL);
     }
+    
+    
+    
+    
+    
 }
