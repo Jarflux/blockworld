@@ -18,7 +18,12 @@ import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.RenderManager;
+import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
+import com.jme3.texture.Texture2D;
+import com.jme3.ui.Picture;
+import com.jme3.util.BufferUtils;
+import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -58,6 +63,9 @@ public class Main extends SimpleApplication implements ActionListener {
     private float fDayAlpha;
     private FogFilter fog;
     private BitmapText hudPosition;
+    private int fSelectedMaterial = 0;
+    private Picture hudMaterialSelection;
+    private Texture fTerrainTexture;
     private Vector3f walkDirection = new Vector3f();
     private boolean left = false, right = false, up = false, down = false;
     private static final Logger logger = Logger.getLogger(Main.class.getName());
@@ -76,10 +84,10 @@ public class Main extends SimpleApplication implements ActionListener {
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         
         fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
-        Texture tex = assetManager.loadTexture("Textures/terrain.png");
-        tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
-        tex.setMagFilter(Texture.MagFilter.Nearest);
-        fBlockMat.setTexture("m_Terrain", tex);
+        fTerrainTexture = assetManager.loadTexture("Textures/terrain.png");
+        fTerrainTexture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
+        fTerrainTexture.setMagFilter(Texture.MagFilter.Nearest);
+        fBlockMat.setTexture("m_Terrain", fTerrainTexture);
         
         /*
         Texture text = assetManager.loadTexture("Textures/dirt.png");
@@ -249,6 +257,31 @@ public class Main extends SimpleApplication implements ActionListener {
         input.setUpKeys(inputManager, this, input.qwerty);
     }
 
+    private void updateMaterialSelection() {
+        Image terrain = fTerrainTexture.getImage();
+        int width = terrain.getWidth() / 16;
+        int height = terrain.getHeight() / 16;
+        int pixelBytes = terrain.getFormat().getBitsPerPixel() / 8;
+        ByteBuffer source = terrain.getData(0);
+        byte[] dest = new byte[pixelBytes * width * height];
+        int xOffset = BlockType.values()[fSelectedMaterial].getBlock().textureFront % 16;
+        int yOffset = (BlockType.values()[fSelectedMaterial].getBlock().textureFront - xOffset) / 16;
+        xOffset *= width;
+        yOffset *= height;
+        for(int x = 0; x < width; x++) {
+            for(int y = 0; y < height; y++) {
+                int i = ((x + xOffset) + (y + yOffset) * terrain.getWidth()) * pixelBytes;
+                int j = (x + y * width) * pixelBytes;
+                for(int z = 0; z < pixelBytes; z++) {
+                    dest[j+z] = source.get(i+z);
+                }
+            }
+        }
+        Image textImage = new Image(terrain.getFormat(), width, height, BufferUtils.createByteBuffer(dest));
+        Texture2D text = new Texture2D(textImage);
+        hudMaterialSelection.setTexture(assetManager, text, false);
+    }
+    
     private void setUpHud() {
         hudPosition = new BitmapText(guiFont, false);
         hudPosition.setSize(guiFont.getCharSet().getRenderedSize());
@@ -256,6 +289,12 @@ public class Main extends SimpleApplication implements ActionListener {
         hudPosition.setText("Position: ...");
         hudPosition.setLocalTranslation(0, hudPosition.getLineHeight() + 500, 0);
         guiNode.attachChild(hudPosition);
+        hudMaterialSelection = new Picture("MaterialSelection");
+        hudMaterialSelection.setHeight(50);
+        hudMaterialSelection.setWidth(50);
+        hudMaterialSelection.setPosition((settings.getWidth() - 50)/2, 20);
+        updateMaterialSelection();
+        guiNode.attachChild(hudMaterialSelection);
     }
 
     /**
@@ -273,6 +312,12 @@ public class Main extends SimpleApplication implements ActionListener {
             down = value;
         } else if (binding.equals("Jump") && value) {
             player.jump();
+        } else if (binding.equals("IncMaterialSelection")) {
+            fSelectedMaterial = MathUtil.PosMod((fSelectedMaterial + 1), BlockType.values().length);
+            updateMaterialSelection();
+        } else if (binding.equals("DecMaterialSelection")) {
+            fSelectedMaterial = MathUtil.PosMod((fSelectedMaterial - 1), BlockType.values().length);
+            updateMaterialSelection();
         } else if (binding.equals("RemoveBlock") && value) {
             // 1. Reset results list.
             CollisionResults results = new CollisionResults();
@@ -320,7 +365,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 int x = Math.round(contactPoint.x + contactNormal.x * .5f);
                 int y = Math.round(contactPoint.y + contactNormal.y * .5f);
                 int z = Math.round(contactPoint.z + contactNormal.z * .5f);
-                fBlockWorld.addBlock(new Block(x, y, z, BlockType.PUMPKIN, contactDirection));
+                fBlockWorld.addBlock(new Block(x, y, z, BlockType.values()[fSelectedMaterial], contactDirection));
                 /*int sphereSize = 1;
                 for (int i = -sphereSize; i < sphereSize + 1; i++) {
                     for (int j = -sphereSize; j < sphereSize + 1; j++) {

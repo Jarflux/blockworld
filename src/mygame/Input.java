@@ -10,6 +10,7 @@ import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.input.controls.InputListener;
 import com.jme3.input.controls.KeyTrigger;
+import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 
 /**
@@ -25,6 +26,7 @@ public class Input implements InputListener{
     }
     
     public void setUpKeys(InputManager im, ActionListener listener, int[] keyboard) {
+        //im.clearMappings();
         im.addMapping("Left", new KeyTrigger(keyboard[2]));
         im.addMapping("Right", new KeyTrigger(keyboard[3]));
         im.addMapping("Up", new KeyTrigger(keyboard[0]));
@@ -37,6 +39,8 @@ public class Input implements InputListener{
         im.addMapping("SwitchRender", new KeyTrigger(KeyInput.KEY_R));
         im.addMapping("SwitchCulling", new KeyTrigger(KeyInput.KEY_F));
         im.addMapping("SwitchWireFrame", new KeyTrigger(KeyInput.KEY_T));
+        im.addMapping("IncMaterialSelection", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, false));
+        im.addMapping("DecMaterialSelection", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, true));
         im.addListener(listener, "Save");
         im.addListener(listener, "Load");
         im.addListener(listener, "RemoveBlock");
@@ -49,6 +53,8 @@ public class Input implements InputListener{
         im.addListener(listener, "SwitchRender");
         im.addListener(listener, "SwitchCulling");
         im.addListener(listener, "SwitchWireFrame");
+        im.addListener(listener, "IncMaterialSelection");
+        im.addListener(listener, "DecMaterialSelection");
     }
 
 }
