@@ -7,6 +7,7 @@ package mygame.blockworld.chunkgenerators;
 import com.jme3.terrain.noise.basis.ImprovedNoise;
 import java.util.Random;
 import mygame.blockworld.Block;
+import mygame.blockworld.BlockInfo.BlockType;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
 
@@ -207,17 +208,14 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
     }
 
     // block type logic
-    private Integer getBlockType(int heigth, int topHeight) {
-        Integer blockType = null;
-        if (heigth - topHeight < 0.001f) {
-            blockType = 1;                       // return grass
+    private BlockType getBlockType(int heigth, int topHeight) {
+        if (heigth == topHeight) {
+            return BlockType.SNOW;
+        }else if (heigth < (topHeight - fRandom.nextInt(6))) {
+            return BlockType.STONE;
+        }else if (heigth < topHeight) {
+            return BlockType.DIRT;
         }
-        if (heigth < topHeight) {
-            blockType = 0;                       // return dirt
-        }
-        if (heigth < (topHeight - 0) - (6 * fRandom.nextFloat())) {
-            blockType = 3;
-        }
-        return blockType;                        // return air
+        return null;
     }
 }

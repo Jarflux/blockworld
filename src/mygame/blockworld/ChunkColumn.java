@@ -116,15 +116,5 @@ public class ChunkColumn {
         }
         return Lighting.MIN_LIGHT_VALUE;
     }
-    
-    public float getArtificialLightValue(int x, int y, int z) {
-        Chunk chunk = get(y);
-        if (chunk != null) {
-            Float value = chunk.getArtificialLightValue(x, y, z);
-            if (value != null) {
-                return value;
-            }
-        }
-        return 0.0f;
-    }
+
 }

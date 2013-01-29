@@ -5,6 +5,7 @@
 package mygame.blockworld.chunkgenerators;
 
 import mygame.blockworld.Block;
+import mygame.blockworld.BlockInfo.BlockType;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
 
@@ -19,11 +20,11 @@ public class FlatTerrainGenerator implements ChunkGenerator {
             for (int z = cnk.getZ(); z < cnk.getZ() + Chunk.CHUNK_SIZE; z++) {
                 for (int y = cnk.getY(); y < cnk.getY() + Chunk.CHUNK_SIZE; y++) {
                     if (y < -5) {
-                        cnk.addBlock(new Block(x, y, z, 3));
+                        cnk.addBlock(new Block(x, y, z, BlockType.STONE));
                     } else if (y < 0) {
-                        cnk.addBlock(new Block(x, y, z, 0));
+                        cnk.addBlock(new Block(x, y, z, BlockType.DIRT));
                     } else if (y == 0) {
-                        cnk.addBlock(new Block(x, y, z, 1));
+                        cnk.addBlock(new Block(x, y, z, BlockType.SNOW));
                     }
                 }
             }

@@ -43,9 +43,11 @@ public class Chunk {
     private static final Logger logger = Logger.getLogger(Chunk.class.getName());
     public static final int CHUNK_SIZE = 16;
     protected Block[][][] fBlocks = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
-    protected Map<String, Float> fLightMap = new HashMap<String, Float>();
-    protected Map<String, Float> fArtificialLightMap = new HashMap<String, Float>();
-    protected List<Block> fLightSources = new ArrayList<Block>();
+    protected Map<String, Float> fSunLightMap = new HashMap<String, Float>();
+    protected Map<String, Float> fFireLightMap = new HashMap<String, Float>();
+    protected Map<String, Float> fMagicLightMap = new HashMap<String, Float>();
+    protected List<Block> fFireLightSources = new ArrayList<Block>();
+    protected List<Block> fMagicLightSources = new ArrayList<Block>();
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     protected Geometry fChunkMesh = null;
     protected Node fRootNode;
@@ -69,6 +71,28 @@ public class Chunk {
         fRootNode = rootNode;
         fChunkColumn = chunkColumn;
         fPhysicsState = physicsState;
+        
+        fListeners.add(new ChunkListener() {
+
+            public void blockAdded(Chunk chunk, Block block) {
+                if(block.isFireLightSource()) {
+                    fFireLightSources.add(block);
+                }
+                if(block.isMagicLightSource()) {
+                    fMagicLightSources.add(block);
+                }
+            }
+
+            public void blockRemoved(Chunk chunk, Block block) {
+                if(block.isFireLightSource()) {
+                    fFireLightSources.remove(block);
+                }
+                if(block.isMagicLightSource()) {
+                    fMagicLightSources.remove(block);
+                }
+            }
+        });
+        
     }
 
     public static MeshCreator getMeshCreator() {
@@ -84,7 +108,9 @@ public class Chunk {
     }
 
     public void removeLight() {
-        fLightMap.clear();
+        fSunLightMap.clear();
+        fFireLightMap.clear();
+        fMagicLightMap.clear();
     }
 
     public void updateLight() {
@@ -108,7 +134,6 @@ public class Chunk {
     }
 
     protected void updateChunkLight() {
-        //fLightMap.clear(); 
         int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
         for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {
             for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
@@ -139,8 +164,8 @@ public class Chunk {
                 }
             }
         }
-        for (Block b : fLightSources) {
-            float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getLightValue());
+        for (Block b : fFireLightSources) {
+            float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getFireLightValue());
             for (int xd = 0; xd < diffuseMap.length; xd++) {
                 for (int yd = 0; yd < diffuseMap.length; yd++) {
                     for (int zd = 0; zd < diffuseMap.length; zd++) {
@@ -148,17 +173,35 @@ public class Chunk {
                             int xA = b.getX() + xd - (diffuseMap.length / 2);
                             int yA = b.getY() + yd - (diffuseMap.length / 2);
                             int zA = b.getZ() + zd - (diffuseMap.length / 2);
-                            float artificialLightValue = fWorld.getArtificialLightValue(xA, yA, zA);
+                            float fireLightValue = fWorld.getFireLightValue(xA, yA, zA);
 
-                            float newArtificialLightValue = (artificialLightValue + diffuseMap[xd][yd][zd]) / (1 + (artificialLightValue * diffuseMap[xd][yd][zd]));
-                            fWorld.setArtificialLightValue(xA, yA, zA, newArtificialLightValue);
+                            float newFireLightValue = (fireLightValue + diffuseMap[xd][yd][zd]) / (1 + (fireLightValue * diffuseMap[xd][yd][zd]));
+                            fWorld.setFireLightValue(xA, yA, zA, newFireLightValue);
                         }
                     }
                 }
             }
+        }
+        for (Block b : fMagicLightSources) {
+            float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getMagicLightValue());
+            for (int xd = 0; xd < diffuseMap.length; xd++) {
+                for (int yd = 0; yd < diffuseMap.length; yd++) {
+                    for (int zd = 0; zd < diffuseMap.length; zd++) {
+                        if (diffuseMap[xd][yd][zd] > 0.001f) {
+                            int xA = b.getX() + xd - (diffuseMap.length / 2);
+                            int yA = b.getY() + yd - (diffuseMap.length / 2);
+                            int zA = b.getZ() + zd - (diffuseMap.length / 2);
+                            float magicLightValue = fWorld.getFireLightValue(xA, yA, zA);
 
+                            float newMagicLightValue = (magicLightValue + diffuseMap[xd][yd][zd]) / (1 + (magicLightValue * diffuseMap[xd][yd][zd]));
+                            fWorld.setMagicLightValue(xA, yA, zA, newMagicLightValue);
+                        }
+                    }
+                }
+            }
         }
     }
+    
 //        int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
 //        for (int i = 0; i < CHUNK_SIZE; i++) {
 //            for (int j = 0; j < CHUNK_SIZE; j++) {
@@ -295,9 +338,6 @@ public class Chunk {
         zC = MathUtil.PosMod(z, CHUNK_SIZE);
         if (fBlocks[xC][yC][zC] != null) {
             Block b = fBlocks[xC][yC][zC];
-            if (b.isLightSource()) {
-                fLightSources.remove(b);
-            }
             fBlocks[xC][yC][zC] = null;
             blockRemoved(b);
             fNeedsUpdate = true;
@@ -313,9 +353,6 @@ public class Chunk {
             return false;
         } else {
             fBlocks[xC][yC][zC] = b;
-            if (b.isLightSource()) {
-                fLightSources.add(b);
-            }
             blockAdded(b);
             fNeedsUpdate = true;
             return true;
@@ -323,7 +360,7 @@ public class Chunk {
     }
 
     void save(BufferedWriter fileWriter) throws IOException {
-        fileWriter.write(fXC + ":" + fYC + ":" + fZC + '\n');
+        /*fileWriter.write(fXC + ":" + fYC + ":" + fZC + '\n');
         for (int i = 0; i < CHUNK_SIZE; i++) {
             for (int j = 0; j < CHUNK_SIZE; j++) {
                 for (int k = 0; k < CHUNK_SIZE; k++) {
@@ -335,11 +372,11 @@ public class Chunk {
                 }
             }
             fileWriter.write('\n');
-        }
+        }*/
     }
 
     void load(BufferedReader fileReader) throws IOException {
-        for (int i = 0; i < CHUNK_SIZE; i++) {
+        /*for (int i = 0; i < CHUNK_SIZE; i++) {
             String line = fileReader.readLine();
             for (int j = 0; j < CHUNK_SIZE; j++) {
                 for (int k = 0; k < CHUNK_SIZE; k++) {
@@ -352,7 +389,7 @@ public class Chunk {
                 }
             }
         }
-        fNeedsUpdate = true;
+        fNeedsUpdate = true;*/
     }
 
     public Object getGeneratorData() {
@@ -375,20 +412,12 @@ public class Chunk {
         return fZC;
     }
 
-    private Float getLight(int x, int y, int z) {
-        return fLightMap.get(parseKey(x, y, z));
-    }
-
-    private void setLight(int x, int y, int z, float value) {
-        fLightMap.put(parseKey(x, y, z), value);
-    }
-
-    private String parseKey(int x, int y, int z) {
+    private String generateKey(int x, int y, int z) {
         return "" + x + ":" + y + ":" + z;
     }
 
     public float getSunlightValue(int x, int y, int z) {
-        Float value = getLight(x, y, z);
+        Float value = fSunLightMap.get(generateKey(x, y, z));
         if (value == null) {
             return fChunkColumn.getDirectSunlight(x, y, z);
         } else {
@@ -397,19 +426,11 @@ public class Chunk {
     }
 
     public void setSunlightValue(int x, int y, int z, float value) {
-        setLight(x, y, z, value);
+        fSunLightMap.put(generateKey(x, y, z), value);
     }
-
-    private Float getArtificialLight(int x, int y, int z) {
-        return fArtificialLightMap.get(parseKey(x, y, z));
-    }
-
-    private void setArtificialLight(int x, int y, int z, float value) {
-        fArtificialLightMap.put(parseKey(x, y, z), value);
-    }
-
-    public float getArtificialLightValue(int x, int y, int z) {
-        Float value = getArtificialLight(x, y, z);
+    
+    public float getFireLightValue(int x, int y, int z) {
+        Float value = fFireLightMap.get(generateKey(x, y, z));
         if (value == null) {
             return 0.0f;
         } else {
@@ -417,7 +438,21 @@ public class Chunk {
         }
     }
 
-    public void setArtificialLightValue(int x, int y, int z, float value) {
-        setArtificialLight(x, y, z, value);
+    public void setFireLightValue(int x, int y, int z, float value) {
+        fFireLightMap.put(generateKey(x, y, z), value);
     }
+    
+    public float getMagicLightValue(int x, int y, int z) {
+        Float value = fMagicLightMap.get(generateKey(x, y, z));
+        if (value == null) {
+            return 0.0f;
+        } else {
+            return value;
+        }
+    }
+
+    public void setMagicLightValue(int x, int y, int z, float value) {
+        fMagicLightMap.put(generateKey(x, y, z), value);
+    }
+    
 }

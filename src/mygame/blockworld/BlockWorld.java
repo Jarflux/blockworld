@@ -164,7 +164,7 @@ public class BlockWorld {
     }
 
     public void saveWorld(String fileName) {
-        try {
+        /*try {
             File file = new File(fileName);
             file.createNewFile();
             BufferedWriter fileWriter = new BufferedWriter(new FileWriter(file));
@@ -178,11 +178,11 @@ public class BlockWorld {
             fileWriter.close();
         } catch (IOException ex) {
             Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }*/
     }
 
     public void loadWorld(String fileName) {
-        try {
+        /*try {
             File file = new File(fileName);
             if (file.exists()) {
                 BufferedReader fileReader = new BufferedReader(new FileReader(file));
@@ -198,7 +198,7 @@ public class BlockWorld {
             }
         } catch (IOException ex) {
             Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }*/
     }
 
     public Float[][] getHeightMap(int x, int z) {
@@ -242,21 +242,46 @@ public class BlockWorld {
         }
     }
 
-    public float getArtificialLightValue(int x, int y, int z) {
-        ChunkColumn column = getChunkColumn(x, z, false);
-        if (column != null) {
-            return column.getArtificialLightValue(x, y, z);
-        }
-        return 0.0f;
-    }
-
-    public void setArtificialLightValue(int x, int y, int z, float value) {
+    public float getFireLightValue(int x, int y, int z) {
         ChunkColumn column = getChunkColumn(x, z, false);
         if (column != null) {
             Chunk chunk = column.get(y);
             if (chunk != null) {
-                chunk.setArtificialLightValue(x, y, z, value);
+                return chunk.getFireLightValue(x, y, z);
+            }
+        }
+        return 0f;
+    }
+
+    public void setFireLightValue(int x, int y, int z, float value) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if (column != null) {
+            Chunk chunk = column.get(y);
+            if (chunk != null) {
+                chunk.setFireLightValue(x, y, z, value);
             }
         }
     }
+    
+    public float getMagicLightValue(int x, int y, int z) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if (column != null) {
+            Chunk chunk = column.get(y);
+            if (chunk != null) {
+                return chunk.getMagicLightValue(x, y, z);
+            }
+        }
+        return 0f;
+    }
+
+    public void setMagicLightValue(int x, int y, int z, float value) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if (column != null) {
+            Chunk chunk = column.get(y);
+            if (chunk != null) {
+                chunk.setMagicLightValue(x, y, z, value);
+            }
+        }
+    }
+    
 }

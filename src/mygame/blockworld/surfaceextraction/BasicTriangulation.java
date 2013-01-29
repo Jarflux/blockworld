@@ -12,9 +12,7 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
 import java.util.List;
-import mygame.MathUtil;
 import mygame.blockworld.Block;
-import mygame.blockworld.BlockInfo;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
 
@@ -48,14 +46,13 @@ public class BasicTriangulation implements MeshCreator {
         List<Vector4f> light = new ArrayList<Vector4f>();
         int index = 0;
         int[][] fHighestBlockMap = world.getHighestBlockMap(chunk.getX(), chunk.getZ());
-
+        Vector4f lightAlpha;
         for (int i = chunk.getX(); i < chunk.getX() + Chunk.CHUNK_SIZE; i++) {
             for (int j = chunk.getY(); j < chunk.getY() + Chunk.CHUNK_SIZE; j++) {
                 for (int k = chunk.getZ(); k < chunk.getZ() + Chunk.CHUNK_SIZE; k++) {
                     Block block = world.getBlock(i, j, k);
                     if (block != null) {
 
-                        Vector4f lightAlpha = new Vector4f(0.08f, 0.0f, 0.0f, 0.0f); 
                         //Check top
                         if (world.getChunk(i, j + 1, k, true).get(i, j + 1, k) == null) {
                             vertices.add(new Vector3f(i - .5f, j + .5f, k - .5f));
@@ -66,7 +63,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, 1, 0));
                             normals.add(new Vector3f(0, 1, 0));
                             normals.add(new Vector3f(0, 1, 0));
-                            addTextureCoords(texCoord, BlockInfo.TopSides[block.getBlockValue()], false);
+                            addTextureCoords(texCoord, block.getTextureTop(), false);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1
@@ -75,7 +72,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j+1, k), world.getArtificialLightValue(i, j+1, k), 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i, j+1, k), world.getFireLightValue(i, j+1, k), world.getMagicLightValue(i, j+1, k), 0.0f);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -92,7 +89,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, -1, 0));
                             normals.add(new Vector3f(0, -1, 0));
                             normals.add(new Vector3f(0, -1, 0));
-                            addTextureCoords(texCoord, BlockInfo.BottomSides[block.getBlockValue()], false);
+                            addTextureCoords(texCoord, block.getTextureBottom(), false);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1
@@ -102,7 +99,7 @@ public class BasicTriangulation implements MeshCreator {
                             index = index + 4;
                             
                             // bottom can have sunlight?
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j-1, k), world.getArtificialLightValue(i, j-1, k), 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i, j-1, k), world.getFireLightValue(i, j-1, k), world.getMagicLightValue(i, j-1, k), 0.0f);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -119,7 +116,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(1, 0, 0));
                             normals.add(new Vector3f(1, 0, 0));
                             normals.add(new Vector3f(1, 0, 0));
-                            addTextureCoords(texCoord, BlockInfo.RightSides[block.getBlockValue()], true);
+                            addTextureCoords(texCoord, block.getTextureRight(), true);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1
@@ -128,7 +125,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i+1, j, k), world.getArtificialLightValue(i+1, j, k), 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i+1, j, k), world.getFireLightValue(i+1, j, k), world.getMagicLightValue(i+1, j, k), 0.0f);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -144,7 +141,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(-1, 0, 0));
                             normals.add(new Vector3f(-1, 0, 0));
                             normals.add(new Vector3f(-1, 0, 0));
-                            addTextureCoords(texCoord, BlockInfo.LeftSides[block.getBlockValue()], false);
+                            addTextureCoords(texCoord, block.getTextureLeft(), false);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1
@@ -153,7 +150,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i-1, j, k), world.getArtificialLightValue(i-1, j, k), 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i-1, j, k), world.getFireLightValue(i-1, j, k), world.getMagicLightValue(i-1, j, k), 0.0f);
                             
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -170,7 +167,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, 0, 1));
                             normals.add(new Vector3f(0, 0, 1));
                             normals.add(new Vector3f(0, 0, 1));
-                            addTextureCoords(texCoord, BlockInfo.BackSides[block.getBlockValue()], false);
+                            addTextureCoords(texCoord, block.getTextureBack(), false);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1
@@ -179,7 +176,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j, k+1), world.getArtificialLightValue(i, j, k+1), 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i, j, k+1), world.getFireLightValue(i, j, k+1), world.getMagicLightValue(i, j, k+1), 0.0f);
                             
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -196,7 +193,7 @@ public class BasicTriangulation implements MeshCreator {
                             normals.add(new Vector3f(0, 0, -1));
                             normals.add(new Vector3f(0, 0, -1));
                             normals.add(new Vector3f(0, 0, -1));
-                            addTextureCoords(texCoord, BlockInfo.FrontSides[block.getBlockValue()], true);
+                            addTextureCoords(texCoord, block.getTextureFront(), true);
                             indexes.add(index);
                             indexes.add(index + 1);
                             indexes.add(index + 2); // triangle 1
@@ -205,7 +202,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j, k-1), world.getArtificialLightValue(i, j, k-1), 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i, j, k-1), world.getFireLightValue(i, j, k-1), world.getMagicLightValue(i, j, k-1), 0.0f);
                             
                             light.add(lightAlpha);
                             light.add(lightAlpha);

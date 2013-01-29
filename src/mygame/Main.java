@@ -1,7 +1,6 @@
 package mygame;
 
 import com.jme3.app.SimpleApplication;
-import com.jme3.asset.TextureKey;
 import com.jme3.audio.AudioNode;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
@@ -9,11 +8,7 @@ import com.jme3.bullet.control.CharacterControl;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
-import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.AnalogListener;
-import com.jme3.input.controls.KeyTrigger;
-import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -21,22 +16,14 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.filters.DepthOfFieldFilter;
 import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.RenderManager;
-import com.jme3.renderer.queue.RenderQueue.Bucket;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
-import com.jme3.scene.Spatial;
-import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Sphere;
-import com.jme3.shader.Shader;
 import com.jme3.texture.Texture;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import jme3tools.optimize.TextureAtlas;
 import mygame.blockworld.Block;
+import mygame.blockworld.BlockInfo.BlockType;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.BlockWorldViewport;
 import mygame.blockworld.Chunk;
@@ -84,22 +71,22 @@ public class Main extends SimpleApplication implements ActionListener {
     @Override
     public void simpleInitApp() {
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-        fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
-        /*
+        
         fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
         Texture tex = assetManager.loadTexture("Textures/terrain.png");
         tex.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         tex.setMagFilter(Texture.MagFilter.Nearest);
         fBlockMat.setTexture("m_Terrain", tex);
-        */
         
+        /*
         Texture text = assetManager.loadTexture("Textures/dirt.png");
         text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
         fBlockMat.setTexture("DiffuseMap", text);
-        
+        */
         //fBlockMat.setBoolean("VertexLighting", true);
         //fBlockMat.setBoolean("HighQuality", true);
         //fBlockMat.setBoolean("UseMaterialColors",true);
@@ -331,7 +318,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 int x = Math.round(contactPoint.x + contactNormal.x * .5f);
                 int y = Math.round(contactPoint.y + contactNormal.y * .5f);
                 int z = Math.round(contactPoint.z + contactNormal.z * .5f);
-                fBlockWorld.addBlock(new Block(x, y, z, 2, true));
+                fBlockWorld.addBlock(new Block(x, y, z, BlockType.PUMPKIN, contactNormal));
                 /*int sphereSize = 1;
                 for (int i = -sphereSize; i < sphereSize + 1; i++) {
                     for (int j = -sphereSize; j < sphereSize + 1; j++) {
