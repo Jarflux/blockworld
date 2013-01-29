@@ -16,6 +16,7 @@ import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.jme3.math.Vector4f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.RenderManager;
@@ -89,6 +90,10 @@ public class Main extends SimpleApplication implements ActionListener {
         fTerrainTexture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         fTerrainTexture.setMagFilter(Texture.MagFilter.Nearest);
         fBlockMat.setTexture("m_Terrain", fTerrainTexture);
+        fBlockMat.setVector4("SunColor", new Vector4f(1f, 1f, 1f, 1f));
+        fBlockMat.setVector4("MoonColor", new Vector4f(.01f, .01f, .05f, 1f));
+        fBlockMat.setVector4("FireColor", new Vector4f(1f, .5f, .5f, 1f));
+        fBlockMat.setVector4("MagicColor", new Vector4f(.1f, .1f, 1f, 1f));
         
         /*
         Texture text = assetManager.loadTexture("Textures/dirt.png");

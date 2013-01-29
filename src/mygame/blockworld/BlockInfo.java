@@ -43,8 +43,8 @@ public class BlockInfo {
         DIRT(new BlockInfo("Dirt", 0f, 0f, true, false, 242, 242, 242, 242, 242, 242)),
         STONE(new BlockInfo("Stone", 0f, 0f, true, false, 241, 241, 241, 241, 241, 241)),
         SNOW(new BlockInfo("Snow", 0f, 0f, true, false, 178, 242, 180, 180, 180, 180)),
-        PUMPKIN(new BlockInfo("Pumpkin", .3f, 0f, true, false, 150, 150, 134, 134, 136, 134)),
-        LAPUS(new BlockInfo("Lapus Lazuli", 0f, .1f, true, false, 80, 80, 80, 80, 80, 80)),
+        PUMPKIN(new BlockInfo("Pumpkin", 1f, 0f, true, false, 150, 150, 134, 134, 136, 134)),
+        LAPUS(new BlockInfo("Lapus Lazuli", 0f, 1f, true, false, 80, 80, 80, 80, 80, 80)),
         ;
         
         private final BlockInfo fBlock;
