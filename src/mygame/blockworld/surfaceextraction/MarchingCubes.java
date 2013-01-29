@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import mygame.MathUtil;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
 
@@ -35,7 +36,7 @@ public class MarchingCubes implements MeshCreator{
             normal.z = ((world.getBlock(x, y, z-1)==null)? 0f : 1f) - ((world.getBlock(x, y, z+1)==null)? 0f : 1f);
             return normal.normalizeLocal();
     }
-    
+
     private static class MeshPart {
         public Vector3f[] vertices;
         public Vector3f[] normals;
@@ -44,7 +45,7 @@ public class MarchingCubes implements MeshCreator{
     }
     
     /* Code in comment is used to calculate the tables used below
-     */
+    
     private static char[] caseIDs = {0, 1, 1+2, 1+4, 2+16+32, 1+2+16+32, 2+16+32+8, 1+32+4+128, 1+16+32+128, 2+16+32+128, 1+64, 1+2+64, 2+8+64, 1+32+8+64, 1+16+32+64, 2+8+16+32+64+128, 2+4+8+16+32+128};
     
     private static int[][][] caseTriangles = {
@@ -277,7 +278,7 @@ public class MarchingCubes implements MeshCreator{
         }
         //System.out.println("\t\t};");
     }
-    
+    */
     private static float[][][] sVERTICES = {
 			{null,null,null,null,null,null,null,null,null,null,null,null,},
 			{{0.5f,0.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,0.0f,0.5f},null,null,null,},
@@ -536,7 +537,7 @@ public class MarchingCubes implements MeshCreator{
 			{{0.5f,0.0f,0.0f},null,null,{0.0f,0.5f,0.0f},null,null,null,null,{0.0f,0.0f,0.5f},null,null,null,},
 			{null,null,null,null,null,null,null,null,null,null,null,null,},
 		};
-private static int[][] sTRIANGLES = {
+/*private static int[][] sTRIANGLES = {
 			{},
 			{8,0,3,},
 			{0,8,3,},
@@ -793,33 +794,53 @@ private static int[][] sTRIANGLES = {
 			{8,0,3,},
 			{0,8,3,},
 			{},
-		};
+		};*/
     
+    private static final float TRESHOLD = 1f;
+    
+    private static float interpolate(float a, float b) {
+        if(a == 1f) {
+            return b;
+        }else if(b == 1f){
+            return 1-a;
+        }else{
+            throw new UnknownError();
+        }
+        //return Math.max(a, b);
+        /*float delta = b - a;
+        if(delta == 0f) {
+            return .5f;
+        }
+        return (TRESHOLD - a) / delta;*/
+    }
+
     //Performs the Marching Cubes algorithm on a single cube
-    private static MeshPart marchCube(BlockWorld world, int x, int y, int z, int scale) {
-            int /*iCorner,*/ iVertex, iVertexTest/*, iEdge, iTriangle, iEdgeFlags*/;
+    private static MeshPart marchCube(BlockWorld world, float[][][] afCubeValue, int x, int y, int z, int scale) {
+            int iCorner, iVertex, iVertexTest, iEdge, iTriangle, iEdgeFlags;
             char iFlagIndex;
-            //float fOffset;
-            boolean[] afCubeValue = new boolean[8];
-            //Vector3f[] asEdgeVertex = new Vector3f[12];
-            //Vector3f[] asEdgeNorm = new Vector3f[12];
+            float fOffset;
+            //boolean[] afCubeValue = new boolean[8];
+            Vector3f[] asEdgeVertex = new Vector3f[12];
+            Vector3f[] asEdgeNorm = new Vector3f[12];
 
             //Make a local copy of the values at the cube's corners
+            /*
             for(iVertex = 0; iVertex < 8; iVertex++) {
                     afCubeValue[iVertex] = world.getBlock(x + a2fVertexOffset[iVertex][0],
                                                 y + a2fVertexOffset[iVertex][1],
                                                 z + a2fVertexOffset[iVertex][2], true)
                                                 != null;
             }
-
+            */
             //Find which vertices are inside of the surface and which are outside
             iFlagIndex = 0;
             for(iVertexTest = 0; iVertexTest < 8; iVertexTest++) {
-                    if(afCubeValue[iVertexTest]) {
+                    if(afCubeValue[MathUtil.PosMod(x + a2fVertexOffset[iVertexTest][0], Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(y + a2fVertexOffset[iVertexTest][1], Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(z + a2fVertexOffset[iVertexTest][2], Chunk.CHUNK_SIZE+1)] >= TRESHOLD) {
+                    //if(afCubeValue[iVertexTest]) {
                         iFlagIndex |= 1<<iVertexTest;
                     }
             }
-            /*
+            
             //Find which edges are intersected by the surface
             iEdgeFlags = aiCubeEdgeFlags[iFlagIndex];
 
@@ -834,7 +855,10 @@ private static int[][] sTRIANGLES = {
             {
                     //if there is an intersection on this edge
                     if((iEdgeFlags & (1<<iEdge)) == (1<<iEdge)) {
-                            fOffset = .5f;//getOffset(afCubeValue[ a2iEdgeConnection[iEdge][0] ], afCubeValue[ a2iEdgeConnection[iEdge][1] ]);
+                            float cornerVal0 = afCubeValue[MathUtil.PosMod(x + a2fVertexOffset[a2iEdgeConnection[iEdge][0]][0], Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(y + a2fVertexOffset[a2iEdgeConnection[iEdge][0]][1], Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(z + a2fVertexOffset[a2iEdgeConnection[iEdge][0]][2], Chunk.CHUNK_SIZE+1)];
+                            float cornerVal1 = afCubeValue[MathUtil.PosMod(x + a2fVertexOffset[a2iEdgeConnection[iEdge][1]][0], Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(y + a2fVertexOffset[a2iEdgeConnection[iEdge][1]][1], Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(z + a2fVertexOffset[a2iEdgeConnection[iEdge][1]][2], Chunk.CHUNK_SIZE+1)];
+                            fOffset = interpolate(cornerVal0, cornerVal1);
+                            //fOffset = .5f;//(afCubeValue[ a2iEdgeConnection[iEdge][0] ], afCubeValue[ a2iEdgeConnection[iEdge][1] ]);
                             
                             asEdgeVertex[iEdge] = new Vector3f();
                             asEdgeVertex[iEdge].x = x + (a2fVertexOffset[ a2iEdgeConnection[iEdge][0] ][0]  +  fOffset * a2fEdgeDirection[iEdge][0]) * scale;
@@ -844,37 +868,69 @@ private static int[][] sTRIANGLES = {
                             asEdgeNorm[iEdge] = getNormal(world, Math.round(asEdgeVertex[iEdge].x), Math.round(asEdgeVertex[iEdge].y), Math.round(asEdgeVertex[iEdge].z));
                     }
             }
-            */
+            
             
             //Compress the vertex && norm arrays
             int nrVertices = 0;
+            /*
             for(int i = 0; i < sVERTICES[iFlagIndex].length; i++) {
                 if(sVERTICES[iFlagIndex][i] != null) {
                     nrVertices++;
                 }
+            }*/
+            for(int i = 0; i < 12; i++) {
+                if(asEdgeVertex[i] != null) {
+                    nrVertices++;
+                }
             }
+            
             MeshPart meshPart = new MeshPart();
             meshPart.vertices = new Vector3f[nrVertices];
             meshPart.normals = new Vector3f[nrVertices];
             meshPart.texCoords = new Vector2f[nrVertices];
             int[] mapping = new int[sVERTICES[iFlagIndex].length];
             int index = 0;
+            /*
             for(int i = 0; i < sVERTICES[iFlagIndex].length; i++) {
                 if(sVERTICES[iFlagIndex][i] != null) {
-                    meshPart.vertices[index] = new Vector3f(x + sVERTICES[iFlagIndex][i][0], y + sVERTICES[iFlagIndex][i][1], z + sVERTICES[iFlagIndex][i][2]);
+                    int cornerVal0 = afCubeValue[MathUtil.PosMod(x + a2fVertexOffset[a2iEdgeConnection[i][0]][0], Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(y + a2fVertexOffset[a2iEdgeConnection[i][0]][1], Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(z + a2fVertexOffset[a2iEdgeConnection[i][0]][2], Chunk.CHUNK_SIZE+1)];
+                    int cornerVal1 = afCubeValue[MathUtil.PosMod(x + a2fVertexOffset[a2iEdgeConnection[i][1]][0], Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(y + a2fVertexOffset[a2iEdgeConnection[i][1]][1], Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(z + a2fVertexOffset[a2iEdgeConnection[i][1]][2], Chunk.CHUNK_SIZE+1)];
+                    float xVal = sVERTICES[iFlagIndex][i][0];
+                    if(xVal == .5f) {
+                        xVal = a2fVertexOffset[a2iEdgeConnection[i][0]][0] + interpolate(cornerVal0, cornerVal1) * a2fEdgeDirection[i][0];
+                    }
+                    float yVal = sVERTICES[iFlagIndex][i][1];
+                    if(yVal == .5f) {
+                        yVal = a2fVertexOffset[a2iEdgeConnection[i][0]][1] + interpolate(cornerVal0, cornerVal1) * a2fEdgeDirection[i][1];
+                    }
+                    float zVal = sVERTICES[iFlagIndex][i][2];
+                    if(zVal == .5f) {
+                        zVal = a2fVertexOffset[a2iEdgeConnection[i][0]][2] + interpolate(cornerVal0, cornerVal1) * a2fEdgeDirection[i][2];
+                    }
+                    
+                    meshPart.vertices[index] = new Vector3f(x + xVal, y + yVal, z + zVal);
                     meshPart.normals[index] = getNormal(world, Math.round(x + sVERTICES[iFlagIndex][i][0]), Math.round(y + sVERTICES[iFlagIndex][i][1]), Math.round(z + sVERTICES[iFlagIndex][i][2]));
                     meshPart.texCoords[index] = new Vector2f(0, 0);
                     mapping[i] = index;
                     index++;
                 }
+            }*/
+            for(int i = 0; i < 12; i++) {
+                if(asEdgeVertex[i] != null) {
+                    meshPart.vertices[index] = asEdgeVertex[i];
+                    meshPart.normals[index] = asEdgeNorm[i];
+                    mapping[i] = index;
+                    index++;
+                }
             }
             
+            /*
             meshPart.indices = new int[sTRIANGLES[iFlagIndex].length];
             for(int i = 0; i < sTRIANGLES[iFlagIndex].length; i++) {
                 meshPart.indices[i] = mapping[sTRIANGLES[iFlagIndex][i]];
             }
-            return meshPart;
-            /*
+            return meshPart;*/
+            
             int nrTriangles = 0;
             //Calculate number of triangles that were found.  There can be up to five per cube
             for(iTriangle = 0; iTriangle < 5; iTriangle++)
@@ -922,19 +978,53 @@ private static int[][] sTRIANGLES = {
                     }
             }
             return meshPart;
-            */
+            
             
     }
     
     //vMarchingCubes iterates over the entire dataset, calling vMarchCube on each cube
     public static Mesh marchingCubes(BlockWorld world, Chunk chunk) {
+        float[][][] blockValues = new float[Chunk.CHUNK_SIZE+1][Chunk.CHUNK_SIZE+1][Chunk.CHUNK_SIZE+1];
+        for(int x = chunk.getX()- 1; x < chunk.getX() + Chunk.CHUNK_SIZE + 2; x++) {
+            for(int y = chunk.getY()- 1; y < chunk.getY() + Chunk.CHUNK_SIZE + 2; y++) {
+                for(int z = chunk.getZ()- 1; z < chunk.getZ() + Chunk.CHUNK_SIZE + 2; z++) {
+                    if(world.getBlock(x, y, z, true) != null) {
+                        for(int dX = -1; dX <= 1; dX++) {
+                            for(int dY = -1; dY <= 1; dY++) {
+                                for(int dZ = -1; dZ <= 1; dZ++) {
+                                    if(((x+dX) >= chunk.getX() && x+dX < chunk.getX() + Chunk.CHUNK_SIZE+1) 
+                                           && ((y+dY) >= chunk.getY() && y+dY < chunk.getY() + Chunk.CHUNK_SIZE+1)
+                                           && ((z+dZ) >= chunk.getZ() && z+dZ < chunk.getZ() + Chunk.CHUNK_SIZE+1)) {
+                                        //float value = ((1f-Math.abs(dX)) + (1f-Math.abs(dY)) + (1f-Math.abs(dZ)) + 1)/100f;
+                                        //float value = 1f/72f;
+                                        /*if(value == 0) {
+                                            value = 1;
+                                        }*/
+                                        float value = blockValues[MathUtil.PosMod(x+dX, Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(y+dY, Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(z+dZ, Chunk.CHUNK_SIZE+1)];
+                                        value += 1f/26f;
+                                        /*if(dX + dY + dZ == 1) {
+                                            value = 1;
+                                        }*/
+                                        if(dX == 0 && dY == 0 && dZ == 0) {
+                                            value += 1f;
+                                        }
+                                        value = Math.min(value, 1f);
+                                        blockValues[MathUtil.PosMod(x+dX, Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(y+dY, Chunk.CHUNK_SIZE+1)][MathUtil.PosMod(z+dZ, Chunk.CHUNK_SIZE+1)] = value;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         List<MeshPart> meshParts = new ArrayList<MeshPart>();
         int meshVertices = 0;
         int meshIndices = 0;
         for(int x = chunk.getX(); x < chunk.getX() + Chunk.CHUNK_SIZE; x++) {
             for(int y = chunk.getY(); y < chunk.getY() + Chunk.CHUNK_SIZE; y++) {
                 for(int z = chunk.getZ(); z < chunk.getZ() + Chunk.CHUNK_SIZE; z++) {
-                    MeshPart meshPart = marchCube(world, x, y, z, 1);
+                    MeshPart meshPart = marchCube(world, blockValues, x, y, z, 1);
                     if(meshPart != null) {
                         meshParts.add(meshPart);
                         meshVertices += meshPart.vertices.length;
@@ -1139,7 +1229,6 @@ private static int[][] sTRIANGLES = {
             {0, 0, 1},{0, 0, 1},{ 0, 0, 1},{0,  0, 1}
     };
 
-/*
     // For any edge, if one vertex is inside of the surface and the other is outside of the surface
     //  then the edge intersects the surface
     // For each of the 8 vertices of the cube can be two possible states : either inside or outside of the surface
@@ -1430,5 +1519,5 @@ private static int[][] sTRIANGLES = {
             {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
             {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}
     };
-*/
+
 }
