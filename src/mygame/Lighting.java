@@ -9,7 +9,7 @@ import mygame.blockworld.BlockWorld;
  */
 public class Lighting {
 
-    public static final float MIN_LIGHT_VALUE = 0.045f;
+    public static final float MIN_LIGHT_VALUE = 0f;
     public static final float MAX_LIGHT_VALUE = 1.0f;
     public static final float SUNLIGHT_DEGRADING_CONSTANT = 26f / 27f;//26/27;
     public static final int TOTAL_DARKNESS_HEIGHT = -128;//-128;
@@ -75,7 +75,7 @@ public class Lighting {
     // uses relative coordinates for the light array
     private void setLight(int x, int y, int z, float value, int recursionDepth) {
         if((value > MIN_LIGHT_VALUE) && (fWorld.getBlock(x + fXOffset, y + fYOffset, z + fZOffset) == null)
-                || (recursionDepth == RECURSION_DEPTH) && (fWorld.getBlock(x + fXOffset, y + fYOffset, z + fZOffset).isFireLightSource())) {
+                || (recursionDepth == RECURSION_DEPTH)/* && (fWorld.getBlock(x + fXOffset, y + fYOffset, z + fZOffset).isMagicLightSource())*/) {
             if (fLightValues[x][y][z] < value) {
                 fLightValues[x][y][z] = value;
                 fIsAlreadyAdjusted[x][y][z] = false;

@@ -191,7 +191,7 @@ public class Chunk {
                             int xA = b.getX() + xd - (diffuseMap.length / 2);
                             int yA = b.getY() + yd - (diffuseMap.length / 2);
                             int zA = b.getZ() + zd - (diffuseMap.length / 2);
-                            float magicLightValue = fWorld.getFireLightValue(xA, yA, zA);
+                            float magicLightValue = fWorld.getMagicLightValue(xA, yA, zA);
 
                             float newMagicLightValue = (magicLightValue + diffuseMap[xd][yd][zd]) / (1 + (magicLightValue * diffuseMap[xd][yd][zd]));
                             fWorld.setMagicLightValue(xA, yA, zA, newMagicLightValue);
