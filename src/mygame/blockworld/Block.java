@@ -18,19 +18,18 @@ public class Block {
     
     private static int calculateDirection(Vector3f placementNormal) {
         float xAbs = Math.abs(placementNormal.x);
-        float yAbs = Math.abs(placementNormal.y);
         float zAbs = Math.abs(placementNormal.z);
         if(xAbs > zAbs) {
             if(placementNormal.x > 0) {
-                return 3;
-            }else{
                 return 1;
+            }else{
+                return 3;
             }
         }else{ //zAbs > xAbs
             if(placementNormal.z > 0) {
-                return 2;
-            }else{
                 return 0;
+            }else{
+                return 2;
             }
         }
     }

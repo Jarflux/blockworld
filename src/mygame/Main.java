@@ -315,10 +315,12 @@ public class Main extends SimpleApplication implements ActionListener {
                 CollisionResult closest = results.getClosestCollision();
                 Vector3f contactPoint = closest.getContactPoint();
                 Vector3f contactNormal = closest.getContactNormal();
+                Vector3f contactDirection = contactPoint.subtract(cam.getLocation());
+                contactDirection.normalizeLocal();
                 int x = Math.round(contactPoint.x + contactNormal.x * .5f);
                 int y = Math.round(contactPoint.y + contactNormal.y * .5f);
                 int z = Math.round(contactPoint.z + contactNormal.z * .5f);
-                fBlockWorld.addBlock(new Block(x, y, z, BlockType.PUMPKIN, contactNormal));
+                fBlockWorld.addBlock(new Block(x, y, z, BlockType.PUMPKIN, contactDirection));
                 /*int sphereSize = 1;
                 for (int i = -sphereSize; i < sphereSize + 1; i++) {
                     for (int j = -sphereSize; j < sphereSize + 1; j++) {
