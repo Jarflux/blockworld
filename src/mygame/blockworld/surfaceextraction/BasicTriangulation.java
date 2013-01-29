@@ -23,7 +23,6 @@ import mygame.blockworld.Chunk;
  * @author Nathan
  */
 public class BasicTriangulation implements MeshCreator {
-    private int textureSize = 1024;
     
     private static void addTextureCoords(List<Vector2f> texCoord, int texId, boolean swap) {
         float texIdX = texId % 16;
@@ -76,7 +75,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j+1, k), 0.0f, 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i, j+1, k), world.getArtificialLightValue(i, j+1, k), 0.0f, 0.0f);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -103,7 +102,7 @@ public class BasicTriangulation implements MeshCreator {
                             index = index + 4;
                             
                             // bottom can have sunlight?
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j-1, k), 0.0f, 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i, j-1, k), world.getArtificialLightValue(i, j-1, k), 0.0f, 0.0f);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -129,7 +128,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i+1, j, k), 0.0f, 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i+1, j, k), world.getArtificialLightValue(i+1, j, k), 0.0f, 0.0f);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -154,7 +153,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i-1, j, k), 0.0f, 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i-1, j, k), world.getArtificialLightValue(i-1, j, k), 0.0f, 0.0f);
                             
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -180,7 +179,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j, k+1), 0.0f, 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i, j, k+1), world.getArtificialLightValue(i, j, k+1), 0.0f, 0.0f);
                             
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -206,7 +205,7 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j, k-1), 0.0f, 0.0f, 0.0f);
+                            lightAlpha = new Vector4f(world.getSunlightValue(i, j, k-1), world.getArtificialLightValue(i, j, k-1), 0.0f, 0.0f);
                             
                             light.add(lightAlpha);
                             light.add(lightAlpha);

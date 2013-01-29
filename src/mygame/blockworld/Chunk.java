@@ -44,6 +44,7 @@ public class Chunk {
     public static final int CHUNK_SIZE = 16;
     protected Block[][][] fBlocks = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
     protected Map<String, Float> fLightMap = new HashMap<String, Float>();
+    protected Map<String, Float> fArtificialLightMap = new HashMap<String, Float>();
     protected List<Block> fLightSources = new ArrayList<Block>();
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     protected Geometry fChunkMesh = null;
@@ -85,9 +86,9 @@ public class Chunk {
     public void removeLight() {
         fLightMap.clear();
     }
-        
+
     public void updateLight() {
-        if (fNeedsUpdate){
+        if (fNeedsUpdate) {
             updateChunkLight();
         }
     }
@@ -96,7 +97,7 @@ public class Chunk {
         if (fNeedsUpdate || fPreviousCreator != fMeshCreator) {
             updateChunkVisualMesh();
             fMeshCreator = fPreviousCreator;
-        }   
+        }
     }
 
     public void updatePhysicsMesh() {
@@ -147,10 +148,10 @@ public class Chunk {
                             int xA = b.getX() + xd - (diffuseMap.length / 2);
                             int yA = b.getY() + yd - (diffuseMap.length / 2);
                             int zA = b.getZ() + zd - (diffuseMap.length / 2);
-                            float sunlightValue = fWorld.getSunlightValue(xA, yA, zA);
+                            float artificialLightValue = fWorld.getArtificialLightValue(xA, yA, zA);
 
-                            float newSunlightValue = (sunlightValue + diffuseMap[xd][yd][zd]) / (1 + (sunlightValue * diffuseMap[xd][yd][zd]));
-                            fWorld.setSunlightValue(xA, yA, zA, newSunlightValue);
+                            float newArtificialLightValue = (artificialLightValue + diffuseMap[xd][yd][zd]) / (1 + (artificialLightValue * diffuseMap[xd][yd][zd]));
+                            fWorld.setArtificialLightValue(xA, yA, zA, newArtificialLightValue);
                         }
                     }
                 }
@@ -183,7 +184,6 @@ public class Chunk {
 //                }
 //            }
 //        }
-
 
     protected void updateChunkVisualMesh() {
         fPreviousCreator = fMeshCreator;
@@ -398,5 +398,26 @@ public class Chunk {
 
     public void setSunlightValue(int x, int y, int z, float value) {
         setLight(x, y, z, value);
+    }
+
+    private Float getArtificialLight(int x, int y, int z) {
+        return fArtificialLightMap.get(parseKey(x, y, z));
+    }
+
+    private void setArtificialLight(int x, int y, int z, float value) {
+        fArtificialLightMap.put(parseKey(x, y, z), value);
+    }
+
+    public float getArtificialLightValue(int x, int y, int z) {
+        Float value = getArtificialLight(x, y, z);
+        if (value == null) {
+            return 0.0f;
+        } else {
+            return value;
+        }
+    }
+
+    public void setArtificialLightValue(int x, int y, int z, float value) {
+        setArtificialLight(x, y, z, value);
     }
 }
