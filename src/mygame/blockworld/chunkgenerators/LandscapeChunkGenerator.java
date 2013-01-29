@@ -6,7 +6,7 @@ package mygame.blockworld.chunkgenerators;
 
 import com.jme3.terrain.noise.basis.ImprovedNoise;
 import java.util.Random;
-import mygame.blockworld.Block;
+import mygame.blockworld.BasicBlock;
 import mygame.blockworld.BlockInfo.BlockType;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
@@ -134,7 +134,7 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
                 int calculatedHeight = Math.round((fChunkMap[x - cnk.getX()][z - cnk.getZ()] + fChunkMap[x - cnk.getX()][z - cnk.getZ() + 1] + fChunkMap[x - cnk.getX() + 1][z - cnk.getZ()] + fChunkMap[x - cnk.getX() + 1][z - cnk.getZ() + 1]) / 4);
                 for (int y = cnk.getY(); y < cnk.getY() + offset; y++) {
                     if (getBlockType(y, calculatedHeight) != null) {
-                        cnk.addBlock(new Block(x, y, z, getBlockType(y, calculatedHeight)));
+                        cnk.addBlock(new BasicBlock(x, y, z, getBlockType(y, calculatedHeight)));
                     }
                 }
             }

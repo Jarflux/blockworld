@@ -29,7 +29,7 @@ import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import mygame.blockworld.Block;
+import mygame.blockworld.BasicBlock;
 import mygame.blockworld.BlockInfo.BlockType;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.BlockWorldViewport;
@@ -372,7 +372,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 int x = Math.round(contactPoint.x + contactNormal.x * .5f);
                 int y = Math.round(contactPoint.y + contactNormal.y * .5f);
                 int z = Math.round(contactPoint.z + contactNormal.z * .5f);
-                fBlockWorld.addBlock(new Block(x, y, z, BlockType.values()[fSelectedMaterial], contactDirection));
+                fBlockWorld.addBlock(new BasicBlock(x, y, z, BlockType.values()[fSelectedMaterial], contactDirection));
                 /*int sphereSize = 1;
                 for (int i = -sphereSize; i < sphereSize + 1; i++) {
                     for (int j = -sphereSize; j < sphereSize + 1; j++) {
