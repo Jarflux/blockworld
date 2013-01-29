@@ -8,6 +8,7 @@ import com.jme3.bullet.control.CharacterControl;
 import com.jme3.collision.CollisionResult;
 import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
+import com.jme3.input.FlyByCamera;
 import com.jme3.input.controls.ActionListener;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
@@ -115,7 +116,8 @@ public class Main extends SimpleApplication implements ActionListener {
         // We re-use the flyby camera for rotation, while positioning is handled by physics
         viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
         //viewPort.setBackgroundColor(new ColorRGBA(0.0f, 0.0f, 0.0f, 1f));
-        flyCam.setMoveSpeed(10f);
+        flyCam.setMoveSpeed(0f); //do not use flycam controls for movement
+        flyCam.setZoomSpeed(0f); //do not use flycam controls for zooming
         cam.setFrustumPerspective(45f, (float) cam.getWidth() / cam.getHeight(), 0.01f, 1000f);
         setUpKeys();
         setUpLight();
