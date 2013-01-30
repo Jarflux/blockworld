@@ -6,6 +6,7 @@ package mygame.blockworld;
 
 import com.jme3.bullet.BulletAppState;
 import com.jme3.material.Material;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -242,46 +243,24 @@ public class BlockWorld {
         }
     }
 
-    public float getFireLightValue(int x, int y, int z) {
+    public Vector3f getLightColor(int x, int y, int z) {
         ChunkColumn column = getChunkColumn(x, z, false);
         if (column != null) {
             Chunk chunk = column.get(y);
             if (chunk != null) {
-                return chunk.getFireLightValue(x, y, z);
+                return chunk.getLightColor(x, y, z);
             }
         }
-        return 0f;
+        return new Vector3f(0f,0f,0f);
     }
 
-    public void setFireLightValue(int x, int y, int z, float value) {
+    public void setLightColor(int x, int y, int z, Vector3f color) {
         ChunkColumn column = getChunkColumn(x, z, false);
         if (column != null) {
             Chunk chunk = column.get(y);
             if (chunk != null) {
-                chunk.setFireLightValue(x, y, z, value);
+                chunk.setLightColor(x, y, z, color);
             }
         }
-    }
-    
-    public float getMagicLightValue(int x, int y, int z) {
-        ChunkColumn column = getChunkColumn(x, z, false);
-        if (column != null) {
-            Chunk chunk = column.get(y);
-            if (chunk != null) {
-                return chunk.getMagicLightValue(x, y, z);
-            }
-        }
-        return 0f;
-    }
-
-    public void setMagicLightValue(int x, int y, int z, float value) {
-        ChunkColumn column = getChunkColumn(x, z, false);
-        if (column != null) {
-            Chunk chunk = column.get(y);
-            if (chunk != null) {
-                chunk.setMagicLightValue(x, y, z, value);
-            }
-        }
-    }
-    
+    }   
 }

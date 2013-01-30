@@ -45,8 +45,8 @@ public class BasicTriangulation implements MeshCreator {
         List<Integer> indexes = new ArrayList<Integer>();
         List<Vector4f> light = new ArrayList<Vector4f>();
         int index = 0;
-        int[][] fHighestBlockMap = world.getHighestBlockMap(chunk.getX(), chunk.getZ());
         Vector4f lightAlpha;
+        Vector3f lightColor;
         for (int i = chunk.getX(); i < chunk.getX() + Chunk.CHUNK_SIZE; i++) {
             for (int j = chunk.getY(); j < chunk.getY() + Chunk.CHUNK_SIZE; j++) {
                 for (int k = chunk.getZ(); k < chunk.getZ() + Chunk.CHUNK_SIZE; k++) {
@@ -72,7 +72,9 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j+1, k), world.getFireLightValue(i, j+1, k), world.getMagicLightValue(i, j+1, k), 0.0f);
+                            lightColor = world.getLightColor(i, j+1, k);
+                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j+1, k));
+                            
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -98,8 +100,9 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            // bottom can have sunlight?
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j-1, k), world.getFireLightValue(i, j-1, k), world.getMagicLightValue(i, j-1, k), 0.0f);
+                            lightColor = world.getLightColor(i, j-1, k);
+                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j-1, k));
+                            
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -125,7 +128,9 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i+1, j, k), world.getFireLightValue(i+1, j, k), world.getMagicLightValue(i+1, j, k), 0.0f);
+                            lightColor = world.getLightColor(i+1, j, k);
+                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i+1, j, k));
+                            
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -150,7 +155,8 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i-1, j, k), world.getFireLightValue(i-1, j, k), world.getMagicLightValue(i-1, j, k), 0.0f);
+                            lightColor = world.getLightColor(i-1, j, k);
+                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i-1, j, k));
                             
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -176,7 +182,8 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j, k+1), world.getFireLightValue(i, j, k+1), world.getMagicLightValue(i, j, k+1), 0.0f);
+                            lightColor = world.getLightColor(i, j, k+1);
+                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j, k+1));
                             
                             light.add(lightAlpha);
                             light.add(lightAlpha);
@@ -202,7 +209,8 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightAlpha = new Vector4f(world.getSunlightValue(i, j, k-1), world.getFireLightValue(i, j, k-1), world.getMagicLightValue(i, j, k-1), 0.0f);
+                            lightColor = world.getLightColor(i, j, k-1);
+                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j, k-1));
                             
                             light.add(lightAlpha);
                             light.add(lightAlpha);

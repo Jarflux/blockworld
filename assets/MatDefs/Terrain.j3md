@@ -5,8 +5,9 @@ Texture2D m_Terrain
 Float DayAlpha
 Vector4 SunColor
 Vector4 MoonColor
-Vector4 FireColor
-Vector4 MagicColor
+Vector4 RedColor
+Vector4 GreenColor
+Vector4 BlueColor
 }
  
 Technique {

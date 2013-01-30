@@ -15,11 +15,10 @@ public interface Block extends Serializable {
     
     String getBlockName();
     
-    boolean isFireLightSource();
-    float getFireLightValue();
-    
-    boolean isMagicLightSource();
-    float getMagicLightValue();
+    boolean isLightSource();
+    float getRedLightValue();
+    float getGreenLightValue();   
+    float getBlueLightValue();
     
     int getTextureTop();
     int getTextureBottom();

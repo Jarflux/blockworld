@@ -7,55 +7,56 @@ import mygame.blockworld.BlockInfo.BlockType;
  *
  * @author Fusion
  */
-public class BasicBlock implements Block{
+public class BasicBlock implements Block {
+
     private BlockType fBlockType;
     private int fDirection; //0: Front -> Front, 1: Front -> Right, 2: Front -> Back, 3: Front -> Left (and other faces change accordingly)
     private int fXC, fYC, fZC;
-    
+
     public BasicBlock(int x, int y, int z, BlockType type) {
         this(x, y, z, type, 0);
     }
-    
+
     private static int calculateDirection(Vector3f placementNormal) {
         float xAbs = Math.abs(placementNormal.x);
         float zAbs = Math.abs(placementNormal.z);
-        if(xAbs > zAbs) {
-            if(placementNormal.x > 0) {
+        if (xAbs > zAbs) {
+            if (placementNormal.x > 0) {
                 return 1;
-            }else{
+            } else {
                 return 3;
             }
-        }else{ //zAbs > xAbs
-            if(placementNormal.z > 0) {
+        } else { //zAbs > xAbs
+            if (placementNormal.z > 0) {
                 return 0;
-            }else{
+            } else {
                 return 2;
             }
         }
     }
-    
+
     public BasicBlock(int x, int y, int z, BlockType type, Vector3f placementNormal) {
         this(x, y, z, type, calculateDirection(placementNormal));
     }
-    
-    public BasicBlock(int x, int y, int z, BlockType type, int direction){
+
+    public BasicBlock(int x, int y, int z, BlockType type, int direction) {
         fBlockType = type;
         fDirection = direction;
-        setX(x);setY(y);setZ(z);
+        setX(x);
+        setY(y);
+        setZ(z);
     }
 
-    public boolean isFireLightSource() {
-        return fBlockType.getBlock().fireLightValue > 0f;
-    }
-
-    public boolean isMagicLightSource() {
-        return fBlockType.getBlock().magicLightValue > 0f;
+    public boolean isLightSource() {
+        return (fBlockType.getBlock().lightColor.x > 0f ||
+            fBlockType.getBlock().lightColor.y > 0f ||
+            fBlockType.getBlock().lightColor.z > 0f);  
     }
 
     public boolean isTranparent() {
         return fBlockType.getBlock().isTransparent;
     }
-    
+
     public boolean isDestructable() {
         return fBlockType.getBlock().isDestructable;
     }
@@ -64,24 +65,28 @@ public class BasicBlock implements Block{
         return fBlockType.getBlock().name;
     }
 
-    public float getFireLightValue() {
-        return fBlockType.getBlock().fireLightValue;
+    public float getRedLightValue() {
+        return fBlockType.getBlock().lightColor.x;
+    }
+
+    public float getGreenLightValue() {
+        return fBlockType.getBlock().lightColor.y;
     }
     
-    public float getMagicLightValue() {
-        return fBlockType.getBlock().magicLightValue;
+    public float getBlueLightValue() {
+        return fBlockType.getBlock().lightColor.z;
     }
-    
+
     public int getTextureTop() {
         return fBlockType.getBlock().textureTop;
     }
-    
+
     public int getTextureBottom() {
         return fBlockType.getBlock().textureBottom;
     }
-    
+
     public int getTextureRight() {
-        switch(fDirection) {
+        switch (fDirection) {
             case 1:
                 return fBlockType.getBlock().textureBack;
             case 2:
@@ -92,9 +97,9 @@ public class BasicBlock implements Block{
                 return fBlockType.getBlock().textureRight;
         }
     }
-    
+
     public int getTextureLeft() {
-        switch(fDirection) {
+        switch (fDirection) {
             case 1:
                 return fBlockType.getBlock().textureFront;
             case 2:
@@ -105,9 +110,9 @@ public class BasicBlock implements Block{
                 return fBlockType.getBlock().textureLeft;
         }
     }
-    
+
     public int getTextureFront() {
-        switch(fDirection) {
+        switch (fDirection) {
             case 1:
                 return fBlockType.getBlock().textureRight;
             case 2:
@@ -118,9 +123,9 @@ public class BasicBlock implements Block{
                 return fBlockType.getBlock().textureFront;
         }
     }
-    
+
     public int getTextureBack() {
-        switch(fDirection) {
+        switch (fDirection) {
             case 1:
                 return fBlockType.getBlock().textureLeft;
             case 2:
@@ -131,7 +136,7 @@ public class BasicBlock implements Block{
                 return fBlockType.getBlock().textureBack;
         }
     }
-    
+
     public int getX() {
         return fXC;
     }
@@ -155,5 +160,4 @@ public class BasicBlock implements Block{
     private void setZ(int fZC) {
         this.fZC = fZC;
     }
-    
 }
