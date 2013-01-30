@@ -92,9 +92,6 @@ public class Main extends SimpleApplication implements ActionListener {
         fBlockMat.setTexture("m_Terrain", fTerrainTexture);
         fBlockMat.setVector4("SunColor", new Vector4f(1f, 1f, 1f, 1f));
         fBlockMat.setVector4("MoonColor", new Vector4f(.01f, .01f, .05f, 1f));
-        fBlockMat.setVector4("RedColor", new Vector4f(1f, .1f, .1f, 1f));
-        fBlockMat.setVector4("GreenColor", new Vector4f(.1f, 1f, .1f, 1f));
-        fBlockMat.setVector4("BlueColor", new Vector4f(.1f, .1f, 1f, 1f));
         
         /*
         Texture text = assetManager.loadTexture("Textures/dirt.png");
