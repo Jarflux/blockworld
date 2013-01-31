@@ -60,7 +60,7 @@ public class Chunk {
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
-    protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
+    protected ChunkGenerator fChunkGenerator = new FlatTerrainGenerator();
     protected static MeshCreator fMeshCreator = new LSFitting();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
@@ -133,58 +133,62 @@ public class Chunk {
         updateLightSources();
     }
 
-    private void updateSunlight() {
-        int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
-        for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {
-            for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
-                for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
-                    if (y > highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] || get(x, y, z) != null) {
-                        continue;
+    public void updateSunlight() {
+        if (fNeedsUpdate) {
+            int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
+            for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {
+                for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
+                    for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
+                        if (y > highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] || get(x, y, z) != null) {
+                            continue;
+                        }
+                        float lightValue = fChunkColumn.getSunlightValue(x, y + 1, z);
+                        if (lightValue > Lighting.MIN_LIGHT_VALUE) {
+                            setSunlightValue(x, y, z, lightValue);
+                            continue;
+                        }
+                        float constante = 1f;
+                        lightValue = getSunlightValue(x, y, z);
+                        if (((fWorld.getBlock(x - 1, y, z) == null) || (fWorld.getBlock(x, y + 1, z) == null)) && fWorld.getSunlightValue(x - 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
+                            lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x - 1, y + 1, z) * constante));
+                        }
+                        if (((fWorld.getBlock(x + 1, y, z) == null) || (fWorld.getBlock(x, y + 1, z) == null)) && fWorld.getSunlightValue(x + 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
+                            lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x + 1, y + 1, z) * constante));
+                        }
+                        if (((fWorld.getBlock(x, y, z - 1) == null) || (fWorld.getBlock(x, y + 1, z) == null)) && fWorld.getSunlightValue(x, y + 1, z - 1) > Lighting.MIN_LIGHT_VALUE) {
+                            lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y + 1, z - 1) * constante));
+                        }
+                        if (((fWorld.getBlock(x, y, z + 1) == null) || (fWorld.getBlock(x, y + 1, z) == null)) && fWorld.getSunlightValue(x, y + 1, z + 1) > Lighting.MIN_LIGHT_VALUE) {
+                            lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y + 1, z + 1) * constante));
+                        }
+                        fWorld.setSunlightValue(x, y, z, lightValue);
                     }
-                    float lightValue = fChunkColumn.getSunlightValue(x, y + 1, z);
-                    if (lightValue > Lighting.MIN_LIGHT_VALUE) {
-                        setSunlightValue(x, y, z, lightValue);
-                        continue;
-                    }
-                    float constante = 1f;
-                    lightValue = getSunlightValue(x, y, z);
-                    if ((fWorld.getBlock(x - 1, y, z) == null) && fWorld.getSunlightValue(x - 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x - 1, y + 1, z) * constante));
-                    }
-                    if ((fWorld.getBlock(x + 1, y, z) == null) && fWorld.getSunlightValue(x + 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x + 1, y + 1, z) * constante));
-                    }
-                    if ((fWorld.getBlock(x, y, z - 1) == null) && fWorld.getSunlightValue(x, y + 1, z - 1) > Lighting.MIN_LIGHT_VALUE) {
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y + 1, z - 1) * constante));
-                    }
-                    if ((fWorld.getBlock(x, y, z + 1) == null) && fWorld.getSunlightValue(x, y + 1, z + 1) > Lighting.MIN_LIGHT_VALUE) {
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y + 1, z + 1) * constante));
-                    }
-                    setSunlightValue(x, y, z, lightValue);
                 }
             }
         }
     }
 
-    private void updateCaveSunlight() {
-        int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
-        for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {   // overloop alle blocken in de Chunk
-            for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
-                for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
-                    if (y < highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] - 1 && get(x, y, z) == null) {
-                        for (int i = (x - 1); i <= (x + 1); i++) {       // loop over alle buren van de block in het vlak x, z
-                            for (int k = (z - 1); k <= (z + 1); k++) {           
-                                float neighbourSunlightValue = fWorld.getSunlightValue(i, y, k);
-                                if (neighbourSunlightValue > Lighting.MIN_LIGHT_VALUE) {
-                                    float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, i, y, k, neighbourSunlightValue);
-                                    for (int xd = 0; xd < diffuseMap.length; xd++) {                // overloop alle lichtwaarden in de diffusemap
-                                        for (int yd = 0; yd < diffuseMap.length; yd++) {
-                                            for (int zd = 0; zd < diffuseMap.length; zd++) {
-                                                int xA = i + xd - (diffuseMap.length / 2);
-                                                int yA = y + yd - (diffuseMap.length / 2);
-                                                int zA = k + zd - (diffuseMap.length / 2);
-                                                if (diffuseMap[xd][yd][zd] > fChunkColumn.getSunlightValue(xA, yA, zA)) {
-                                                    setSunlightValue(xA, yA, zA, diffuseMap[xd][yd][zd]);
+    public void updateCaveSunlight() {
+        if (fNeedsUpdate) {
+            int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
+            for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {   // overloop alle blocken in de Chunk
+                for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
+                    for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
+                        if (y < highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] - 1 && get(x, y, z) == null) {
+                            for (int i = (x - 1); i <= (x + 1); i++) {       // loop over alle buren van de block in het vlak x, z
+                                for (int k = (z - 1); k <= (z + 1); k++) {
+                                    float neighbourSunlightValue = fWorld.getSunlightValue(i, y, k);
+                                    if (neighbourSunlightValue > Lighting.MIN_LIGHT_VALUE) {
+                                        float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, i, y, k, neighbourSunlightValue);
+                                        for (int xd = 0; xd < diffuseMap.length; xd++) {                // overloop alle lichtwaarden in de diffusemap
+                                            for (int yd = 0; yd < diffuseMap.length; yd++) {
+                                                for (int zd = 0; zd < diffuseMap.length; zd++) {
+                                                    int xA = i + xd - (diffuseMap.length / 2);
+                                                    int yA = y + yd - (diffuseMap.length / 2);
+                                                    int zA = k + zd - (diffuseMap.length / 2);
+                                                    if (diffuseMap[xd][yd][zd] > fWorld.getSunlightValue(xA, yA, zA)) {
+                                                        setSunlightValue(xA, yA, zA, diffuseMap[xd][yd][zd]);
+                                                    }
                                                 }
                                             }
                                         }
@@ -198,31 +202,33 @@ public class Chunk {
         }
     }
 
-    private void updateLightSources() {
-        for (Block b : fLightSources) {
-            float[][][] RedDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getRedLightValue());
-            float[][][] GreenDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getGreenLightValue());
-            float[][][] BlueDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getBlueLightValue());
-            for (int xd = 0; xd < RedDiffuseMap.length; xd++) {
-                for (int yd = 0; yd < RedDiffuseMap.length; yd++) {
-                    for (int zd = 0; zd < RedDiffuseMap.length; zd++) {
-                        int xA = b.getX() + xd - (RedDiffuseMap.length / 2);
-                        int yA = b.getY() + yd - (RedDiffuseMap.length / 2);
-                        int zA = b.getZ() + zd - (RedDiffuseMap.length / 2);
-                        Vector3f lightColor = fWorld.getLightColor(xA, yA, zA);
-                        float newRedLightValue = lightColor.x;
-                        float newGreenLightValue = lightColor.y;
-                        float newBlueLightValue = lightColor.z;
-                        if (RedDiffuseMap[xd][yd][zd] > 0.001f) {
-                            newRedLightValue = (lightColor.x + RedDiffuseMap[xd][yd][zd]) / (1 + (lightColor.x * RedDiffuseMap[xd][yd][zd]));
+    public void updateLightSources() {
+        if (fNeedsUpdate) {
+            for (Block b : fLightSources) {
+                float[][][] RedDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getRedLightValue());
+                float[][][] GreenDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getGreenLightValue());
+                float[][][] BlueDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getBlueLightValue());
+                for (int xd = 0; xd < RedDiffuseMap.length; xd++) {
+                    for (int yd = 0; yd < RedDiffuseMap.length; yd++) {
+                        for (int zd = 0; zd < RedDiffuseMap.length; zd++) {
+                            int xA = b.getX() + xd - (RedDiffuseMap.length / 2);
+                            int yA = b.getY() + yd - (RedDiffuseMap.length / 2);
+                            int zA = b.getZ() + zd - (RedDiffuseMap.length / 2);
+                            Vector3f lightColor = fWorld.getLightColor(xA, yA, zA);
+                            float newRedLightValue = lightColor.x;
+                            float newGreenLightValue = lightColor.y;
+                            float newBlueLightValue = lightColor.z;
+                            if (RedDiffuseMap[xd][yd][zd] > 0.001f) {
+                                newRedLightValue = (lightColor.x + RedDiffuseMap[xd][yd][zd]) / (1 + (lightColor.x * RedDiffuseMap[xd][yd][zd]));
+                            }
+                            if (GreenDiffuseMap[xd][yd][zd] > 0.001f) {
+                                newGreenLightValue = (lightColor.y + GreenDiffuseMap[xd][yd][zd]) / (1 + (lightColor.y * GreenDiffuseMap[xd][yd][zd]));
+                            }
+                            if (BlueDiffuseMap[xd][yd][zd] > 0.001f) {
+                                newBlueLightValue = (lightColor.z + BlueDiffuseMap[xd][yd][zd]) / (1 + (lightColor.z * BlueDiffuseMap[xd][yd][zd]));
+                            }
+                            fWorld.setLightColor(xA, yA, zA, new Vector3f(newRedLightValue, newGreenLightValue, newBlueLightValue));
                         }
-                        if (GreenDiffuseMap[xd][yd][zd] > 0.001f) {
-                            newGreenLightValue = (lightColor.y + GreenDiffuseMap[xd][yd][zd]) / (1 + (lightColor.y * GreenDiffuseMap[xd][yd][zd]));
-                        }
-                        if (BlueDiffuseMap[xd][yd][zd] > 0.001f) {
-                            newBlueLightValue = (lightColor.z + BlueDiffuseMap[xd][yd][zd]) / (1 + (lightColor.z * BlueDiffuseMap[xd][yd][zd]));
-                        }
-                        fWorld.setLightColor(xA, yA, zA, new Vector3f(newRedLightValue, newGreenLightValue, newBlueLightValue));
                     }
                 }
             }

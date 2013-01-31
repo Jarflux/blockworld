@@ -142,7 +142,7 @@ public class Main extends SimpleApplication implements ActionListener {
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
         bulletAppState.getPhysicsSpace().add(player);
-        //cam.setLocation(new Vector3f(0, 30, 0));
+        cam.setLocation(new Vector3f(10, 5, 0));
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, bulletAppState);
         /*Chunk cnk = fBlockWorld.getChunk(0, 0, 0, true, true);
          cnk.setVisible(true);
