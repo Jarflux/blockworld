@@ -48,7 +48,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private static final int PLAYER_FALLSPEED = 30;
     private static final int PLAYER_JUMPSPEED = 8;
     private static final float PLAYER_WALKSPEED = 0.1f;// * 4f;
-    private static final float PLAYER_STEPHEIGHT = 0.25f;// * 4f;
+    private static final float PLAYER_STEPHEIGHT = 0.5f;// * 4f;
     private static final float PLAYER_HITBOX_HEIGHT = 0.75f;// * 4f;
     private static final float PLAYER_HITBOX_RADIUS = 0.25f;// * 4f;
     private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 55, 0);
@@ -97,15 +97,16 @@ public class Main extends SimpleApplication implements ActionListener {
         Texture text = assetManager.loadTexture("Textures/dirt.png");
         text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         text.setMagFilter(Texture.MagFilter.Nearest);
-        fBlockMat.setTexture("DiffuseMap", text);
         */
+        //fBlockMat.setTexture("DiffuseMap", fTerrainTexture);
+        
         //fBlockMat.setBoolean("VertexLighting", true);
         //fBlockMat.setBoolean("HighQuality", true);
         //fBlockMat.setBoolean("UseMaterialColors",true);
         //fBlockMat.setBoolean("WardIso", true);
         //fBlockMat.setBoolean("SeparateTexCoord", true);
 
-        //fBlockMat.setTexture("ColorMap", text);
+        //fBlockMat.setTexture("ColorMap", fTerrainTexture);
         //fBlockMat.setColor("Color", ColorRGBA.Green);
         //fBlockMat.getAdditionalRenderState().setWireframe(true);
         //fBlockMat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);

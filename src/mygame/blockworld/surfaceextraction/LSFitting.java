@@ -40,7 +40,7 @@ public class LSFitting implements MeshCreator {
         }
     }
     
-    private static final int NORMAL_SMOOTHNESS = 1; //min 1
+    private static final int NORMAL_SMOOTHNESS = 2; //min 1
     
     //wrong but simple normal calculation
     //TODO calculate normal using least squares aproximation
@@ -56,7 +56,7 @@ public class LSFitting implements MeshCreator {
         return normal.normalizeLocal();
     }
     
-    private static final int BLOCK_SMOOTHNESS = 0; //min 0
+    private static final int BLOCK_SMOOTHNESS = 2; //min 0
     private static Vector3f calculateVertexPosition(BlockWorld world, Chunk chunk, int x, int y, int z) {
         float xOriginal = x - .5f;
         float yOriginal = y - .5f;
@@ -69,28 +69,38 @@ public class LSFitting implements MeshCreator {
         Set<Coordinate> connectedCorners = new HashSet<Coordinate>();
         findConnectedCorners(world, chunk, new Coordinate(x, y, z), false, false, BLOCK_SMOOTHNESS, connectedCorners);
         
-        float xP = 0f;
-        float yP = 0f;
-        float zP = 0f;
+        float u = 0f;
+        float v = 0f;
+        float w = 0f;
+        float t = 0f;
         
         float samples = 0;
         
         for(Coordinate corner : connectedCorners) {
+            int distance = Math.abs(x - corner.x) + Math.abs(y - corner.y) + Math.abs(z - corner.z);
             Vector3f normal = calculateNormal(world, chunk, corner.x, corner.y, corner.z);
             if(!normal.equals(Vector3f.ZERO)) {
+                u += normal.x * distance;
+                v += normal.y * distance;
+                w += normal.z * distance;
                 //calculate t from the formula ux + vy + wz + t = 0; (u,v,w) is the normal
-                float t = - normal.x * (corner.x - .5f) - normal.y * (corner.y - .5f) - normal.z * (corner.z - .5f);
-                //calculate r from the formula projectedPoint = originalPoint + r * normal
-                float r = (xOriginal * normal.x + yOriginal * normal.y + zOriginal * normal.z + t) / (normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
-                xP += xOriginal - r * normal.x;
-                yP += yOriginal - r * normal.y;
-                zP += zOriginal - r * normal.z;
-                samples += 1f;
+                t += (- normal.x * (corner.x - .5f) - normal.y * (corner.y - .5f) - normal.z * (corner.z - .5f)) * distance;
+                
+                samples += 1f * distance;
             }
         }
+        u = u / samples;
+        v = v / samples;
+        w = w / samples;
+        t = t / samples;
         
-        //Calculate the average between the original and the projections
-        Vector3f newPosition = new Vector3f(xP/samples, yP/samples, zP/samples);
+        //calculate r from the formula projectedPoint = originalPoint + r * normal
+        float r = (xOriginal * u + yOriginal * v + zOriginal * w + t) / (u * u + v * v + w * w);
+        float xP = xOriginal - r * u;
+        float yP = yOriginal - r * v;
+        float zP = zOriginal - r * w;
+
+        Vector3f newPosition = new Vector3f(xP, yP, zP);
         
         return newPosition;
     }
