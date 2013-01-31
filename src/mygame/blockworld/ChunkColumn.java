@@ -97,8 +97,7 @@ public class ChunkColumn {
             lightValue = Lighting.MAX_LIGHT_VALUE;
         }
         if (y > highestBlock && y < 0) {
-            lightValue = Lighting.MAX_LIGHT_VALUE;
-            //lightValue = Math.max(Lighting.MIN_LIGHT_VALUE, (float) Math.pow(Lighting.SUNLIGHT_DEGRADING_CONSTANT, (-y)));
+            lightValue = Math.max(Lighting.MIN_LIGHT_VALUE, (float) Math.pow(Lighting.SUNLIGHT_DEGRADING_CONSTANT, (-y)));
         }
         return lightValue;
     }

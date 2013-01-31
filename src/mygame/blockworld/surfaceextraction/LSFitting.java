@@ -40,7 +40,7 @@ public class LSFitting implements MeshCreator {
         }
     }
     
-    private static final int NORMAL_SMOOTHNESS = 2; //min 1
+    private static final int NORMAL_SMOOTHNESS = 1; //min 1
     
     //wrong but simple normal calculation
     //TODO calculate normal using least squares aproximation
@@ -56,14 +56,18 @@ public class LSFitting implements MeshCreator {
         return normal.normalizeLocal();
     }
     
-    private static final int BLOCK_SMOOTHNESS = 2; //min 0
+    private static final int BLOCK_SMOOTHNESS = 0; //min 0
     private static Vector3f calculateVertexPosition(BlockWorld world, Chunk chunk, int x, int y, int z) {
-        Set<Coordinate> connectedCorners = new HashSet<Coordinate>();
-        findConnectedCorners(world, chunk, new Coordinate(x, y, z), false, false, BLOCK_SMOOTHNESS, connectedCorners);
-        
         float xOriginal = x - .5f;
         float yOriginal = y - .5f;
         float zOriginal = z - .5f;
+        
+        if(BLOCK_SMOOTHNESS == 0) {
+            return new Vector3f(xOriginal, yOriginal, zOriginal);
+        }
+        
+        Set<Coordinate> connectedCorners = new HashSet<Coordinate>();
+        findConnectedCorners(world, chunk, new Coordinate(x, y, z), false, false, BLOCK_SMOOTHNESS, connectedCorners);
         
         float xP = 0f;
         float yP = 0f;

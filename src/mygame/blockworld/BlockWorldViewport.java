@@ -63,13 +63,11 @@ public class BlockWorldViewport {
         for (Chunk cnk : fShown) {
             cnk.removeLight();
         }
-        for (Chunk cnk : fShown) {
-            if (cnk.fNeedsUpdate) {
-                for (int i = (y / Chunk.CHUNK_SIZE) * Chunk.CHUNK_SIZE + VIEW_LENGTH; y >= ((y / Chunk.CHUNK_SIZE) - VIEW_LENGTH) * Chunk.CHUNK_SIZE; y--) {
-                    if (i > cnk.getY() && i < cnk.getY() + Chunk.CHUNK_SIZE) {
-                        cnk.updateSunlight(i);
-                    }
-                }
+        int yMax = ((y / Chunk.CHUNK_SIZE) + VIEW_LENGTH + 1) * Chunk.CHUNK_SIZE;
+        int yMin = ((y / Chunk.CHUNK_SIZE) - VIEW_LENGTH) * Chunk.CHUNK_SIZE;
+        for(int i = yMax; i >= yMin; i--) {
+            for(Chunk cnk : fShown) {
+                cnk.updateSunlight(i);
             }
         }
         for (Chunk cnk : fShown) {
