@@ -107,12 +107,6 @@ public class Chunk {
         fLightMap.clear();
     }
 
-    public void updateLight() {
-        if (fNeedsUpdate) {
-            updateChunkLight();
-        }
-    }
-
     public void updateVisualMesh() {
         if (fNeedsUpdate || fPreviousCreator != fMeshCreator) {
             updateChunkVisualMesh();
@@ -127,16 +121,9 @@ public class Chunk {
         }
     }
 
-    protected void updateChunkLight() {
-        updateSunlight();
-        updateCaveSunlight();
-        updateLightSources();
-    }
-
-    public void updateSunlight() {
+    public void updateSunlight(int y) { 
         if (fNeedsUpdate) {
-            int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
-            for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {
+            int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();  
                 for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
                     for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
                         if (y > highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] || get(x, y, z) != null) {
@@ -148,7 +135,7 @@ public class Chunk {
                             continue;
                         }
                         float constante = 1f;
-                        lightValue = getSunlightValue(x, y, z);
+                        lightValue = fWorld.getSunlightValue(x, y, z); 
                         if (((fWorld.getBlock(x - 1, y, z) == null) || (fWorld.getBlock(x, y + 1, z) == null)) && fWorld.getSunlightValue(x - 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
                             lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x - 1, y + 1, z) * constante));
                         }
@@ -162,8 +149,7 @@ public class Chunk {
                             lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y + 1, z + 1) * constante));
                         }
                         fWorld.setSunlightValue(x, y, z, lightValue);
-                    }
-                }
+                    }  
             }
         }
     }

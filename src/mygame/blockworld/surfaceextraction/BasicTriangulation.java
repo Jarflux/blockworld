@@ -15,13 +15,14 @@ import java.util.List;
 import mygame.blockworld.Block;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
+import mygame.blockworld.ChunkColumn;
 
 /**
  *
  * @author Nathan
  */
 public class BasicTriangulation implements MeshCreator {
-    
+
     private static void addTextureCoords(List<Vector2f> texCoord, int texId, boolean swap) {
         float texIdX = texId % 16;
         float texIdY = (texId - texIdX) / 16;
@@ -71,16 +72,13 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
-                            
-                            lightColor = world.getLightColor(i, j+1, k);
-                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j+1, k));
-                            
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);                           
+
+                            light.add(getAvgLightAlpha(world, i - 1, j, k - 1));
+                            light.add(getAvgLightAlpha(world, i - 1, j, k));
+                            light.add(getAvgLightAlpha(world, i, j, k));
+                            light.add(getAvgLightAlpha(world, i, j, k - 1));
                         }
-                        
+
                         //Check bottom
                         if (world.getChunk(i, j - 1, k, true).get(i, j - 1, k) == null) {
                             vertices.add(new Vector3f(i - .5f, j - .5f, k - .5f));
@@ -99,15 +97,12 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
-                            
-                            lightColor = world.getLightColor(i, j-1, k);
-                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j-1, k));
-                            
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-       
+
+                            light.add(getAvgLightAlpha(world, i - 1, j - 1, k - 1));
+                            light.add(getAvgLightAlpha(world, i, j - 1, k - 1));
+                            light.add(getAvgLightAlpha(world, i - 1, j - 1, k));
+                            light.add(getAvgLightAlpha(world, i, j - 1, k));
+
                         }
                         //Check right
                         if (world.getChunk(i + 1, j, k, true).get(i + 1, j, k) == null) {
@@ -127,14 +122,11 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
-                            
-                            lightColor = world.getLightColor(i+1, j, k);
-                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i+1, j, k));
-                            
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
+
+                            light.add(getAvgLightAlpha(world, i, j - 1, k - 1));
+                            light.add(getAvgLightAlpha(world, i, j, k - 1));
+                            light.add(getAvgLightAlpha(world, i, j, k));
+                            light.add(getAvgLightAlpha(world, i, j - 1, k));
                         }
                         //Check left
                         if (world.getChunk(i - 1, j, k, true).get(i - 1, j, k) == null) {
@@ -154,14 +146,11 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
-                            
-                            lightColor = world.getLightColor(i-1, j, k);
-                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i-1, j, k));
-                            
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
+
+                            light.add(getAvgLightAlpha(world, i - 1, j - 1, k - 1));
+                            light.add(getAvgLightAlpha(world, i - 1, j - 1, k));
+                            light.add(getAvgLightAlpha(world, i - 1, j, k));
+                            light.add(getAvgLightAlpha(world, i - 1, j, k - 1));
                         }
                         //Check back
                         if (world.getChunk(i, j, k + 1, true).get(i, j, k + 1) == null) {
@@ -181,14 +170,11 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
-                            
-                            lightColor = world.getLightColor(i, j, k+1);
-                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j, k+1));
-                            
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
+
+                            light.add(getAvgLightAlpha(world, i - 1, j - 1, k));
+                            light.add(getAvgLightAlpha(world, i, j - 1, k));
+                            light.add(getAvgLightAlpha(world, i, j, k));
+                            light.add(getAvgLightAlpha(world, i - 1, j, k));
                         }
                         //Check front
                         if (world.getChunk(i, j, k - 1, true).get(i, j, k - 1) == null) {
@@ -208,14 +194,11 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 2);
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
-                            
-                            lightColor = world.getLightColor(i, j, k-1);
-                            lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j, k-1));
-                            
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            light.add(lightAlpha);
+
+                            light.add(getAvgLightAlpha(world, i - 1, j - 1, k - 1));
+                            light.add(getAvgLightAlpha(world, i - 1, j, k - 1));
+                            light.add(getAvgLightAlpha(world, i, j - 1, k - 1));
+                            light.add(getAvgLightAlpha(world, i, j, k - 1));
                         }
                     }
                 }
@@ -247,6 +230,53 @@ public class BasicTriangulation implements MeshCreator {
         mesh.updateCounts();
         mesh.updateBound();
         return mesh;
+    }
+
+    /*krijg vertex coordinaten x, y, z mee (.5 waarden)
+     zet divider, sunlight, red, green, blue op 0
+     zoek de absolute coordinaat(xA.yA,zA) van het blockje linksonder de vertex -> x -0.5, y-0.5, z-0.5 
+     for xA -> xA +1     
+     for yA -> yA +1
+     for zA -> zA +1
+     if block(xA,yA,zA) != null {
+     divider ++
+     sunlight += getSunlight
+     red += getLightColor.x
+     ..
+     }
+     }
+     }
+     if divider = 0
+     return kleur 0,0,0,0
+     else 
+     return kleur red/divider, green /divider,..  
+     */
+    public static Vector4f getAvgLightAlpha(BlockWorld world, int x, int y, int z) {
+        int samples = 0;
+        float lightColorRed = 0;
+        float lightColorGreen = 0;
+        float lightColorBlue = 0;
+        float sunlight = 0;
+        Block b;
+        for (int i = x - 1; i <= x + 1; i++) {
+            for (int j = y - 1; j <= y + 1; j++) {
+                for (int k = z - 1; k <= z + 1; k++) {
+                    b = world.getBlock(i, j, k);
+                    if (b != null) {
+                        Vector3f lightColor = world.getLightColor(i, j, k);
+                        lightColorRed = lightColorRed + lightColor.x;
+                        lightColorGreen = lightColorGreen + lightColor.y;
+                        lightColorBlue = lightColorBlue + lightColor.z;
+                        sunlight = sunlight + world.getSunlightValue(i, j, k);
+                        samples++;
+                    }
+                }
+            }
+        }
+        if (samples == 0) {
+            return new Vector4f(0f, 0f, 0f, 0f);
+        }
+        return new Vector4f(lightColorRed / samples, lightColorGreen / samples, lightColorBlue / samples, sunlight / samples);
     }
 
     public Mesh calculateMesh(BlockWorld world, Chunk chunk) {

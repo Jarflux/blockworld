@@ -61,22 +61,28 @@ public class BlockWorldViewport {
         fY = y;
         fZ = z;
         for (Chunk cnk : fShown) {
-                cnk.removeLight();
+            cnk.removeLight();
         }
         for (Chunk cnk : fShown) {
-                cnk.updateSunlight();
+            if (cnk.fNeedsUpdate) {
+                for (int i = (y / Chunk.CHUNK_SIZE) * Chunk.CHUNK_SIZE + VIEW_LENGTH; y >= ((y / Chunk.CHUNK_SIZE) - VIEW_LENGTH) * Chunk.CHUNK_SIZE; y--) {
+                    if (i > cnk.getY() && i < cnk.getY() + Chunk.CHUNK_SIZE) {
+                        cnk.updateSunlight(i);
+                    }
+                }
+            }
         }
         for (Chunk cnk : fShown) {
-                cnk.updateCaveSunlight();
+            cnk.updateCaveSunlight();
         }
         for (Chunk cnk : fShown) {
-                cnk.updateLightSources();
+            cnk.updateLightSources();
         }
         for (Chunk cnk : fShown) {
-                cnk.updateVisualMesh();
+            cnk.updateVisualMesh();
         }
         for (Chunk cnk : fShown) {
-                cnk.updatePhysicsMesh();
+            cnk.updatePhysicsMesh();
         }
         long end = System.nanoTime();
         //System.out.println("Visual update took : " + (end - start));
