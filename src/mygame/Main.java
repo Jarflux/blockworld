@@ -227,7 +227,7 @@ public class Main extends SimpleApplication implements ActionListener {
    }
    
    private void updateDayNightCycle(float value){
-       fDayAlpha += value;
+       //fDayAlpha += value;
        float newvalue = (float) Math.min(1, 2- Math.pow(2,Math.sin(fDayAlpha*2*Math.PI)));
        fBlockMat.setFloat("DayAlpha", newvalue);
        setBackground(newvalue);

@@ -126,6 +126,12 @@ public class Chunk {
     }
 
     protected void updateChunkLight() {
+        updateSunlight();
+        updateCaveSunlight();
+        updateLightSources();
+    }
+
+    private void updateSunlight() {
         int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
         for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {
             for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
@@ -156,6 +162,42 @@ public class Chunk {
                 }
             }
         }
+    }
+
+    private void updateCaveSunlight() {
+        int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
+        for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {   // overloop alle blocken in de Chunk
+            for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
+                for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
+                    if (y < highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] - 1 && get(x, y, z) == null && fChunkColumn.getSunlightValue(x, y, z) == Lighting.MIN_LIGHT_VALUE) {
+                        for (int i = (x - 1); i <= (x + 1); i++) {       // loop over alle buren van de block in het vlak x, z
+                            for (int k = (z - 1); k <= (z + 1); k++) {           
+                                float neighbourSunlightValue = fWorld.getSunlightValue(i, y, k);
+                                if (neighbourSunlightValue > Lighting.MIN_LIGHT_VALUE) {
+                                    System.out.println("On the Case");
+                                    float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, i, y, k, neighbourSunlightValue);
+                                    for (int xd = 0; xd < diffuseMap.length; xd++) {                // overloop alle lichtwaarden in de diffusemap
+                                        for (int yd = 0; yd < diffuseMap.length; yd++) {
+                                            for (int zd = 0; zd < diffuseMap.length; zd++) {
+                                                int xA = i + xd - (diffuseMap.length / 2);
+                                                int yA = y + yd - (diffuseMap.length / 2);
+                                                int zA = k + zd - (diffuseMap.length / 2);
+                                                if (diffuseMap[xd][yd][zd] > fChunkColumn.getSunlightValue(xA, yA, zA)) {
+                                                    setSunlightValue(xA, yA, zA, diffuseMap[xd][yd][zd]);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void updateLightSources() {
         for (Block b : fLightSources) {
             float[][][] RedDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getRedLightValue());
             float[][][] GreenDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getGreenLightValue());
@@ -186,7 +228,7 @@ public class Chunk {
         }
     }
 
-protected void updateChunkVisualMesh() {
+    protected void updateChunkVisualMesh() {
         fPreviousCreator = fMeshCreator;
         if (!isVisible()) {
             return;
