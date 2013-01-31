@@ -107,6 +107,7 @@ public class Chunk {
         fLightMap.clear();
     }
 
+
     public void updateVisualMesh() {
         if (fNeedsUpdate || fPreviousCreator != fMeshCreator) {
             updateChunkVisualMesh();
@@ -121,7 +122,8 @@ public class Chunk {
         }
     }
 
-    public void updateSunlight(int y) { 
+
+    public void updateSunlight(int y) {
         if (fNeedsUpdate) {
             int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();  
                 for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
