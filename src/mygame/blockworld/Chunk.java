@@ -60,7 +60,7 @@ public class Chunk {
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
-    protected ChunkGenerator fChunkGenerator = new FlatTerrainGenerator();
+    protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
     protected static MeshCreator fMeshCreator = new LSFitting();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
@@ -256,13 +256,14 @@ public class Chunk {
         if (fChunkPhysics != null) {
             fChunkMesh.removeControl(fChunkPhysics);
         }
-        Mesh shape = BasicTriangulation.basicTriangulation(fWorld, this);
+        /*Mesh shape = BasicTriangulation.basicTriangulation(fWorld, this);
         if (shape == null) {
             return;
         }
         Geometry nodeShape = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, shape);
+        */
         CollisionShape chunkShape =
-                CollisionShapeFactory.createMeshShape(nodeShape);
+                CollisionShapeFactory.createMeshShape(fChunkMesh/*nodeShape*/);
         fChunkPhysics = new RigidBodyControl(chunkShape, 0);
         fChunkMesh.addControl(fChunkPhysics);
         fPhysicsState.getPhysicsSpace().add(fChunkPhysics);
