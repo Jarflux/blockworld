@@ -32,6 +32,7 @@ import mygame.Lighting;
 import mygame.MathUtil;
 import mygame.blockworld.chunkgenerators.ChunkGenerator;
 import mygame.blockworld.surfaceextraction.BasicTriangulation;
+import mygame.blockworld.surfaceextraction.LSFitting;
 import mygame.blockworld.surfaceextraction.MarchingCubes;
 import mygame.blockworld.surfaceextraction.MeshCreator;
 
@@ -59,7 +60,7 @@ public class Chunk {
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
     protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
-    protected static MeshCreator fMeshCreator = new MarchingCubes();
+    protected static MeshCreator fMeshCreator = new LSFitting();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
     public Chunk(BlockWorld world, ChunkColumn chunkColumn, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {

@@ -26,8 +26,6 @@ import mygame.blockworld.Chunk;
  */
 public class MarchingCubes implements MeshCreator{
     
-    //vGetNormal() finds the gradient of the scalar field at a point
-    //This gradient can be used as a very accurate vertx normal for lighting calculations
     private static Vector3f getNormal(BlockWorld world, int x, int y, int z)
     {
             Vector3f normal = new Vector3f();

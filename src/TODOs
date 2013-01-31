@@ -2,7 +2,9 @@ TODO's New Feature:
 - Add splash & menu screens
 - Change key-bindings
 - (Ben) Implement lightning & shadows, and light sources from sun, moon?, blocks, (yet to be implemented) objects, ...
-- (Nathan) Implement "mini"-cubes
+- Add flikkering light sources
+- Add moveable light sources (maybe of both constant & flikkering type)
+- Add shadows from objects
 - Add objects (like a flower, a football, ...) (idea: objects are build out of very tiny cubs?)
 - Add an ingame object maker system (if using objects made out of cubes this could get realy interesting, think about a woodcarver using his skills & tools to sculp art from a chunk of wood)
 - Add NPC's (like sheep, cows, zombies, ...) (don't mind AI too much yet, just basic wandering around is enough, we don't know yet how we'll use them)
@@ -14,7 +16,7 @@ TODO's New Feature:
 - Implement basic finite fluids (like water that overflows its container) (idea: make fluids evaporate, rain-down, sink through certain block-types (at a certain rate))
 - Implement fluid physics (pressure)
 - (Nathan) Implement a way to "smooth" the blocks into a more classic 3D RPG-like enviroment
-- (Nathan) Implement terrain "streaming" (loading & saving chunks to disk)
+- Implement terrain "streaming" (loading & saving chunks to disk) (need first to refactor internal storage)
 - Make animated objects (voxel animation possible?)
 
 TODO's Optimizations:
@@ -26,6 +28,8 @@ TODO's Optimizations:
 - BlockWorld change nested hashmap to map<string,chunkcolumn>
 
 TODO's Refactoring:
+- The way voxel data is stored
+- The way data is saved to file
 - Everything :(
 
 TODO's Debugging:
