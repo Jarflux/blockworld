@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import mygame.Lighting;
 import mygame.MathUtil;
 import mygame.blockworld.chunkgenerators.ChunkGenerator;
+import mygame.blockworld.chunkgenerators.FlatTerrainGenerator;
 import mygame.blockworld.surfaceextraction.BasicTriangulation;
 import mygame.blockworld.surfaceextraction.LSFitting;
 import mygame.blockworld.surfaceextraction.MarchingCubes;
@@ -145,7 +146,7 @@ public class Chunk {
                         setSunlightValue(x, y, z, lightValue);
                         continue;
                     }
-                    float constante = 0.5f;
+                    float constante = 1f;
                     lightValue = getSunlightValue(x, y, z);
                     if ((fWorld.getBlock(x - 1, y, z) == null) && fWorld.getSunlightValue(x - 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
                         lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x - 1, y + 1, z) * constante));
@@ -170,12 +171,11 @@ public class Chunk {
         for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {   // overloop alle blocken in de Chunk
             for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
                 for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
-                    if (y < highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] - 1 && get(x, y, z) == null && fChunkColumn.getSunlightValue(x, y, z) == Lighting.MIN_LIGHT_VALUE) {
+                    if (y < highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] - 1 && get(x, y, z) == null) {
                         for (int i = (x - 1); i <= (x + 1); i++) {       // loop over alle buren van de block in het vlak x, z
                             for (int k = (z - 1); k <= (z + 1); k++) {           
                                 float neighbourSunlightValue = fWorld.getSunlightValue(i, y, k);
                                 if (neighbourSunlightValue > Lighting.MIN_LIGHT_VALUE) {
-                                    System.out.println("On the Case");
                                     float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, i, y, k, neighbourSunlightValue);
                                     for (int xd = 0; xd < diffuseMap.length; xd++) {                // overloop alle lichtwaarden in de diffusemap
                                         for (int yd = 0; yd < diffuseMap.length; yd++) {
@@ -262,13 +262,14 @@ public class Chunk {
         if (fChunkPhysics != null) {
             fChunkMesh.removeControl(fChunkPhysics);
         }
-        Mesh shape = BasicTriangulation.basicTriangulation(fWorld, this);
+        /*Mesh shape = BasicTriangulation.basicTriangulation(fWorld, this);
         if (shape == null) {
             return;
         }
         Geometry nodeShape = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, shape);
+        */
         CollisionShape chunkShape =
-                CollisionShapeFactory.createMeshShape(nodeShape);
+                CollisionShapeFactory.createMeshShape(fChunkMesh/*nodeShape*/);
         fChunkPhysics = new RigidBodyControl(chunkShape, 0);
         fChunkMesh.addControl(fChunkPhysics);
         fPhysicsState.getPhysicsSpace().add(fChunkPhysics);

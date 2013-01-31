@@ -85,10 +85,10 @@ public class Main extends SimpleApplication implements ActionListener {
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         
-        fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
         fTerrainTexture = assetManager.loadTexture("Textures/terrain.png");
         fTerrainTexture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         fTerrainTexture.setMagFilter(Texture.MagFilter.Nearest);
+        fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
         fBlockMat.setTexture("m_Terrain", fTerrainTexture);
         fBlockMat.setVector4("SunColor", new Vector4f(1f, 1f, 1f, 1f));
         fBlockMat.setVector4("MoonColor", new Vector4f(.01f, .01f, .05f, 1f));
@@ -191,11 +191,11 @@ public class Main extends SimpleApplication implements ActionListener {
         //skyDome.setControlFog(true);
 
         // Add the directional light you use for sun… or not
-        DirectionalLight sun = new DirectionalLight();
-        sun.setColor(ColorRGBA.White.mult(0.9f));
-        sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
-        rootNode.addLight(sun);
-       // skyDome.setSun(sun);
+        //DirectionalLight sun = new DirectionalLight();
+        //sun.setColor(ColorRGBA.White.mult(0.9f));
+        //sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
+        //rootNode.addLight(sun);
+        // skyDome.setSun(sun);
         //skyDome.setDayNightTransitionSpeed(1f);
         //skyDome.setMoonSpeed(0.5f);
 

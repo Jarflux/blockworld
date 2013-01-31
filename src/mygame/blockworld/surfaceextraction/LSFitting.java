@@ -40,35 +40,55 @@ public class LSFitting implements MeshCreator {
         }
     }
     
+    private static final int NORMAL_SMOOTHNESS = 2; //min 1
+    
     //wrong but simple normal calculation
     //TODO calculate normal using least squares aproximation
-    private static Vector3f calculateNormal(BlockWorld world, int x, int y, int z)
-    {
-            Vector3f normal = new Vector3f();
-            normal.x = ((world.getBlock(x-1, y, z)==null)? 0f : 1f) - ((world.getBlock(x+1, y, z)==null)? 0f : 1f);
-            normal.y = ((world.getBlock(x, y-1, z)==null)? 0f : 1f) - ((world.getBlock(x, y+1, z)==null)? 0f : 1f);
-            normal.z = ((world.getBlock(x, y, z-1)==null)? 0f : 1f) - ((world.getBlock(x, y, z+1)==null)? 0f : 1f);
-            return normal.normalizeLocal();
+    private static Vector3f calculateNormal(BlockWorld world, Chunk chunk, int x, int y, int z)
+    {   
+        Vector3f position = new Vector3f(x - .5f, y - .5f, z - .5f);
+        Vector3f normal = new Vector3f(0,0,0);
+        Set<Coordinate> connectedCorners = new HashSet<Coordinate>();
+        findConnectedCorners(world, chunk, new Coordinate(x, y, z), false, true, NORMAL_SMOOTHNESS, connectedCorners);
+        for(Coordinate corner : connectedCorners) {
+            normal.addLocal(position.subtract(new Vector3f(corner.x - .5f, corner.y - .5f, corner.z - .5f)));
+        }
+        return normal.normalizeLocal();
     }
     
-    private static final int BLOCK_SMOOTHNESS = 1;
+    private static final int BLOCK_SMOOTHNESS = 2; //min 0
     private static Vector3f calculateVertexPosition(BlockWorld world, Chunk chunk, int x, int y, int z) {
         Set<Coordinate> connectedCorners = new HashSet<Coordinate>();
-        findConnectedCorners(world, chunk, new Coordinate(x, y, z), BLOCK_SMOOTHNESS, connectedCorners);
-        
-        for(Coordinate corner : connectedCorners) {
-            Vector3f normal = calculateNormal(world, corner.x, corner.y, corner.z);
-            float t = - normal.x * (corner.x - .5f) - normal.y * (corner.y - .5f) - normal.z * (corner.z - .5f);
-            //TODO given plane determine the projection of the corner in orthogonal to the plane
-        }
-        
-        //TODO use the resulting projections to generate a value for the position of the corner
+        findConnectedCorners(world, chunk, new Coordinate(x, y, z), false, false, BLOCK_SMOOTHNESS, connectedCorners);
         
         float xOriginal = x - .5f;
         float yOriginal = y - .5f;
         float zOriginal = z - .5f;
         
-        return new Vector3f(xOriginal, yOriginal, zOriginal);
+        float xP = 0f;
+        float yP = 0f;
+        float zP = 0f;
+        
+        float samples = 0;
+        
+        for(Coordinate corner : connectedCorners) {
+            Vector3f normal = calculateNormal(world, chunk, corner.x, corner.y, corner.z);
+            if(!normal.equals(Vector3f.ZERO)) {
+                //calculate t from the formula ux + vy + wz + t = 0; (u,v,w) is the normal
+                float t = - normal.x * (corner.x - .5f) - normal.y * (corner.y - .5f) - normal.z * (corner.z - .5f);
+                //calculate r from the formula projectedPoint = originalPoint + r * normal
+                float r = (xOriginal * normal.x + yOriginal * normal.y + zOriginal * normal.z + t) / (normal.x * normal.x + normal.y * normal.y + normal.z * normal.z);
+                xP += xOriginal - r * normal.x;
+                yP += yOriginal - r * normal.y;
+                zP += zOriginal - r * normal.z;
+                samples += 1f;
+            }
+        }
+        
+        //Calculate the average between the original and the projections
+        Vector3f newPosition = new Vector3f(xP/samples, yP/samples, zP/samples);
+        
+        return newPosition;
     }
     
     private static class Coordinate {
@@ -85,14 +105,16 @@ public class LSFitting implements MeshCreator {
     }
     
     /**
-     * Finds the corners connected (via edges that are part of the surface) to the start corner.
+     * Finds the corners connected to the start corner.
      * @param world
      * @param chunk
      * @param start Corner for which to find the connected corners. Corners are identified by the block coordinates who have that corner as the one with the lowest x, y & z values.
+     * @param followGroundEdges If the algoritm must follow edges that are touching 4 empty blocks
+     * @param followAirEdges If the algoritm must follow edges that are touching 4 filled blocks
      * @param recursionDepth Maximum distance from the given coordinate to find connected corners
      * @param connectedCoordinates The set that will be filled with the connected corners
      */
-    public static void findConnectedCorners(BlockWorld world, Chunk chunk, Coordinate start, int recursionDepth, Set<Coordinate> connectedCoordinates) {
+    private static void findConnectedCorners(BlockWorld world, Chunk chunk, Coordinate start, boolean followGroundEdges, boolean followAirEdges, int recursionDepth, Set<Coordinate> connectedCoordinates) {
         connectedCoordinates.add(start);
         if(recursionDepth == 0) {
             return;
@@ -114,23 +136,23 @@ public class LSFitting implements MeshCreator {
         int edgeZNeg = block000 + block010 + block100 + block110;
         int edgeZPos = block001 + block011 + block101 + block111;
         
-        if(edgeXNeg >= 1 && edgeXNeg < 4) {
-            findConnectedCorners(world, chunk, new Coordinate(start.x-1,start.y,start.z), recursionDepth-1, connectedCoordinates);
+        if((followGroundEdges || edgeXNeg >= 1) && (followAirEdges || edgeXNeg < 4)) {
+            findConnectedCorners(world, chunk, new Coordinate(start.x-1,start.y,start.z), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
         }
-        if(edgeXPos >= 1 && edgeXPos < 4) {
-            findConnectedCorners(world, chunk, new Coordinate(start.x+1,start.y,start.z), recursionDepth-1, connectedCoordinates);
+        if((followGroundEdges || edgeXPos >= 1) && (followAirEdges || edgeXPos < 4)) {
+            findConnectedCorners(world, chunk, new Coordinate(start.x+1,start.y,start.z), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
         }
-        if(edgeYNeg >= 1 && edgeYNeg < 4) {
-            findConnectedCorners(world, chunk, new Coordinate(start.x,start.y-1,start.z), recursionDepth-1, connectedCoordinates);
+        if((followGroundEdges || edgeYNeg >= 1) && (followAirEdges || edgeYNeg < 4)) {
+            findConnectedCorners(world, chunk, new Coordinate(start.x,start.y-1,start.z), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
         }
-        if(edgeYPos >= 1 && edgeYPos < 4) {
-            findConnectedCorners(world, chunk, new Coordinate(start.x,start.y+1,start.z), recursionDepth-1, connectedCoordinates);
+        if((followGroundEdges || edgeYPos >= 1) && (followAirEdges || edgeYPos < 4)) {
+            findConnectedCorners(world, chunk, new Coordinate(start.x,start.y+1,start.z), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
         }
-        if(edgeZNeg >= 1 && edgeZNeg < 4) {
-            findConnectedCorners(world, chunk, new Coordinate(start.x,start.y,start.z-1), recursionDepth-1, connectedCoordinates);
+        if((followGroundEdges || edgeZNeg >= 1) && (followAirEdges || edgeZNeg < 4)) {
+            findConnectedCorners(world, chunk, new Coordinate(start.x,start.y,start.z-1), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
         }
-        if(edgeZPos >= 1 && edgeZPos < 4) {
-            findConnectedCorners(world, chunk, new Coordinate(start.x,start.y,start.z+1), recursionDepth-1, connectedCoordinates);
+        if((followGroundEdges || edgeZPos >= 1) && (followAirEdges || edgeZPos < 4)) {
+            findConnectedCorners(world, chunk, new Coordinate(start.x,start.y,start.z+1), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
         }
     }
 
@@ -155,10 +177,10 @@ public class LSFitting implements MeshCreator {
                             vertices.add(calculateVertexPosition(world, chunk, i, j + 1, k + 1));
                             vertices.add(calculateVertexPosition(world, chunk, i + 1, j + 1, k + 1));
                             vertices.add(calculateVertexPosition(world, chunk, i + 1, j + 1, k));
-                            normals.add(calculateNormal(world, i, j + 1, k));
-                            normals.add(calculateNormal(world, i, j + 1, k + 1));
-                            normals.add(calculateNormal(world, i + 1, j + 1, k + 1));
-                            normals.add(calculateNormal(world, i + 1, j + 1, k));
+                            normals.add(calculateNormal(world, chunk, i, j + 1, k));
+                            normals.add(calculateNormal(world, chunk, i, j + 1, k + 1));
+                            normals.add(calculateNormal(world, chunk, i + 1, j + 1, k + 1));
+                            normals.add(calculateNormal(world, chunk, i + 1, j + 1, k));
                             addTextureCoords(texCoord, block.getTextureTop(), false);
                             indexes.add(index);
                             indexes.add(index + 1);
@@ -183,10 +205,10 @@ public class LSFitting implements MeshCreator {
                             vertices.add(calculateVertexPosition(world, chunk, i + 1, j, k));
                             vertices.add(calculateVertexPosition(world, chunk, i + 1, j, k + 1));
                             vertices.add(calculateVertexPosition(world, chunk, i, j, k + 1));
-                            normals.add(calculateNormal(world, i, j, k));
-                            normals.add(calculateNormal(world, i + 1, j, k));
-                            normals.add(calculateNormal(world, i + 1, j, k + 1));
-                            normals.add(calculateNormal(world, i, j, k + 1));
+                            normals.add(calculateNormal(world, chunk, i, j, k));
+                            normals.add(calculateNormal(world, chunk, i + 1, j, k));
+                            normals.add(calculateNormal(world, chunk, i + 1, j, k + 1));
+                            normals.add(calculateNormal(world, chunk, i, j, k + 1));
                             addTextureCoords(texCoord, block.getTextureBottom(), false);
                             indexes.add(index);
                             indexes.add(index + 1);
@@ -211,10 +233,10 @@ public class LSFitting implements MeshCreator {
                             vertices.add(calculateVertexPosition(world, chunk, i + 1, j + 1, k));
                             vertices.add(calculateVertexPosition(world, chunk, i + 1, j + 1, k + 1));
                             vertices.add(calculateVertexPosition(world, chunk, i + 1, j, k + 1));
-                            normals.add(calculateNormal(world, i + 1, j, k));
-                            normals.add(calculateNormal(world, i + 1, j + 1, k));
-                            normals.add(calculateNormal(world, i + 1, j + 1, k + 1));
-                            normals.add(calculateNormal(world, i + 1, j, k + 1));
+                            normals.add(calculateNormal(world, chunk, i + 1, j, k));
+                            normals.add(calculateNormal(world, chunk, i + 1, j + 1, k));
+                            normals.add(calculateNormal(world, chunk, i + 1, j + 1, k + 1));
+                            normals.add(calculateNormal(world, chunk, i + 1, j, k + 1));
                             addTextureCoords(texCoord, block.getTextureRight(), true);
                             indexes.add(index);
                             indexes.add(index + 1);
@@ -238,10 +260,10 @@ public class LSFitting implements MeshCreator {
                             vertices.add(calculateVertexPosition(world, chunk, i, j, k + 1));
                             vertices.add(calculateVertexPosition(world, chunk, i, j + 1, k + 1));
                             vertices.add(calculateVertexPosition(world, chunk, i, j + 1, k));
-                            normals.add(calculateNormal(world, i, j, k));
-                            normals.add(calculateNormal(world, i, j, k + 1));
-                            normals.add(calculateNormal(world, i, j + 1, k + 1));
-                            normals.add(calculateNormal(world, i, j + 1, k));
+                            normals.add(calculateNormal(world, chunk, i, j, k));
+                            normals.add(calculateNormal(world, chunk, i, j, k + 1));
+                            normals.add(calculateNormal(world, chunk, i, j + 1, k + 1));
+                            normals.add(calculateNormal(world, chunk, i, j + 1, k));
                             addTextureCoords(texCoord, block.getTextureLeft(), false);
                             indexes.add(index);
                             indexes.add(index + 1);
@@ -265,10 +287,10 @@ public class LSFitting implements MeshCreator {
                             vertices.add(calculateVertexPosition(world, chunk, i + 1, j, k + 1));
                             vertices.add(calculateVertexPosition(world, chunk, i + 1, j + 1, k + 1));
                             vertices.add(calculateVertexPosition(world, chunk, i, j + 1, k + 1));
-                            normals.add(calculateNormal(world, i, j, k + 1));
-                            normals.add(calculateNormal(world, i + 1, j, k + 1));
-                            normals.add(calculateNormal(world, i + 1, j + 1, k + 1));
-                            normals.add(calculateNormal(world, i, j + 1, k + 1));
+                            normals.add(calculateNormal(world, chunk, i, j, k + 1));
+                            normals.add(calculateNormal(world, chunk, i + 1, j, k + 1));
+                            normals.add(calculateNormal(world, chunk, i + 1, j + 1, k + 1));
+                            normals.add(calculateNormal(world, chunk, i, j + 1, k + 1));
                             addTextureCoords(texCoord, block.getTextureBack(), false);
                             indexes.add(index);
                             indexes.add(index + 1);
@@ -292,10 +314,10 @@ public class LSFitting implements MeshCreator {
                             vertices.add(calculateVertexPosition(world, chunk, i, j + 1, k));
                             vertices.add(calculateVertexPosition(world, chunk, i + 1, j + 1, k));
                             vertices.add(calculateVertexPosition(world, chunk, i + 1, j, k));
-                            normals.add(calculateNormal(world, i, j, k));
-                            normals.add(calculateNormal(world, i, j + 1, k));
-                            normals.add(calculateNormal(world, i + 1, j + 1, k));
-                            normals.add(calculateNormal(world, i + 1, j, k));
+                            normals.add(calculateNormal(world, chunk, i, j, k));
+                            normals.add(calculateNormal(world, chunk, i, j + 1, k));
+                            normals.add(calculateNormal(world, chunk, i + 1, j + 1, k));
+                            normals.add(calculateNormal(world, chunk, i + 1, j, k));
                             addTextureCoords(texCoord, block.getTextureFront(), true);
                             indexes.add(index);
                             indexes.add(index + 1);
