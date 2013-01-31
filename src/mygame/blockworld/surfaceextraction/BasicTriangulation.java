@@ -78,9 +78,9 @@ public class BasicTriangulation implements MeshCreator {
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
-                            light.add(lightAlpha);
-                            
+                            light.add(lightAlpha);                           
                         }
+                        
                         //Check bottom
                         if (world.getChunk(i, j - 1, k, true).get(i, j - 1, k) == null) {
                             vertices.add(new Vector3f(i - .5f, j - .5f, k - .5f));
@@ -107,7 +107,7 @@ public class BasicTriangulation implements MeshCreator {
                             light.add(lightAlpha);
                             light.add(lightAlpha);
                             light.add(lightAlpha);
-                            
+       
                         }
                         //Check right
                         if (world.getChunk(i + 1, j, k, true).get(i + 1, j, k) == null) {

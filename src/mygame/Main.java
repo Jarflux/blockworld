@@ -142,7 +142,7 @@ public class Main extends SimpleApplication implements ActionListener {
         // We attach the scene and the player to the rootNode and the physics space,
         // to make them appear in the game world.
         bulletAppState.getPhysicsSpace().add(player);
-        //cam.setLocation(new Vector3f(0, 30, 0));
+        cam.setLocation(new Vector3f(10, 5, 0));
         fBlockWorld = new BlockWorld(rootNode, fBlockMat, bulletAppState);
         /*Chunk cnk = fBlockWorld.getChunk(0, 0, 0, true, true);
          cnk.setVisible(true);
@@ -191,10 +191,10 @@ public class Main extends SimpleApplication implements ActionListener {
         //skyDome.setControlFog(true);
 
         // Add the directional light you use for sun… or not
-        DirectionalLight sun = new DirectionalLight();
-        sun.setColor(ColorRGBA.White.mult(0.9f));
-        sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
-        rootNode.addLight(sun);
+       // DirectionalLight sun = new DirectionalLight();
+        //sun.setColor(ColorRGBA.White.mult(0.9f));
+        //sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
+        //rootNode.addLight(sun);
        // skyDome.setSun(sun);
         //skyDome.setDayNightTransitionSpeed(1f);
         //skyDome.setMoonSpeed(0.5f);
