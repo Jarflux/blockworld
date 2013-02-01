@@ -28,16 +28,17 @@ public class Coordinate {
      * @param start Corner for which to find the connected corners. Corners are identified by the block coordinates who have that corner as the one with the lowest x, y & z values.
      * @param followGroundEdges If the algoritm must follow edges that are touching 4 empty blocks
      * @param followAirEdges If the algoritm must follow edges that are touching 4 filled blocks
+     * @param followSurfaceEdges If the algoritm must follow edges that are touching the surface
      * @param recursionDepth Maximum distance from the given coordinate to find connected corners
      * @param connectedCoordinates The set that will be filled with the connected corners
      */
-    public static void findConnectedCorners(BlockWorld world, Coordinate start, boolean followGroundEdges, boolean followAirEdges, int recursionDepth, Set<Coordinate> connectedCoordinates) {
+    public static void findConnectedCorners(BlockWorld world, Coordinate start, boolean followGroundEdges, boolean followAirEdges, boolean followSurfaceEdges, int recursionDepth, Set<Coordinate> connectedCoordinates) {
         connectedCoordinates.add(start);
-        if(recursionDepth == 0) {
+        if(recursionDepth <= 0) {
             return;
         }
         
-        int block000 = world.getBlock(start.x-1, start.y-1, start.z-1) != null ? 1 : 0;
+        int block000 = world.getBlock(start.x-1, start.y-1, start.z-1, true) != null ? 1 : 0;
         int block001 = world.getBlock(start.x-1, start.y-1, start.z) != null ? 1 : 0;
         int block010 = world.getBlock(start.x-1, start.y, start.z-1) != null ? 1 : 0;
         int block011 = world.getBlock(start.x-1, start.y, start.z) != null ? 1 : 0;
@@ -53,24 +54,23 @@ public class Coordinate {
         int edgeZNeg = block000 + block010 + block100 + block110;
         int edgeZPos = block001 + block011 + block101 + block111;
         
-        if((followGroundEdges || edgeXNeg >= 1) && (followAirEdges || edgeXNeg < 4)) {
-            findConnectedCorners(world, new Coordinate(start.x-1,start.y,start.z), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
+        if((followSurfaceEdges && edgeXNeg > 0 && edgeXNeg < 4) || (followGroundEdges && edgeXNeg == 4) || (followAirEdges && edgeXNeg == 0)) {
+            findConnectedCorners(world, new Coordinate(start.x-1,start.y,start.z), followGroundEdges, followAirEdges, followSurfaceEdges, recursionDepth-1, connectedCoordinates);
         }
-        if((followGroundEdges || edgeXPos >= 1) && (followAirEdges || edgeXPos < 4)) {
-            findConnectedCorners(world, new Coordinate(start.x+1,start.y,start.z), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
+        if((followSurfaceEdges && edgeXPos > 0 && edgeXPos < 4) || (followGroundEdges && edgeXPos == 4) || (followAirEdges && edgeXPos == 0)) {
+            findConnectedCorners(world, new Coordinate(start.x+1,start.y,start.z), followGroundEdges, followAirEdges, followSurfaceEdges, recursionDepth-1, connectedCoordinates);
         }
-        if((followGroundEdges || edgeYNeg >= 1) && (followAirEdges || edgeYNeg < 4)) {
-            findConnectedCorners(world, new Coordinate(start.x,start.y-1,start.z), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
+        if((followSurfaceEdges && edgeYNeg > 0 && edgeYNeg < 4) || (followGroundEdges && edgeYNeg == 4) || (followAirEdges && edgeYNeg == 0)) {
+            findConnectedCorners(world, new Coordinate(start.x,start.y-1,start.z), followGroundEdges, followAirEdges, followSurfaceEdges, recursionDepth-1, connectedCoordinates);
         }
-        if((followGroundEdges || edgeYPos >= 1) && (followAirEdges || edgeYPos < 4)) {
-            findConnectedCorners(world, new Coordinate(start.x,start.y+1,start.z), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
+        if((followSurfaceEdges && edgeYPos > 0 && edgeYPos < 4) || (followGroundEdges && edgeYPos == 4) || (followAirEdges && edgeYPos == 0)) {
+            findConnectedCorners(world, new Coordinate(start.x,start.y+1,start.z), followGroundEdges, followAirEdges, followSurfaceEdges, recursionDepth-1, connectedCoordinates);
         }
-        if((followGroundEdges || edgeZNeg >= 1) && (followAirEdges || edgeZNeg < 4)) {
-            findConnectedCorners(world, new Coordinate(start.x,start.y,start.z-1), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
+        if((followSurfaceEdges && edgeZNeg > 0 && edgeZNeg < 4) || (followGroundEdges && edgeZNeg == 4) || (followAirEdges && edgeZNeg == 0)) {
+            findConnectedCorners(world, new Coordinate(start.x,start.y,start.z-1), followGroundEdges, followAirEdges, followSurfaceEdges, recursionDepth-1, connectedCoordinates);
         }
-        if((followGroundEdges || edgeZPos >= 1) && (followAirEdges || edgeZPos < 4)) {
-            findConnectedCorners(world, new Coordinate(start.x,start.y,start.z+1), followGroundEdges, followAirEdges, recursionDepth-1, connectedCoordinates);
+        if((followSurfaceEdges && edgeZPos > 0 && edgeZPos < 4) || (followGroundEdges && edgeZPos == 4) || (followAirEdges && edgeZPos == 0)) {
+            findConnectedCorners(world, new Coordinate(start.x,start.y,start.z+1), followGroundEdges, followAirEdges, followSurfaceEdges, recursionDepth-1, connectedCoordinates);
         }
     }
-
 }

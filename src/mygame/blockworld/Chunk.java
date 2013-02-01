@@ -4,7 +4,6 @@
  */
 package mygame.blockworld;
 
-import mygame.blockworld.chunkgenerators.LandscapeChunkGenerator;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -27,6 +26,8 @@ import java.util.logging.Logger;
 import mygame.Lighting;
 import mygame.MathUtil;
 import mygame.blockworld.chunkgenerators.ChunkGenerator;
+import mygame.blockworld.chunkgenerators.FlatTerrainGenerator;
+import mygame.blockworld.chunkgenerators.LandscapeChunkGenerator;
 import mygame.blockworld.surfaceextraction.LSFitting;
 import mygame.blockworld.surfaceextraction.MeshCreator;
 
@@ -36,7 +37,7 @@ import mygame.blockworld.surfaceextraction.MeshCreator;
  */
 public class Chunk {
 
-    public static final int NORMAL_SMOOTHNESS = 2; //min 1
+    public static final int NORMAL_SMOOTHNESS = 3; //min 1
     
     private static final Logger logger = Logger.getLogger(Chunk.class.getName());
     public static final int CHUNK_SIZE = 16;
@@ -56,7 +57,7 @@ public class Chunk {
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
-    protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
+    protected ChunkGenerator fChunkGenerator = new FlatTerrainGenerator();
     protected static MeshCreator fMeshCreator = new LSFitting();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
@@ -432,14 +433,23 @@ public class Chunk {
     }
     
     private Set<Coordinate> calculateNormal(int x, int y, int z) {
-        Vector3f position = new Vector3f(x - .5f, y - .5f, z - .5f);
+        Vector3f position = new Vector3f(x, y, z);
         Vector3f normal = new Vector3f(0,0,0);
         Set<Coordinate> connectedCorners = new HashSet<Coordinate>();
-        Coordinate.findConnectedCorners(fWorld, new Coordinate(x, y, z), false, true, NORMAL_SMOOTHNESS, connectedCorners);
-        for(Coordinate corner : connectedCorners) {
-            normal.addLocal(position.subtract(new Vector3f(corner.x - .5f, corner.y - .5f, corner.z - .5f)));
+        Coordinate.findConnectedCorners(fWorld, new Coordinate(x, y, z), true, false, false, NORMAL_SMOOTHNESS, connectedCorners);
+        boolean inverted = false;
+        if(connectedCorners.size() <= 1) {
+            inverted = true;
+            Coordinate.findConnectedCorners(fWorld, new Coordinate(x, y, z), false, true, false, NORMAL_SMOOTHNESS, connectedCorners);
         }
-        fNormals[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(y, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] = normal.normalizeLocal();
+        for(Coordinate corner : connectedCorners) {
+            normal.addLocal(position.subtract(new Vector3f(corner.x, corner.y, corner.z)));
+        }
+        if(inverted) {
+            normal = Vector3f.ZERO.subtract(normal);
+        }
+        normal.normalizeLocal();
+        fNormals[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(y, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] = normal;
         return connectedCorners;
     }
     

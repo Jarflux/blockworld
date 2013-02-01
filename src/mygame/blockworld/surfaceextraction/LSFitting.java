@@ -41,18 +41,20 @@ public class LSFitting implements MeshCreator {
         }
     }
     
+    private static final float SMALLEST_FEATURE_DISTANCE = .1f;
+    
     private static final int BLOCK_SMOOTHNESS = 3; //min 0
     private static Vector3f calculateVertexPosition(BlockWorld world, int x, int y, int z) {
         float xOriginal = x - .5f;
         float yOriginal = y - .5f;
         float zOriginal = z - .5f;
-        
+        /*
         if(BLOCK_SMOOTHNESS == 0) {
             return new Vector3f(xOriginal, yOriginal, zOriginal);
         }
-        
+        */
         Set<Coordinate> connectedCorners = new HashSet<Coordinate>();
-        Coordinate.findConnectedCorners(world, new Coordinate(x, y, z), false, false, BLOCK_SMOOTHNESS, connectedCorners);
+        Coordinate.findConnectedCorners(world, new Coordinate(x, y, z), false, false, true, BLOCK_SMOOTHNESS, connectedCorners);
         
         float u = 0f;
         float v = 0f;
@@ -81,10 +83,22 @@ public class LSFitting implements MeshCreator {
         
         //calculate r from the formula projectedPoint = originalPoint + r * normal
         float r = (xOriginal * u + yOriginal * v + zOriginal * w + t) / (u * u + v * v + w * w);
-        float xP = xOriginal - r * u;
-        float yP = yOriginal - r * v;
-        float zP = zOriginal - r * w;
-
+        float xP = xOriginal - r * u + .5f;
+        float yP = yOriginal - r * v + .5f;
+        float zP = zOriginal - r * w + .5f;
+        /*
+        xP = Math.min(xP, xOriginal + .5f - SMALLEST_FEATURE_DISTANCE/2f);
+        xP = Math.max(xP, xOriginal - .5f + SMALLEST_FEATURE_DISTANCE/2f);
+        yP = Math.min(yP, yOriginal + .5f - SMALLEST_FEATURE_DISTANCE/2f);
+        yP = Math.max(yP, yOriginal - .5f + SMALLEST_FEATURE_DISTANCE/2f);
+        zP = Math.min(zP, zOriginal + .5f - SMALLEST_FEATURE_DISTANCE/2f);
+        zP = Math.max(zP, zOriginal - .5f + SMALLEST_FEATURE_DISTANCE/2f);
+        */
+        /*
+        xP = Math.round(xP / SMALLEST_FEATURE_DISTANCE) * SMALLEST_FEATURE_DISTANCE;
+        yP = Math.round(yP / SMALLEST_FEATURE_DISTANCE) * SMALLEST_FEATURE_DISTANCE;
+        zP = Math.round(zP / SMALLEST_FEATURE_DISTANCE) * SMALLEST_FEATURE_DISTANCE;
+        */
         Vector3f newPosition = new Vector3f(xP, yP, zP);
         
         return newPosition;
@@ -298,7 +312,7 @@ public class LSFitting implements MeshCreator {
             indicesSimpleType[i] = indexes.get(i);
         }
         Mesh mesh = new Mesh();
-        mesh.setBuffer(VertexBuffer.Type.Color, 4, BufferUtils.createFloatBuffer(lightSimpleType)); //shader
+        //mesh.setBuffer(VertexBuffer.Type.Color, 4, BufferUtils.createFloatBuffer(lightSimpleType)); //shader
         mesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(verticesSimpleType));
         mesh.setBuffer(VertexBuffer.Type.Normal, 3, BufferUtils.createFloatBuffer(normalsSimpleType));
         mesh.setBuffer(VertexBuffer.Type.TexCoord, 2, BufferUtils.createFloatBuffer(texCoordSimpleType));

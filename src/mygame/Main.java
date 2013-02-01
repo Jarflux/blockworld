@@ -10,6 +10,7 @@ import com.jme3.collision.CollisionResults;
 import com.jme3.font.BitmapText;
 import com.jme3.input.FlyByCamera;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
@@ -88,6 +89,7 @@ public class Main extends SimpleApplication implements ActionListener {
         fTerrainTexture = assetManager.loadTexture("Textures/terrain.png");
         fTerrainTexture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         fTerrainTexture.setMagFilter(Texture.MagFilter.Nearest);
+        
         fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
         fBlockMat.setTexture("m_Terrain", fTerrainTexture);
         fBlockMat.setVector4("SunColor", new Vector4f(1f, 1f, 1f, 1f));
@@ -191,11 +193,15 @@ public class Main extends SimpleApplication implements ActionListener {
         // Enable the control to modify the fog filter
         //skyDome.setControlFog(true);
 
+        AmbientLight ambient = new AmbientLight();
+        ambient.setColor(ColorRGBA.White.mult(0.3f));
+        rootNode.addLight(ambient);
+        
         // Add the directional light you use for sun… or not
-        //DirectionalLight sun = new DirectionalLight();
-        //sun.setColor(ColorRGBA.White.mult(0.9f));
-        //sun.setDirection(new Vector3f(-.5f, -.5f, -.5f).normalizeLocal());
-        //rootNode.addLight(sun);
+        DirectionalLight sun = new DirectionalLight();
+        sun.setColor(ColorRGBA.White.mult(0.9f));
+        sun.setDirection(new Vector3f(0f, -1f, 0f).normalizeLocal());
+        rootNode.addLight(sun);
         // skyDome.setSun(sun);
         //skyDome.setDayNightTransitionSpeed(1f);
         //skyDome.setMoonSpeed(0.5f);
