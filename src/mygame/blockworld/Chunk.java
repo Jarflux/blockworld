@@ -13,28 +13,21 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
-import com.jme3.scene.VertexBuffer;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 import mygame.Lighting;
 import mygame.MathUtil;
 import mygame.blockworld.chunkgenerators.ChunkGenerator;
-import mygame.blockworld.chunkgenerators.FlatTerrainGenerator;
-import mygame.blockworld.surfaceextraction.BasicTriangulation;
 import mygame.blockworld.surfaceextraction.LSFitting;
-import mygame.blockworld.surfaceextraction.MarchingCubes;
 import mygame.blockworld.surfaceextraction.MeshCreator;
 
 /**
@@ -43,9 +36,12 @@ import mygame.blockworld.surfaceextraction.MeshCreator;
  */
 public class Chunk {
 
+    public static final int NORMAL_SMOOTHNESS = 2; //min 1
+    
     private static final Logger logger = Logger.getLogger(Chunk.class.getName());
     public static final int CHUNK_SIZE = 16;
     protected Block[][][] fBlocks = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
+    private Vector3f[][][] fNormals = new Vector3f[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
     protected Map<String, Float> fSunLightMap = new HashMap<String, Float>();
     protected Map<String, Vector3f> fLightMap = new HashMap<String, Vector3f>();
     protected List<Block> fLightSources = new ArrayList<Block>();
@@ -107,7 +103,6 @@ public class Chunk {
         fLightMap.clear();
     }
 
-
     public void updateVisualMesh() {
         if (fNeedsUpdate || fPreviousCreator != fMeshCreator) {
             updateChunkVisualMesh();
@@ -121,7 +116,6 @@ public class Chunk {
             fNeedsUpdate = false;
         }
     }
-
 
     public void updateSunlight(int y) {
         if (fNeedsUpdate && y >= getY() && y < (getY() + Chunk.CHUNK_SIZE)) {
@@ -436,4 +430,36 @@ public class Chunk {
     public void setLightColor(int x, int y, int z, Vector3f color) {
         fLightMap.put(generateKey(x, y, z), color);
     }
+    
+    private Set<Coordinate> calculateNormal(int x, int y, int z) {
+        Vector3f position = new Vector3f(x - .5f, y - .5f, z - .5f);
+        Vector3f normal = new Vector3f(0,0,0);
+        Set<Coordinate> connectedCorners = new HashSet<Coordinate>();
+        Coordinate.findConnectedCorners(fWorld, new Coordinate(x, y, z), false, true, NORMAL_SMOOTHNESS, connectedCorners);
+        for(Coordinate corner : connectedCorners) {
+            normal.addLocal(position.subtract(new Vector3f(corner.x - .5f, corner.y - .5f, corner.z - .5f)));
+        }
+        fNormals[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(y, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] = normal.normalizeLocal();
+        return connectedCorners;
+    }
+    
+    public void updateNormal(int x, int y, int z) {
+        Set<Coordinate> connectedCorners = calculateNormal(x, y, z);
+        for(Coordinate corner : connectedCorners) {
+            if(!(corner.x == x && corner.y == y && corner.z == z)) {
+                fWorld.getChunk(corner.x, corner.y, corner.z, true).calculateNormal(corner.x, corner.y, corner.z);
+            }
+        }
+    }
+    
+    public Vector3f getNormal(int x, int y, int z) {
+        int xC = MathUtil.PosMod(x, CHUNK_SIZE);
+        int yC = MathUtil.PosMod(y, CHUNK_SIZE);
+        int zC = MathUtil.PosMod(z, CHUNK_SIZE);
+        if(fNormals[xC][yC][zC] == null) {
+            calculateNormal(x, y, z);
+        }
+        return fNormals[xC][yC][zC];
+    }
+    
 }

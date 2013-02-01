@@ -262,7 +262,7 @@ public class BasicTriangulation implements MeshCreator {
             for (int j = y - 1; j <= y + 1; j++) {
                 for (int k = z - 1; k <= z + 1; k++) {
                     b = world.getBlock(i, j, k);
-                    if (b != null) {
+                    if (b == null) {
                         Vector3f lightColor = world.getLightColor(i, j, k);
                         lightColorRed = lightColorRed + lightColor.x;
                         lightColorGreen = lightColorGreen + lightColor.y;
