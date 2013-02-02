@@ -279,6 +279,14 @@ public class BasicTriangulation implements MeshCreator {
                 }
             }
         }
+        float ambientOcclusion = 1f;
+                if(samples < 2){
+            ambientOcclusion = 0.3f;
+        }
+        if(samples < 3){
+            ambientOcclusion = 0.65f;
+        }
+
         if (samples == 0) {
             return new Vector4f(0f, 0f, 0f, 0f);
         }
@@ -286,8 +294,9 @@ public class BasicTriangulation implements MeshCreator {
         int red = Math.round(lightColorRed / samples * scale);
         int green = Math.round(lightColorGreen /samples * scale);
         int blue = Math.round(lightColorBlue / samples * scale);
+        //return new Vector4f(red+green*256+blue*256*256, 0f, 0f, sunlight / samples);
         //return new Vector4f(Float.intBitsToFloat(red+green*256+blue*256*256), 0f, 0f, sunlight / samples);
-        return new Vector4f(lightColorRed / samples, lightColorGreen / samples, lightColorBlue / samples, sunlight / samples);
+        return new Vector4f(lightColorRed / samples * ambientOcclusion, lightColorGreen / samples * ambientOcclusion, lightColorBlue / samples * ambientOcclusion, sunlight / samples * ambientOcclusion);
     }
 
     public Mesh calculateMesh(BlockWorld world, Chunk chunk) {

@@ -10,7 +10,12 @@ varying float blueLightLevel;
 
 void main(){
     texCoord = inTexCoord;
-    redLightLevel = inColor.x;
+    //float colorLightLevel = inColor.x;
+    //blueLightLevel = colorLightLevel%(256*256);
+    //greenLightLevel = (colorLightLevel-blueLightLevel)%256;
+    //redLightLevel = colorLightLevel-greenLightLevel;  
+
+    redLightLevel = inColor.x;    
     greenLightLevel = inColor.y;
     blueLightLevel = inColor.z;
     sunLightLevel = inColor.a;
