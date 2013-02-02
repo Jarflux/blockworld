@@ -83,6 +83,6 @@ public class BlockWorldViewport {
             cnk.updatePhysicsMesh();
         }
         long end = System.nanoTime();
-        //System.out.println("Visual update took : " + (end - start));
+        System.out.println("Visual update took : " + (end - start));
     }
 }

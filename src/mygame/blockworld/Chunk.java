@@ -60,7 +60,7 @@ public class Chunk {
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
-    protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
+    protected ChunkGenerator fChunkGenerator = new FlatTerrainGenerator();
     protected static MeshCreator fMeshCreator = new LSFitting();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
@@ -103,8 +103,10 @@ public class Chunk {
     }
 
     public void removeLight() {
-        fSunLightMap.clear();
-        fLightMap.clear();
+        if (fNeedsUpdate){
+            fSunLightMap.clear();
+            fLightMap.clear();
+        }      
     }
 
 
@@ -127,14 +129,15 @@ public class Chunk {
         if (fNeedsUpdate && y >= getY() && y < (getY() + Chunk.CHUNK_SIZE)) {
             int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();  
             for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
+                labeltest:
                 for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
                     if (y > highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] || get(x, y, z) != null) {
-                        continue;
+                        continue labeltest;
                     }
                     float lightValue = fChunkColumn.getSunlightValue(x, y + 1, z);
                     if (lightValue > Lighting.MIN_LIGHT_VALUE) {
                         setSunlightValue(x, y, z, lightValue);
-                        continue;
+                        continue labeltest;
                     }
                     lightValue = fWorld.getSunlightValue(x, y, z); 
                     if (((fWorld.getBlock(x - 1, y, z) == null) || (fWorld.getBlock(x, y + 1, z) == null)) && fWorld.getSunlightValue(x - 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
