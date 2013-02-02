@@ -282,6 +282,11 @@ public class BasicTriangulation implements MeshCreator {
         if (samples == 0) {
             return new Vector4f(0f, 0f, 0f, 0f);
         }
+        float scale = 1f/256f;
+        int red = Math.round(lightColorRed / samples * scale);
+        int green = Math.round(lightColorGreen /samples * scale);
+        int blue = Math.round(lightColorBlue / samples * scale);
+        //return new Vector4f(Float.intBitsToFloat(red+green*256+blue*256*256), 0f, 0f, sunlight / samples);
         return new Vector4f(lightColorRed / samples, lightColorGreen / samples, lightColorBlue / samples, sunlight / samples);
     }
 
