@@ -204,7 +204,7 @@ public class LSFitting implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightColor = world.getLightColor(i, j+1, k);
+                            lightColor = world.getConstantLightColor(i, j+1, k);
                             lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j+1, k));
                             
                             light.add(lightAlpha);
@@ -232,7 +232,7 @@ public class LSFitting implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightColor = world.getLightColor(i, j-1, k);
+                            lightColor = world.getConstantLightColor(i, j-1, k);
                             lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j-1, k));
                             
                             light.add(lightAlpha);
@@ -260,7 +260,7 @@ public class LSFitting implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightColor = world.getLightColor(i+1, j, k);
+                            lightColor = world.getConstantLightColor(i+1, j, k);
                             lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i+1, j, k));
                             
                             light.add(lightAlpha);
@@ -287,7 +287,7 @@ public class LSFitting implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightColor = world.getLightColor(i-1, j, k);
+                            lightColor = world.getConstantLightColor(i-1, j, k);
                             lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i-1, j, k));
                             
                             light.add(lightAlpha);
@@ -314,7 +314,7 @@ public class LSFitting implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightColor = world.getLightColor(i, j, k+1);
+                            lightColor = world.getConstantLightColor(i, j, k+1);
                             lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j, k+1));
                             
                             light.add(lightAlpha);
@@ -341,7 +341,7 @@ public class LSFitting implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
                             
-                            lightColor = world.getLightColor(i, j, k-1);
+                            lightColor = world.getConstantLightColor(i, j, k-1);
                             lightAlpha = new Vector4f(lightColor.x, lightColor.y, lightColor.z,  world.getSunlightValue(i, j, k-1));
                             
                             light.add(lightAlpha);

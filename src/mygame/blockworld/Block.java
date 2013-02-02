@@ -4,6 +4,7 @@
  */
 package mygame.blockworld;
 
+import com.jme3.math.Vector3f;
 import java.io.Serializable;
 
 /**
@@ -16,9 +17,11 @@ public interface Block extends Serializable {
     String getBlockName();
     
     boolean isLightSource();
-    float getRedLightValue();
-    float getGreenLightValue();   
-    float getBlueLightValue();
+    boolean isConstantLightSource();
+    boolean isPulseLightSource();
+    
+    Vector3f getConstantLightValue();
+    Vector3f getPulseLightValue();
     
     int getTextureTop();
     int getTextureBottom();

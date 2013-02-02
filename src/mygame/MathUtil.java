@@ -23,6 +23,10 @@ public class MathUtil {
         return (a + b)/(1 + ((a*b)/(max*max)));
     }
     
+    public static float packColorIntoFloat(float red, float green, float blue){
+        int xyz = (Math.round(red*255f) << 16) | (Math.round(green*255f) << 8) | Math.round(blue*255f);
+        return (float) ((double) xyz / (double) (1 << 16));
+    }
 /*
     public static int PosDiv(int a, int b) {
         return a < 0 ? (a / b) - 1 : a / b;

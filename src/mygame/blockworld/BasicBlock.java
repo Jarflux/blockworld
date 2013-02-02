@@ -48,9 +48,19 @@ public class BasicBlock implements Block {
     }
 
     public boolean isLightSource() {
-        return (fBlockType.getBlock().lightColor.x > 0f ||
-            fBlockType.getBlock().lightColor.y > 0f ||
-            fBlockType.getBlock().lightColor.z > 0f);  
+        return (isConstantLightSource() || isPulseLightSource());
+    }
+
+    public boolean isConstantLightSource() {
+        return (fBlockType.getBlock().constantLightColor.x > 0f
+                || fBlockType.getBlock().constantLightColor.y > 0f
+                || fBlockType.getBlock().constantLightColor.z > 0f);
+    }
+
+    public boolean isPulseLightSource() {
+        return (fBlockType.getBlock().pulseLightColor.x > 0f
+                || fBlockType.getBlock().pulseLightColor.y > 0f
+                || fBlockType.getBlock().pulseLightColor.z > 0f);
     }
 
     public boolean isTranparent() {
@@ -65,16 +75,12 @@ public class BasicBlock implements Block {
         return fBlockType.getBlock().name;
     }
 
-    public float getRedLightValue() {
-        return fBlockType.getBlock().lightColor.x;
+    public Vector3f getConstantLightValue() {
+        return fBlockType.getBlock().constantLightColor;
     }
 
-    public float getGreenLightValue() {
-        return fBlockType.getBlock().lightColor.y;
-    }
-    
-    public float getBlueLightValue() {
-        return fBlockType.getBlock().lightColor.z;
+    public Vector3f getPulseLightValue() {
+        return fBlockType.getBlock().pulseLightColor;
     }
 
     public int getTextureTop() {

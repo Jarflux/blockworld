@@ -12,6 +12,7 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.util.BufferUtils;
 import java.util.ArrayList;
 import java.util.List;
+import mygame.MathUtil;
 import mygame.blockworld.Block;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
@@ -247,7 +248,7 @@ public class BasicTriangulation implements MeshCreator {
      if block(xA,yA,zA) != null {
      divider ++
      sunlight += getSunlight
-     red += getLightColor.x
+     red += getConstantLightColor.x
      ..
      }
      }
@@ -258,45 +259,62 @@ public class BasicTriangulation implements MeshCreator {
      return kleur red/divider, green /divider,..  
      */
     public static Vector4f getAvgLightAlpha(BlockWorld world, int x, int y, int z) {
-        int samples = 0;
-        float lightColorRed = 0;
-        float lightColorGreen = 0;
-        float lightColorBlue = 0;
+        int constantSamples = 0;
+        int pulseSamples = 0;
+        int sunSamples = 0;
+        float constantLightColorRed = 0;
+        float constantLightColorGreen = 0;
+        float constantLightColorBlue = 0;
+        float pulseLightColorRed = 0;
+        float pulseLightColorGreen = 0;
+        float pulseLightColorBlue = 0;
         float sunlight = 0;
         Block b;
         for (int i = x - 1; i <= x; i++) {
             for (int j = y - 1; j <= y; j++) {
                 for (int k = z - 1; k <= z; k++) {
                     b = world.getBlock(i, j, k);
-                    if (b == null) {
-                        Vector3f lightColor = world.getLightColor(i, j, k);
-                        lightColorRed = lightColorRed + lightColor.x;
-                        lightColorGreen = lightColorGreen + lightColor.y;
-                        lightColorBlue = lightColorBlue + lightColor.z;
+                    if (b==null) {
+                        Vector3f constantLightColor = world.getConstantLightColor(i, j, k);
+                        if(constantLightColor.x > 0.0f || constantLightColor.y > 0.0f || constantLightColor.z > 0.0f){
+                            constantLightColorRed += constantLightColor.x;
+                            constantLightColorGreen += constantLightColor.y;
+                            constantLightColorBlue += constantLightColor.z;
+                            constantSamples++;
+                        }
+                        Vector3f pulseLightColor = world.getPulseLightColor(i, j, k);
+                        if(pulseLightColor.x > 0.0f || pulseLightColor.y > 0.0f || pulseLightColor.z > 0.0f){
+                            pulseLightColorRed += pulseLightColor.x;
+                            pulseLightColorGreen += pulseLightColor.y;
+                            pulseLightColorBlue += pulseLightColor.z;
+                            pulseSamples++;
+                        }
                         sunlight = sunlight + world.getSunlightValue(i, j, k);
-                        samples++;
+                        sunSamples++;
                     }
                 }
             }
         }
-        float ambientOcclusion = 1f;
-                if(samples < 2){
-            ambientOcclusion = 0.3f;
-        }
-        if(samples < 3){
-            ambientOcclusion = 0.65f;
-        }
+//        float ambientOcclusion = 1f;
+//        if (maxSamples < 3) {
+//            ambientOcclusion = 0.65f;
+//        }
+//        if (maxSamples < 2) {
+//            ambientOcclusion = 0.3f;
+//        }
+//        if (maxSamples == 0) {
+//            return new Vector4f(0f, 0f, 0f, 0f);
+//        }
 
-        if (samples == 0) {
-            return new Vector4f(0f, 0f, 0f, 0f);
-        }
-        float scale = 1f/256f;
-        int red = Math.round(lightColorRed / samples * scale);
-        int green = Math.round(lightColorGreen /samples * scale);
-        int blue = Math.round(lightColorBlue / samples * scale);
-        //return new Vector4f(red+green*256+blue*256*256, 0f, 0f, sunlight / samples);
-        //return new Vector4f(Float.intBitsToFloat(red+green*256+blue*256*256), 0f, 0f, sunlight / samples);
-        return new Vector4f(lightColorRed / samples * ambientOcclusion, lightColorGreen / samples * ambientOcclusion, lightColorBlue / samples * ambientOcclusion, sunlight / samples * ambientOcclusion);
+        float constantRed = constantLightColorRed / constantSamples;
+        float constantGreen = constantLightColorGreen / constantSamples;
+        float constantBlue = constantLightColorBlue / constantSamples;
+
+        float pulseRed = pulseLightColorRed / pulseSamples;
+        float pulseGreen = pulseLightColorGreen / pulseSamples;
+        float pulseBlue = pulseLightColorBlue / pulseSamples;
+
+        return new Vector4f(MathUtil.packColorIntoFloat(constantRed, constantGreen, constantBlue), MathUtil.packColorIntoFloat(pulseRed, pulseGreen, pulseBlue), 0f, sunlight / sunSamples);
     }
 
     public Mesh calculateMesh(BlockWorld world, Chunk chunk) {
