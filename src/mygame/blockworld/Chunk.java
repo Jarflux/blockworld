@@ -4,7 +4,6 @@
  */
 package mygame.blockworld;
 
-import mygame.blockworld.chunkgenerators.LandscapeChunkGenerator;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
@@ -13,28 +12,21 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.Node;
-import com.jme3.scene.VertexBuffer;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Logger;
 import mygame.Lighting;
+import mygame.LightingCalculator;
 import mygame.MathUtil;
 import mygame.blockworld.chunkgenerators.ChunkGenerator;
 import mygame.blockworld.chunkgenerators.FlatTerrainGenerator;
 import mygame.blockworld.surfaceextraction.BasicTriangulation;
-import mygame.blockworld.surfaceextraction.LSFitting;
-import mygame.blockworld.surfaceextraction.MarchingCubes;
 import mygame.blockworld.surfaceextraction.MeshCreator;
 
 /**
@@ -61,8 +53,9 @@ public class Chunk {
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
-    protected ChunkGenerator fChunkGenerator = new FlatTerrainGenerator();
-            protected static MeshCreator fMeshCreator = new LSFitting();
+    protected static ChunkGenerator fChunkGenerator = new FlatTerrainGenerator();
+    private static LightingCalculator fLightingCalculator = new Lighting();
+    protected static MeshCreator fMeshCreator = new BasicTriangulation();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
     public Chunk(BlockWorld world, ChunkColumn chunkColumn, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
@@ -265,7 +258,7 @@ public class Chunk {
         if (fChunkMesh != null) {
             fRootNode.detachChild(fChunkMesh);
         }
-        Mesh mesh = fMeshCreator.calculateMesh(fWorld, this);
+        Mesh mesh = fMeshCreator.calculateMesh(fWorld, fLightingCalculator, fXC, fYC, fZC, fXC + CHUNK_SIZE, fYC + CHUNK_SIZE, fZC + CHUNK_SIZE);
         if (mesh == null) {
             fChunkMesh = null;
             return;

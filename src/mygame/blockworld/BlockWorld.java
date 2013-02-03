@@ -24,13 +24,15 @@ import java.util.logging.Logger;
 import jme3tools.optimize.TextureAtlas;
 import mygame.Lighting;
 import mygame.MathUtil;
+import mygame.blockworld.surfaceextraction.BlockContainer;
 
 /**
  *
  * @author Nathan & Ben
  */
-public class BlockWorld {
-
+public class BlockWorld implements BlockContainer{
+    
+    
     private static final Logger logger = Logger.getLogger(BlockWorld.class.getName());
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     private ChunkListener fGeneralListener = new ChunkListener() {
@@ -142,7 +144,7 @@ public class BlockWorld {
     }
 
     public Block getBlock(int x, int y, int z) {
-        return getBlock(x, y, z, false);
+        return getBlock(x, y, z, true);
     }
 
     public Block getBlock(int x, int y, int z, boolean createChunk) {
@@ -283,5 +285,17 @@ public class BlockWorld {
                 chunk.setPulseLightColor(x, y, z, color);
             }
         }
+    }
+
+    public Vector3f getNormal(int x, int y, int z) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if (column != null) {
+            Chunk chunk = column.get(y);
+            if (chunk != null) {
+                return null;
+                //TODO return chunk.getNormal(x, y, z);
+            }
+        }
+        return null;
     }
 }

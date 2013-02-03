@@ -5,15 +5,14 @@
 package mygame.blockworld.surfaceextraction;
 
 import com.jme3.scene.Mesh;
-import mygame.blockworld.BlockWorld;
-import mygame.blockworld.Chunk;
+import mygame.LightingCalculator;
 
 /**
  *
  * @author Nathan
  */
 public interface MeshCreator {
-    
-    Mesh calculateMesh(BlockWorld world, Chunk chunk);
-    
+
+    // Max values are exlusive: min <= iterator < max
+    Mesh calculateMesh(BlockContainer blockContainer, LightingCalculator lightingCalculator, int xMin, int yMin, int zMin, int xMax, int yMax, int zMax);
 }
