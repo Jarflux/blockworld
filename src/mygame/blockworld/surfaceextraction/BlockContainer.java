@@ -6,15 +6,16 @@ package mygame.blockworld.surfaceextraction;
 
 import com.jme3.math.Vector3f;
 import mygame.blockworld.Block;
+import mygame.blockworld.Coordinate;
 
 /**
  *
  * @author Fusion
  */
 public interface BlockContainer {
-    Block getBlock(int x, int y, int z);
-    Vector3f getNormal(int x, int y, int z);
-    Vector3f getConstantLightColor(int x, int y, int z);
-    Vector3f getPulseLightColor(int x, int y, int z);
-    float getSunlightValue(int x, int y, int z);
+    Block getBlock(Coordinate coordinate);
+    Vector3f getNormal(Coordinate coordinate);
+    Vector3f getConstantLightColor(Coordinate coordinate);
+    Vector3f getPulseLightColor(Coordinate coordinate);
+    float getSunlightValue(Coordinate coordinate);
 }

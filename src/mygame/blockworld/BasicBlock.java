@@ -11,10 +11,10 @@ public class BasicBlock implements Block {
 
     private BlockType fBlockType;
     private int fDirection; //0: Front -> Front, 1: Front -> Right, 2: Front -> Back, 3: Front -> Left (and other faces change accordingly)
-    private int fXC, fYC, fZC;
+    private Coordinate fCoordinate;
 
-    public BasicBlock(int x, int y, int z, BlockType type) {
-        this(x, y, z, type, 0);
+    public BasicBlock(Coordinate coordinate, BlockType type) {
+        this(coordinate, type, 0);
     }
 
     private static int calculateDirection(Vector3f placementNormal) {
@@ -35,16 +35,14 @@ public class BasicBlock implements Block {
         }
     }
 
-    public BasicBlock(int x, int y, int z, BlockType type, Vector3f placementNormal) {
-        this(x, y, z, type, calculateDirection(placementNormal));
+    public BasicBlock(Coordinate coordinate, BlockType type, Vector3f placementNormal) {
+        this(coordinate, type, calculateDirection(placementNormal));
     }
 
-    public BasicBlock(int x, int y, int z, BlockType type, int direction) {
+    public BasicBlock(Coordinate coordinate, BlockType type, int direction) {
         fBlockType = type;
         fDirection = direction;
-        setX(x);
-        setY(y);
-        setZ(z);
+        fCoordinate = coordinate;
     }
 
     public boolean isLightSource() {
@@ -142,28 +140,12 @@ public class BasicBlock implements Block {
                 return fBlockType.getBlock().textureBack;
         }
     }
-
-    public int getX() {
-        return fXC;
+    
+    public Coordinate getCoordinate(){
+        return fCoordinate;
     }
-
-    private void setX(int fXC) {
-        this.fXC = fXC;
-    }
-
-    public int getY() {
-        return fYC;
-    }
-
-    private void setY(int fYC) {
-        this.fYC = fYC;
-    }
-
-    public int getZ() {
-        return fZC;
-    }
-
-    private void setZ(int fZC) {
-        this.fZC = fZC;
+    
+    public void setCoordinate(Coordinate coordinate){
+        fCoordinate = coordinate;
     }
 }

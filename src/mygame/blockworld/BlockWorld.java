@@ -8,22 +8,12 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import jme3tools.optimize.TextureAtlas;
 import mygame.Lighting;
-import mygame.MathUtil;
 import mygame.blockworld.surfaceextraction.BlockContainer;
 
 /**
@@ -50,19 +40,19 @@ public class BlockWorld implements BlockContainer{
     };
     private ChunkListener fWorldUpdater = new ChunkListener() {
         public void blockAdded(Chunk chunk, Block block) {
-            update(block.getX(), block.getY(), block.getZ());
+            update(block.getCoordinate());
         }
 
         public void blockRemoved(Chunk chunk, Block block) {
-            update(block.getX(), block.getY(), block.getZ());
+            update(block.getCoordinate());
         }
 
-        private void update(int x, int y, int z) {
+        private void update(Coordinate coordinate) {
             Chunk cnk;
-            for (int i = (x - Chunk.CHUNK_SIZE); i <= (x + Chunk.CHUNK_SIZE); i = i + Chunk.CHUNK_SIZE) {
-                for (int j = (y - Chunk.CHUNK_SIZE); j <= (y + Chunk.CHUNK_SIZE); j = j + Chunk.CHUNK_SIZE) {
-                    for (int k = (z - Chunk.CHUNK_SIZE); k <= (z + Chunk.CHUNK_SIZE); k = k + Chunk.CHUNK_SIZE) {
-                        cnk = getChunk(i, j, k, false);
+            for (int i = (coordinate.x - Chunk.CHUNK_SIZE); i <= (coordinate.x + Chunk.CHUNK_SIZE); i = i + Chunk.CHUNK_SIZE) {
+                for (int j = (coordinate.y - Chunk.CHUNK_SIZE); j <= (coordinate.y + Chunk.CHUNK_SIZE); j = j + Chunk.CHUNK_SIZE) {
+                    for (int k = (coordinate.z - Chunk.CHUNK_SIZE); k <= (coordinate.z + Chunk.CHUNK_SIZE); k = k + Chunk.CHUNK_SIZE) {
+                        cnk = getChunk(new Coordinate(i, j, k), false);
                         if (cnk != null) {
                             cnk.scheduleUpdate();
                         }
@@ -96,8 +86,8 @@ public class BlockWorld implements BlockContainer{
         return fBlockMat;
     }
 
-    public Chunk getChunk(int x, int y, int z, boolean createChunk) {
-        return getChunk(x, y, z, createChunk, true);
+    public Chunk getChunk(Coordinate coordinate, boolean createChunk) {
+        return getChunk(coordinate, createChunk, true);
     }
 
     public ChunkColumn getChunkColumn(int x, int z, boolean createChunkColumn) {
@@ -121,19 +111,19 @@ public class BlockWorld implements BlockContainer{
         return cnkColumn;
     }
 
-    public Chunk getChunk(int x, int y, int z, boolean createChunk, boolean generateChunk) {
-        int xC = (int) Math.floor((double) x / Chunk.CHUNK_SIZE);
-        int yC = (int) Math.floor((double) y / Chunk.CHUNK_SIZE);
-        int zC = (int) Math.floor((double) z / Chunk.CHUNK_SIZE);
+    public Chunk getChunk(Coordinate coordinate, boolean createChunk, boolean generateChunk) {
+        int xC = (int) Math.floor((double) coordinate.x / Chunk.CHUNK_SIZE);
+        int yC = (int) Math.floor((double) coordinate.y / Chunk.CHUNK_SIZE);
+        int zC = (int) Math.floor((double) coordinate.z / Chunk.CHUNK_SIZE);
 
-        ChunkColumn chunkColumn = getChunkColumn(x, z, createChunk);
+        ChunkColumn chunkColumn = getChunkColumn(coordinate.x, coordinate.z, createChunk);
         Chunk cnk = null;
         if (chunkColumn != null) {
-            cnk = chunkColumn.get(y);
+            cnk = chunkColumn.get(coordinate.y);
         }
 
         if (cnk == null && createChunk) {              // Chunk met juiste x, y , z bestaat niet
-            cnk = new Chunk(this, chunkColumn, fRootNode, fPhysicsState, xC * Chunk.CHUNK_SIZE, yC * Chunk.CHUNK_SIZE, zC * Chunk.CHUNK_SIZE);
+            cnk = new Chunk(this, chunkColumn, fRootNode, fPhysicsState, new Coordinate(xC * Chunk.CHUNK_SIZE, yC * Chunk.CHUNK_SIZE, zC * Chunk.CHUNK_SIZE));
             if (generateChunk) {
                 cnk.fillChunk();
             }
@@ -143,27 +133,27 @@ public class BlockWorld implements BlockContainer{
         return cnk;
     }
 
-    public Block getBlock(int x, int y, int z) {
-        return getBlock(x, y, z, true);
+    public Block getBlock(Coordinate coordinate) {
+        return getBlock(coordinate, true);
     }
 
-    public Block getBlock(int x, int y, int z, boolean createChunk) {
-        Chunk cnk = getChunk(x, y, z, createChunk);
+    public Block getBlock(Coordinate coordinate, boolean createChunk) {
+        Chunk cnk = getChunk(coordinate, createChunk);
         if (cnk != null) {
-            return cnk.get(x, y, z);
+            return cnk.getBlock(coordinate);
         }
         return null;
     }
 
-    public void removeBlock(int x, int y, int z) {
-        Chunk cnk = getChunk(x, y, z, false);
+    public void removeBlock(Coordinate coordinate) {
+        Chunk cnk = getChunk(coordinate, false);
         if (cnk != null) {
-            cnk.removeBlock(x, y, z);
+            cnk.removeBlock(coordinate);
         }
     }
 
     public boolean addBlock(Block block) {
-        return getChunk(block.getX(), block.getY(), block.getZ(), true).addBlock(block);
+        return getChunk(block.getCoordinate(), true).addBlock(block);
     }
 
     public void saveWorld(String fileName) {
@@ -227,72 +217,72 @@ public class BlockWorld implements BlockContainer{
         return null;
     }
 
-    public float getSunlightValue(int x, int y, int z) {
-        ChunkColumn column = getChunkColumn(x, z, false);
+    public float getSunlightValue(Coordinate coordinate) {
+        ChunkColumn column = getChunkColumn(coordinate.x, coordinate.z, false);
         if (column != null) {
-            return column.getSunlightValue(x, y, z);
+            return column.getSunlightValue(coordinate);
         }
         return Lighting.MIN_LIGHT_VALUE;
     }
 
-    public void setSunlightValue(int x, int y, int z, float value) {
-        ChunkColumn column = getChunkColumn(x, z, false);
+    public void setSunlightValue(Coordinate coordinate, float value) {
+        ChunkColumn column = getChunkColumn(coordinate.x, coordinate.z, false);
         if (column != null) {
-            Chunk chunk = column.get(y);
+            Chunk chunk = column.get(coordinate.y);
             if (chunk != null) {
-                chunk.setSunlightValue(x, y, z, value);
+                chunk.setSunlightValue(coordinate, value);
             }
         }
     }
 
-    public Vector3f getConstantLightColor(int x, int y, int z) {
-        ChunkColumn column = getChunkColumn(x, z, false);
+    public Vector3f getConstantLightColor(Coordinate coordinate) {
+        ChunkColumn column = getChunkColumn(coordinate.x, coordinate.z, false);
         if (column != null) {
-            Chunk chunk = column.get(y);
+            Chunk chunk = column.get(coordinate.y);
             if (chunk != null) {
-                return chunk.getConstantLightColor(x, y, z);
-            }
-        }
-        return new Vector3f(0f, 0f, 0f);
-    }
-
-    public void setConstantLightColor(int x, int y, int z, Vector3f color) {
-        ChunkColumn column = getChunkColumn(x, z, false);
-        if (column != null) {
-            Chunk chunk = column.get(y);
-            if (chunk != null) {
-                chunk.setConstantLightColor(x, y, z, color);
-            }
-        }
-    }
-
-    public Vector3f getPulseLightColor(int x, int y, int z) {
-        ChunkColumn column = getChunkColumn(x, z, false);
-        if (column != null) {
-            Chunk chunk = column.get(y);
-            if (chunk != null) {
-                return chunk.getPulseLightColor(x, y, z);
+                return chunk.getConstantLightColor(coordinate);
             }
         }
         return new Vector3f(0f, 0f, 0f);
     }
 
-    public void setPulseLightColor(int x, int y, int z, Vector3f color) {
-        ChunkColumn column = getChunkColumn(x, z, false);
+    public void setConstantLightColor(Coordinate coordinate, Vector3f color) {
+        ChunkColumn column = getChunkColumn(coordinate.x, coordinate.z, false);
         if (column != null) {
-            Chunk chunk = column.get(y);
+            Chunk chunk = column.get(coordinate.y);
             if (chunk != null) {
-                chunk.setPulseLightColor(x, y, z, color);
+                chunk.setConstantLightColor(coordinate, color);
             }
         }
     }
 
-    public Vector3f getNormal(int x, int y, int z) {
-        ChunkColumn column = getChunkColumn(x, z, false);
+    public Vector3f getPulseLightColor(Coordinate coordinate) {
+        ChunkColumn column = getChunkColumn(coordinate.x, coordinate.z, false);
         if (column != null) {
-            Chunk chunk = column.get(y);
+            Chunk chunk = column.get(coordinate.y);
             if (chunk != null) {
-                return chunk.getNormal(x, y, z);
+                return chunk.getPulseLightColor(coordinate);
+            }
+        }
+        return new Vector3f(0f, 0f, 0f);
+    }
+
+    public void setPulseLightColor(Coordinate coordinate, Vector3f color) {
+        ChunkColumn column = getChunkColumn(coordinate.x, coordinate.z, false);
+        if (column != null) {
+            Chunk chunk = column.get(coordinate.y);
+            if (chunk != null) {
+                chunk.setPulseLightColor(coordinate, color);
+            }
+        }
+    }
+
+    public Vector3f getNormal(Coordinate coordinate) {
+        ChunkColumn column = getChunkColumn(coordinate.x, coordinate.z, false);
+        if (column != null) {
+            Chunk chunk = column.get(coordinate.y);
+            if (chunk != null) {
+                return chunk.getNormal(coordinate);
             }
         }
         return null;

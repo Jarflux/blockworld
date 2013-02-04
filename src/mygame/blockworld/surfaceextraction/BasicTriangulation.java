@@ -18,6 +18,7 @@ import mygame.blockworld.Block;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
 import mygame.blockworld.ChunkColumn;
+import mygame.blockworld.Coordinate;
 
 /**
  *
@@ -51,11 +52,11 @@ public class BasicTriangulation implements MeshCreator {
         for (int i = xMin; i < xMax; i++) {
             for (int j = yMin; j < yMax; j++) {
                 for (int k = zMin; k < zMax; k++) {
-                    Block block = blockContainer.getBlock(i, j, k);
+                    Block block = blockContainer.getBlock(new Coordinate(i, j, k));
                     if (block != null) {
 
                         //Check top
-                        if (blockContainer.getBlock(i, j + 1, k) == null) {
+                        if (blockContainer.getBlock(new Coordinate(i, j + 1, k)) == null) {
                             vertices.add(new Vector3f(i - .5f, j + .5f, k - .5f));
                             vertices.add(new Vector3f(i - .5f, j + .5f, k + .5f));
                             vertices.add(new Vector3f(i + .5f, j + .5f, k + .5f));
@@ -73,16 +74,16 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
 
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k));
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k)));
 
 
                         }
 
                         //Check bottom
-                        if (blockContainer.getBlock(i, j - 1, k) == null) {
+                        if (blockContainer.getBlock(new Coordinate(i, j - 1, k)) == null) {
                             vertices.add(new Vector3f(i - .5f, j - .5f, k - .5f));
                             vertices.add(new Vector3f(i + .5f, j - .5f, k - .5f));
                             vertices.add(new Vector3f(i + .5f, j - .5f, k + .5f));
@@ -100,15 +101,15 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
 
-                            light.add(lighting.calculateLight(blockContainer, i, j, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i, j, k + 1));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k + 1)));
 
 
                         }
                         //Check right
-                        if (blockContainer.getBlock(i + 1, j, k) == null) {
+                        if (blockContainer.getBlock(new Coordinate(i + 1, j, k)) == null) {
                             vertices.add(new Vector3f(i + .5f, j - .5f, k - .5f));
                             vertices.add(new Vector3f(i + .5f, j + .5f, k - .5f));
                             vertices.add(new Vector3f(i + .5f, j + .5f, k + .5f));
@@ -126,14 +127,14 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
 
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k + 1));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k + 1)));
 
                         }
                         //Check left
-                        if (blockContainer.getBlock(i - 1, j, k) == null) {
+                        if (blockContainer.getBlock(new Coordinate(i - 1, j, k)) == null) {
                             vertices.add(new Vector3f(i - .5f, j - .5f, k - .5f));
                             vertices.add(new Vector3f(i - .5f, j - .5f, k + .5f));
                             vertices.add(new Vector3f(i - .5f, j + .5f, k + .5f));
@@ -151,14 +152,14 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
 
-                            light.add(lighting.calculateLight(blockContainer, i, j, k));
-                            light.add(lighting.calculateLight(blockContainer, i, j, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k)));
 
                         }
                         //Check back
-                        if (blockContainer.getBlock(i, j, k + 1) == null) {
+                        if (blockContainer.getBlock(new Coordinate(i, j, k + 1)) == null) {
                             vertices.add(new Vector3f(i - .5f, j - .5f, k + .5f));
                             vertices.add(new Vector3f(i + .5f, j - .5f, k + .5f));
                             vertices.add(new Vector3f(i + .5f, j + .5f, k + .5f));
@@ -176,13 +177,13 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
 
-                            light.add(lighting.calculateLight(blockContainer, i, j, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k + 1));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k + 1)));
                         }
                         //Check front
-                        if (blockContainer.getBlock(i, j, k - 1) == null) {
+                        if (blockContainer.getBlock(new Coordinate(i, j, k - 1)) == null) {
                             vertices.add(new Vector3f(i - .5f, j - .5f, k - .5f));
                             vertices.add(new Vector3f(i - .5f, j + .5f, k - .5f));
                             vertices.add(new Vector3f(i + .5f, j + .5f, k - .5f));
@@ -200,10 +201,10 @@ public class BasicTriangulation implements MeshCreator {
                             indexes.add(index + 3); // triangle 2
                             index = index + 4;
 
-                            light.add(lighting.calculateLight(blockContainer, i, j, k));
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k)));
 
                         }
                     }

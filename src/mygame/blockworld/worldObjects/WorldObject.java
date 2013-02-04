@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import mygame.blockworld.Block;
 import mygame.blockworld.BlockWorld;
+import mygame.blockworld.Coordinate;
 import mygame.blockworld.surfaceextraction.BasicTriangulation;
 import mygame.blockworld.surfaceextraction.BlockContainer;
 import mygame.blockworld.surfaceextraction.MeshCreator;
@@ -72,23 +73,23 @@ public class WorldObject implements BlockContainer, Savable {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Block getBlock(int x, int y, int z) {
+    public Block getBlock(Coordinate coordinate) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Vector3f getNormal(int x, int y, int z) {
+    public Vector3f getNormal(Coordinate coordinate) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Vector3f getConstantLightColor(int x, int y, int z) {
+    public Vector3f getConstantLightColor(Coordinate coordinate) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public Vector3f getPulseLightColor(int x, int y, int z) {
+    public Vector3f getPulseLightColor(Coordinate coordinate) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public float getSunlightValue(int x, int y, int z) {
+    public float getSunlightValue(Coordinate coordinate) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 }

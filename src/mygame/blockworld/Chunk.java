@@ -54,7 +54,7 @@ public class Chunk {
     protected BlockWorld fWorld;
     protected ChunkColumn fChunkColumn;
     protected boolean fVisible = false;
-    protected final int fXC, fYC, fZC;
+    protected final Coordinate fCoordinate;
     protected BulletAppState fPhysicsState;
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
@@ -64,10 +64,8 @@ public class Chunk {
     protected static MeshCreator fMeshCreator = new LSFitting();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
-    public Chunk(BlockWorld world, ChunkColumn chunkColumn, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
-        fXC = xC;
-        fYC = yC;
-        fZC = zC;
+    public Chunk(BlockWorld world, ChunkColumn chunkColumn, Node rootNode, BulletAppState physicsState, Coordinate coordinate) {
+        fCoordinate = coordinate;
         fWorld = world;
         fRootNode = rootNode;
         fChunkColumn = chunkColumn;
@@ -125,33 +123,33 @@ public class Chunk {
     }
 
     public void updateSunlight(int y) {
-        if (fNeedsUpdate && y >= getY() && y < (getY() + Chunk.CHUNK_SIZE)) {
+        if (fNeedsUpdate && y >= getCoordinate().y && y < (getCoordinate().y + Chunk.CHUNK_SIZE)) {
             int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
-            for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
+            for (int x = getCoordinate().x; x < getCoordinate().x + CHUNK_SIZE; x++) {
                 labeltest:
-                for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
-                    if (y > highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] || get(x, y, z) != null) {
+                for (int z = getCoordinate().z; z < getCoordinate().z + CHUNK_SIZE; z++) {
+                    if (y > highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] || getBlock(new Coordinate(x, y, z)) != null) {
                         continue labeltest;
                     }
-                    float lightValue = fChunkColumn.getSunlightValue(x, y + 1, z);
+                    float lightValue = fChunkColumn.getSunlightValue(new Coordinate(x, y + 1, z));
                     if (lightValue > Lighting.MIN_LIGHT_VALUE) {
-                        setSunlightValue(x, y, z, lightValue);
+                        setSunlightValue(new Coordinate(x, y, z), lightValue);
                         continue labeltest;
                     }
-                    lightValue = fWorld.getSunlightValue(x, y, z);
-                    if (((fWorld.getBlock(x - 1, y, z) == null) || (fWorld.getBlock(x, y + 1, z) == null)) && fWorld.getSunlightValue(x - 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x - 1, y + 1, z) * Lighting.SUNLIGHT_DEGRADING_CONSTANT));
+                    lightValue = fWorld.getSunlightValue(new Coordinate(x, y, z));
+                    if (((fWorld.getBlock(new Coordinate(x - 1, y, z)) == null) || (fWorld.getBlock(new Coordinate(x, y + 1, z)) == null)) && fWorld.getSunlightValue(new Coordinate(x - 1, y + 1, z)) > Lighting.MIN_LIGHT_VALUE) {
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(new Coordinate(x - 1, y + 1, z)) * Lighting.SUNLIGHT_DEGRADING_CONSTANT));
                     }
-                    if (((fWorld.getBlock(x + 1, y, z) == null) || (fWorld.getBlock(x, y + 1, z) == null)) && fWorld.getSunlightValue(x + 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x + 1, y + 1, z) * Lighting.SUNLIGHT_DEGRADING_CONSTANT));
+                    if (((fWorld.getBlock(new Coordinate(x + 1, y, z)) == null) || (fWorld.getBlock(new Coordinate(x, y + 1, z)) == null)) && fWorld.getSunlightValue(new Coordinate(x + 1, y + 1, z)) > Lighting.MIN_LIGHT_VALUE) {
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(new Coordinate(x + 1, y + 1, z)) * Lighting.SUNLIGHT_DEGRADING_CONSTANT));
                     }
-                    if (((fWorld.getBlock(x, y, z - 1) == null) || (fWorld.getBlock(x, y + 1, z) == null)) && fWorld.getSunlightValue(x, y + 1, z - 1) > Lighting.MIN_LIGHT_VALUE) {
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y + 1, z - 1) * Lighting.SUNLIGHT_DEGRADING_CONSTANT));
+                    if (((fWorld.getBlock(new Coordinate(x, y, z - 1)) == null) || (fWorld.getBlock(new Coordinate(x, y + 1, z)) == null)) && fWorld.getSunlightValue(new Coordinate(x, y + 1, z - 1)) > Lighting.MIN_LIGHT_VALUE) {
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(new Coordinate(x, y + 1, z - 1)) * Lighting.SUNLIGHT_DEGRADING_CONSTANT));
                     }
-                    if (((fWorld.getBlock(x, y, z + 1) == null) || (fWorld.getBlock(x, y + 1, z) == null)) && fWorld.getSunlightValue(x, y + 1, z + 1) > Lighting.MIN_LIGHT_VALUE) {
-                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y + 1, z + 1) * Lighting.SUNLIGHT_DEGRADING_CONSTANT));
+                    if (((fWorld.getBlock(new Coordinate(x, y, z + 1)) == null) || (fWorld.getBlock(new Coordinate(x, y + 1, z)) == null)) && fWorld.getSunlightValue(new Coordinate(x, y + 1, z + 1)) > Lighting.MIN_LIGHT_VALUE) {
+                        lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(new Coordinate(x, y + 1, z + 1)) * Lighting.SUNLIGHT_DEGRADING_CONSTANT));
                     }
-                    fWorld.setSunlightValue(x, y, z, lightValue);
+                    fWorld.setSunlightValue(new Coordinate(x, y, z), lightValue);
                 }
             }
         }
@@ -160,23 +158,22 @@ public class Chunk {
     public void updateCaveSunlight() {
         if (fNeedsUpdate) {
             int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
-            for (int y = getY() + CHUNK_SIZE - 1; y >= getY(); y--) {   // overloop alle blocken in de Chunk
-                for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
-                    for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
-                        if (y < highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] - 1 && get(x, y, z) == null) {
+            for (int y = fCoordinate.y + CHUNK_SIZE - 1; y >= fCoordinate.y; y--) {   // overloop alle blocken in de Chunk
+                for (int x = fCoordinate.x; x < fCoordinate.x + CHUNK_SIZE; x++) {
+                    for (int z = fCoordinate.z; z < fCoordinate.z + CHUNK_SIZE; z++) {
+                        if (y < highestBlockMap[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] - 1 && getBlock(new Coordinate(x, y, z)) == null) {
                             for (int i = (x - 1); i <= (x + 1); i++) {       // loop over alle buren van de block in het vlak x, z
                                 for (int k = (z - 1); k <= (z + 1); k++) {
-                                    float neighbourSunlightValue = fWorld.getSunlightValue(i, y, k);
+                                    float neighbourSunlightValue = fWorld.getSunlightValue(new Coordinate(i, y, k));
                                     if (neighbourSunlightValue > Lighting.MIN_LIGHT_VALUE) {
-                                        float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, i, y, k, neighbourSunlightValue);
+                                        float[][][] diffuseMap = Lighting.calculateDiffuseMap(fWorld, new Coordinate(i, y, k), neighbourSunlightValue);
                                         for (int xd = 0; xd < diffuseMap.length; xd++) {                // overloop alle lichtwaarden in de diffusemap
                                             for (int yd = 0; yd < diffuseMap.length; yd++) {
                                                 for (int zd = 0; zd < diffuseMap.length; zd++) {
-                                                    int xA = i + xd - (diffuseMap.length / 2);
-                                                    int yA = y + yd - (diffuseMap.length / 2);
-                                                    int zA = k + zd - (diffuseMap.length / 2);
-                                                    if (diffuseMap[xd][yd][zd] > fWorld.getSunlightValue(xA, yA, zA)) {
-                                                        setSunlightValue(xA, yA, zA, diffuseMap[xd][yd][zd]);
+                                                    Coordinate absCoordinate = new Coordinate(i + xd - (diffuseMap.length / 2), 
+                                                            y + yd - (diffuseMap.length / 2),k + zd - (diffuseMap.length / 2));
+                                                    if (diffuseMap[xd][yd][zd] > fWorld.getSunlightValue(absCoordinate)) {
+                                                        setSunlightValue(absCoordinate, diffuseMap[xd][yd][zd]);
                                                     }
                                                 }
                                             }
@@ -196,58 +193,58 @@ public class Chunk {
             for (Block b : fLightSources) {
                 if (b.isConstantLightSource()) {
                     Vector3f blockColor = b.getConstantLightValue();
-                    float[][][] RedDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.x);
-                    float[][][] GreenDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.y);
-                    float[][][] BlueDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.z);
-                    for (int xd = 0; xd < RedDiffuseMap.length; xd++) {
-                        for (int yd = 0; yd < RedDiffuseMap.length; yd++) {
-                            for (int zd = 0; zd < RedDiffuseMap.length; zd++) {
-                                int xA = b.getX() + xd - (RedDiffuseMap.length / 2);
-                                int yA = b.getY() + yd - (RedDiffuseMap.length / 2);
-                                int zA = b.getZ() + zd - (RedDiffuseMap.length / 2);
-                                Vector3f lightColor = fWorld.getConstantLightColor(xA, yA, zA);
+                    float[][][] redDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getCoordinate(), blockColor.x);
+                    float[][][] greenDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getCoordinate(), blockColor.y);
+                    float[][][] blueDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getCoordinate(), blockColor.z);
+                    for (int xd = 0; xd < redDiffuseMap.length; xd++) {
+                        for (int yd = 0; yd < redDiffuseMap.length; yd++) {
+                            for (int zd = 0; zd < redDiffuseMap.length; zd++) {
+                                Coordinate blockCoordinate = b.getCoordinate();
+                                Coordinate absCoordinate = new Coordinate(blockCoordinate.x + xd - (redDiffuseMap.length / 2), 
+                                                            blockCoordinate.y + yd - (redDiffuseMap.length / 2),blockCoordinate.z + zd - (redDiffuseMap.length / 2));
+                                Vector3f lightColor = fWorld.getConstantLightColor(absCoordinate);
                                 float newRedLightValue = lightColor.x;
                                 float newGreenLightValue = lightColor.y;
                                 float newBlueLightValue = lightColor.z;
-                                if (RedDiffuseMap[xd][yd][zd] > 0.001f) {
-                                    newRedLightValue = (lightColor.x + RedDiffuseMap[xd][yd][zd]) / (1 + (lightColor.x * RedDiffuseMap[xd][yd][zd]));
+                                if (redDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newRedLightValue = (lightColor.x + redDiffuseMap[xd][yd][zd]) / (1 + (lightColor.x * redDiffuseMap[xd][yd][zd]));
                                 }
-                                if (GreenDiffuseMap[xd][yd][zd] > 0.001f) {
-                                    newGreenLightValue = (lightColor.y + GreenDiffuseMap[xd][yd][zd]) / (1 + (lightColor.y * GreenDiffuseMap[xd][yd][zd]));
+                                if (greenDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newGreenLightValue = (lightColor.y + greenDiffuseMap[xd][yd][zd]) / (1 + (lightColor.y * greenDiffuseMap[xd][yd][zd]));
                                 }
-                                if (BlueDiffuseMap[xd][yd][zd] > 0.001f) {
-                                    newBlueLightValue = (lightColor.z + BlueDiffuseMap[xd][yd][zd]) / (1 + (lightColor.z * BlueDiffuseMap[xd][yd][zd]));
+                                if (blueDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newBlueLightValue = (lightColor.z + blueDiffuseMap[xd][yd][zd]) / (1 + (lightColor.z * blueDiffuseMap[xd][yd][zd]));
                                 }
-                                fWorld.setConstantLightColor(xA, yA, zA, new Vector3f(newRedLightValue, newGreenLightValue, newBlueLightValue));
+                                fWorld.setConstantLightColor(absCoordinate, new Vector3f(newRedLightValue, newGreenLightValue, newBlueLightValue));
                             }
                         }
                     }
                 }
                 if (b.isPulseLightSource()) {
                     Vector3f blockColor = b.getPulseLightValue();
-                    float[][][] RedDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.x);
-                    float[][][] GreenDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.y);
-                    float[][][] BlueDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.z);
-                    for (int xd = 0; xd < RedDiffuseMap.length; xd++) {
-                        for (int yd = 0; yd < RedDiffuseMap.length; yd++) {
-                            for (int zd = 0; zd < RedDiffuseMap.length; zd++) {
-                                int xA = b.getX() + xd - (RedDiffuseMap.length / 2);
-                                int yA = b.getY() + yd - (RedDiffuseMap.length / 2);
-                                int zA = b.getZ() + zd - (RedDiffuseMap.length / 2);
-                                Vector3f lightColor = fWorld.getPulseLightColor(xA, yA, zA);
+                    float[][][] redDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getCoordinate(), blockColor.x);
+                    float[][][] greenDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getCoordinate(), blockColor.y);
+                    float[][][] blueDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getCoordinate(), blockColor.z);
+                    for (int xd = 0; xd < redDiffuseMap.length; xd++) {
+                        for (int yd = 0; yd < redDiffuseMap.length; yd++) {
+                            for (int zd = 0; zd < redDiffuseMap.length; zd++) {
+                                Coordinate blockCoordinate = b.getCoordinate();
+                                Coordinate absCoordinate = new Coordinate(blockCoordinate.x + xd - (redDiffuseMap.length / 2), 
+                                                            blockCoordinate.y + yd - (redDiffuseMap.length / 2),blockCoordinate.z + zd - (redDiffuseMap.length / 2));
+                                Vector3f lightColor = fWorld.getPulseLightColor(absCoordinate);
                                 float newRedLightValue = lightColor.x;
                                 float newGreenLightValue = lightColor.y;
                                 float newBlueLightValue = lightColor.z;
-                                if (RedDiffuseMap[xd][yd][zd] > 0.001f) {
-                                    newRedLightValue = (lightColor.x + RedDiffuseMap[xd][yd][zd]) / (1 + (lightColor.x * RedDiffuseMap[xd][yd][zd]));
+                                if (redDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newRedLightValue = (lightColor.x + redDiffuseMap[xd][yd][zd]) / (1 + (lightColor.x * redDiffuseMap[xd][yd][zd]));
                                 }
-                                if (GreenDiffuseMap[xd][yd][zd] > 0.001f) {
-                                    newGreenLightValue = (lightColor.y + GreenDiffuseMap[xd][yd][zd]) / (1 + (lightColor.y * GreenDiffuseMap[xd][yd][zd]));
+                                if (greenDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newGreenLightValue = (lightColor.y + greenDiffuseMap[xd][yd][zd]) / (1 + (lightColor.y * greenDiffuseMap[xd][yd][zd]));
                                 }
-                                if (BlueDiffuseMap[xd][yd][zd] > 0.001f) {
-                                    newBlueLightValue = (lightColor.z + BlueDiffuseMap[xd][yd][zd]) / (1 + (lightColor.z * BlueDiffuseMap[xd][yd][zd]));
+                                if (blueDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newBlueLightValue = (lightColor.z + blueDiffuseMap[xd][yd][zd]) / (1 + (lightColor.z * blueDiffuseMap[xd][yd][zd]));
                                 }
-                                fWorld.setPulseLightColor(xA, yA, zA, new Vector3f(newRedLightValue, newGreenLightValue, newBlueLightValue));
+                                fWorld.setPulseLightColor(absCoordinate, new Vector3f(newRedLightValue, newGreenLightValue, newBlueLightValue));
                             }
                         }
                     }
@@ -264,12 +261,13 @@ public class Chunk {
         if (fChunkMesh != null) {
             fRootNode.detachChild(fChunkMesh);
         }
-        Mesh mesh = fMeshCreator.calculateMesh(fWorld, fLightingCalculator, fXC, fYC, fZC, fXC + CHUNK_SIZE, fYC + CHUNK_SIZE, fZC + CHUNK_SIZE);
+        Mesh mesh = fMeshCreator.calculateMesh(fWorld, fLightingCalculator, fCoordinate.x, fCoordinate.y, fCoordinate.z, 
+                fCoordinate.x + CHUNK_SIZE, fCoordinate.y + CHUNK_SIZE, fCoordinate.z + CHUNK_SIZE);
         if (mesh == null) {
             fChunkMesh = null;
             return;
         }
-        fChunkMesh = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, mesh);
+        fChunkMesh = new Geometry("Chunk:" + fCoordinate.x + "." + fCoordinate.y + "." + fCoordinate.z, mesh);
         fChunkMesh.setMaterial(fWorld.getBlockMat());
         fRootNode.attachChild(fChunkMesh);
 
@@ -345,11 +343,11 @@ public class Chunk {
         }
     }
 
-    public Block get(int x, int y, int z) {
+    public Block getBlock(Coordinate coordinate) {
         int xC, yC, zC;
-        xC = MathUtil.PosMod(x, CHUNK_SIZE);
-        yC = MathUtil.PosMod(y, CHUNK_SIZE);
-        zC = MathUtil.PosMod(z, CHUNK_SIZE);
+        xC = MathUtil.PosMod(coordinate.x, CHUNK_SIZE);
+        yC = MathUtil.PosMod(coordinate.y, CHUNK_SIZE);
+        zC = MathUtil.PosMod(coordinate.z, CHUNK_SIZE);
         if (fBlocks[xC][yC][zC] != null) {
             return fBlocks[xC][yC][zC];
         }
@@ -361,15 +359,14 @@ public class Chunk {
     }
 
     
-    public void removeBlock(int x, int y, int z) {
-        int xC, yC, zC;
-        xC = MathUtil.PosMod(x, CHUNK_SIZE);
-        yC = MathUtil.PosMod(y, CHUNK_SIZE);
-        zC = MathUtil.PosMod(z, CHUNK_SIZE);
-        if (fBlocks[xC][yC][zC] != null) {
-            Block b = fBlocks[xC][yC][zC];
-            fBlocks[xC][yC][zC] = null;
-            scheduleUpdateBlockNormals(x, y, z);
+    public void removeBlock(Coordinate coordinate) {
+        Coordinate relCoordinate = new Coordinate(MathUtil.PosMod(coordinate.x, CHUNK_SIZE), 
+                MathUtil.PosMod(coordinate.y, CHUNK_SIZE),
+                MathUtil.PosMod(coordinate.z, CHUNK_SIZE) );
+        if (fBlocks[relCoordinate.x][relCoordinate.y][relCoordinate.z] != null) {
+            Block b = fBlocks[relCoordinate.x][relCoordinate.y][relCoordinate.z];
+            fBlocks[relCoordinate.x][relCoordinate.y][relCoordinate.z] = null;
+            scheduleUpdateBlockNormals(coordinate);
             blockRemoved(b);
             fNeedsUpdate = true;
         }
@@ -380,16 +377,15 @@ public class Chunk {
     }
     
     public boolean addBlock(Block b, boolean updateNormals) {
-        int xC, yC, zC;
-        xC = MathUtil.PosMod(b.getX(), CHUNK_SIZE);
-        yC = MathUtil.PosMod(b.getY(), CHUNK_SIZE);
-        zC = MathUtil.PosMod(b.getZ(), CHUNK_SIZE);
-        if (fBlocks[xC][yC][zC] != null) {
+        Coordinate coordinate = new Coordinate(MathUtil.PosMod(b.getCoordinate().x, CHUNK_SIZE), 
+                MathUtil.PosMod(b.getCoordinate().y, CHUNK_SIZE),
+                MathUtil.PosMod(b.getCoordinate().z, CHUNK_SIZE) );
+        if (fBlocks[coordinate.x][coordinate.y][coordinate.z] != null) {
             return false;
         } else {
-            fBlocks[xC][yC][zC] = b;
+            fBlocks[coordinate.x][coordinate.y][coordinate.z] = b;
             if(updateNormals) {
-                scheduleUpdateBlockNormals(b.getX(), b.getY(), b.getZ());
+                scheduleUpdateBlockNormals(b.getCoordinate());
             }
             blockAdded(b);
             fNeedsUpdate = true;
@@ -438,37 +434,29 @@ public class Chunk {
         fChunkGeneratorData = object;
     }
 
-    public int getX() {
-        return fXC;
+    public Coordinate getCoordinate() {
+        return fCoordinate;
     }
 
-    public int getY() {
-        return fYC;
+    private String generateKey(Coordinate coordinate) {
+        return "" + coordinate.x + ":" + coordinate.y + ":" + coordinate.z;
     }
 
-    public int getZ() {
-        return fZC;
-    }
-
-    private String generateKey(int x, int y, int z) {
-        return "" + x + ":" + y + ":" + z;
-    }
-
-    public float getSunlightValue(int x, int y, int z) {
-        Float value = fSunLightMap.get(generateKey(x, y, z));
+    public float getSunlightValue(Coordinate coordinate) {
+        Float value = fSunLightMap.get(generateKey(coordinate));
         if (value == null) {
-            return fChunkColumn.getDirectSunlight(x, y, z);
+            return fChunkColumn.getDirectSunlight(coordinate);
         } else {
             return value;
         }
     }
 
-    public void setSunlightValue(int x, int y, int z, float value) {
-        fSunLightMap.put(generateKey(x, y, z), value);
+    public void setSunlightValue(Coordinate coordinate, float value) {
+        fSunLightMap.put(generateKey(coordinate), value);
     }
 
-    public Vector3f getConstantLightColor(int x, int y, int z) {
-        Vector3f color = fConstantLightMap.get(generateKey(x, y, z));
+    public Vector3f getConstantLightColor(Coordinate coordinate) {
+        Vector3f color = fConstantLightMap.get(generateKey(coordinate));
         if (color == null) {
             return new Vector3f(0f, 0f, 0f);
         } else {
@@ -476,12 +464,12 @@ public class Chunk {
         }
     }
 
-    public void setConstantLightColor(int x, int y, int z, Vector3f color) {
-        fConstantLightMap.put(generateKey(x, y, z), color);
+    public void setConstantLightColor(Coordinate coordinate, Vector3f color) {
+        fConstantLightMap.put(generateKey(coordinate), color);
     }
 
-    public Vector3f getPulseLightColor(int x, int y, int z) {
-        Vector3f color = fPulseLightMap.get(generateKey(x, y, z));
+    public Vector3f getPulseLightColor(Coordinate coordinate) {
+        Vector3f color = fPulseLightMap.get(generateKey(coordinate));
         if (color == null) {
             return new Vector3f(0f, 0f, 0f);
         } else {
@@ -489,26 +477,25 @@ public class Chunk {
         }
     }
 
-    public void setPulseLightColor(int x, int y, int z, Vector3f color) {
-        fPulseLightMap.put(generateKey(x, y, z), color);
+    public void setPulseLightColor(Coordinate coordinate, Vector3f color) {
+        fPulseLightMap.put(generateKey(coordinate), color);
     }
     
-    public void scheduleUpdateBlockNormals(int x, int y, int z) {
-        scheduleUpdateNormal(x, y, z);
-        scheduleUpdateNormal(x, y, z + 1);
-        scheduleUpdateNormal(x, y + 1, z);
-        scheduleUpdateNormal(x, y + 1, z + 1);
-        scheduleUpdateNormal(x + 1, y, z);
-        scheduleUpdateNormal(x + 1, y, z + 1);
-        scheduleUpdateNormal(x + 1, y + 1, z);
-        scheduleUpdateNormal(x + 1, y + 1, z + 1);
+    public void scheduleUpdateBlockNormals(Coordinate coordinate) {
+        scheduleUpdateNormal(coordinate);
+        scheduleUpdateNormal(new Coordinate(coordinate.x, coordinate.y, coordinate.z + 1));
+        scheduleUpdateNormal(new Coordinate(coordinate.x, coordinate.y + 1, coordinate.z));
+        scheduleUpdateNormal(new Coordinate(coordinate.x, coordinate.y + 1, coordinate.z + 1));
+        scheduleUpdateNormal(new Coordinate(coordinate.x + 1, coordinate.y, coordinate.z));
+        scheduleUpdateNormal(new Coordinate(coordinate.x + 1, coordinate.y, coordinate.z + 1));
+        scheduleUpdateNormal(new Coordinate(coordinate.x + 1, coordinate.y + 1, coordinate.z));
+        scheduleUpdateNormal(new Coordinate(coordinate.x + 1, coordinate.y + 1, coordinate.z + 1));
     }
     
-    public void scheduleUpdateNormal(int x, int y, int z) {
-        Coordinate coordinate = new Coordinate(x, y, z);
+    public void scheduleUpdateNormal(Coordinate coordinate) {
         Set<Coordinate> connectedCorners = calculateNormal(coordinate);
         for(Coordinate corner : connectedCorners) {
-            Chunk cnk = fWorld.getChunk(corner.x, corner.y, corner.z, false);
+            Chunk cnk = fWorld.getChunk(corner, false);
             if(cnk != null) {
                 //cnk.fNormalsToUpdate.add(corner);
                 cnk.fNormals[MathUtil.PosMod(corner.x, CHUNK_SIZE)][MathUtil.PosMod(corner.y, CHUNK_SIZE)][MathUtil.PosMod(corner.z, CHUNK_SIZE)] = null;
@@ -547,12 +534,12 @@ public class Chunk {
         fNormalsToUpdate.clear();
     }
     */
-    public Vector3f getNormal(int x, int y, int z) {
-        int xC = MathUtil.PosMod(x, CHUNK_SIZE);
-        int yC = MathUtil.PosMod(y, CHUNK_SIZE);
-        int zC = MathUtil.PosMod(z, CHUNK_SIZE);
+    public Vector3f getNormal(Coordinate coordinate) {
+        int xC = MathUtil.PosMod(coordinate.x, CHUNK_SIZE);
+        int yC = MathUtil.PosMod(coordinate.y, CHUNK_SIZE);
+        int zC = MathUtil.PosMod(coordinate.z, CHUNK_SIZE);
         if(fNormals[xC][yC][zC] == null) {
-            calculateNormal(new Coordinate(x, y, z));
+            calculateNormal(coordinate);
         }
         return fNormals[xC][yC][zC];
     }

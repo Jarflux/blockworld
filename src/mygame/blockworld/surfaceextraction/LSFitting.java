@@ -47,17 +47,17 @@ public class LSFitting implements MeshCreator {
     private static final float SMALLEST_FEATURE_DISTANCE = .1f;
     
     private static final int BLOCK_SMOOTHNESS = 3; //min 0
-    private static Vector3f calculateVertexPosition(BlockContainer blockContainer, int x, int y, int z) {
-        float xOriginal = x - .5f;
-        float yOriginal = y - .5f;
-        float zOriginal = z - .5f;
+    private static Vector3f calculateVertexPosition(BlockContainer blockContainer, Coordinate coordinate) {
+        float xOriginal = coordinate.x - .5f;
+        float yOriginal = coordinate.y - .5f;
+        float zOriginal = coordinate.z - .5f;
         
         if(BLOCK_SMOOTHNESS == 0) {
             return new Vector3f(xOriginal, yOriginal, zOriginal);
         }
         
         Set<Coordinate> connectedCorners = new HashSet<Coordinate>();
-        Coordinate.findConnectedCorners(blockContainer, new Coordinate(x, y, z), false, false, true, BLOCK_SMOOTHNESS, connectedCorners);
+        Coordinate.findConnectedCorners(blockContainer, coordinate, false, false, true, BLOCK_SMOOTHNESS, connectedCorners);
         
         float pX = 0f;
         float pY = 0f;
@@ -70,7 +70,7 @@ public class LSFitting implements MeshCreator {
         
         for(Coordinate corner : connectedCorners) {
             //int distance = Math.abs(x - corner.x) + Math.abs(y - corner.y) + Math.abs(z - corner.z);
-            Vector3f normal = blockContainer.getNormal(corner.x, corner.y, corner.z);
+            Vector3f normal = blockContainer.getNormal(new Coordinate(corner.x, corner.y, corner.z));
             if(!normal.equals(Vector3f.ZERO)) {
                 pX += corner.x - .5f;
                 pY += corner.y - .5f;
@@ -128,7 +128,7 @@ public class LSFitting implements MeshCreator {
         for (int i = xMin; i < xMax; i++) {
             for (int j = yMin; j < yMax; j++) {
                 for (int k = zMin; k < zMax; k++) {
-                    Block block = blockContainer.getBlock(i, j, k);
+                    Block block = blockContainer.getBlock(new Coordinate(i, j, k));
                     if (block != null) {
                         List<Vector3f> verticesBlock = new LinkedList<Vector3f>();
                         List<Vector3f> normalsBlock = new LinkedList<Vector3f>();
@@ -137,15 +137,15 @@ public class LSFitting implements MeshCreator {
                         int indexBlock = 0;
                         
                         //Check top
-                        if (blockContainer.getBlock(i, j + 1, k) == null) {
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j + 1, k));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j + 1, k + 1));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j + 1, k + 1));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j + 1, k));
-                            normalsBlock.add(blockContainer.getNormal(i, j + 1, k));
-                            normalsBlock.add(blockContainer.getNormal(i, j + 1, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j + 1, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j + 1, k));
+                        if (blockContainer.getBlock(new Coordinate(i, j + 1, k)) == null) {
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j + 1, k)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j + 1, k + 1)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j + 1, k + 1)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j + 1, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j + 1, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j + 1, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j + 1, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j + 1, k)));
                             addTextureCoords(texCoordsBlock, block.getTextureTop(), false);
                             indicesBlock.add(indexBlock);
                             indicesBlock.add(indexBlock + 1);
@@ -154,21 +154,21 @@ public class LSFitting implements MeshCreator {
                             indicesBlock.add(indexBlock + 2);
                             indicesBlock.add(indexBlock + 3); // triangle 2
                             indexBlock = indexBlock + 4;
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k));
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k)));
                         }
                         //Check bottom
-                        if (blockContainer.getBlock(i, j - 1, k) == null) {
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j, k));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j, k));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j, k + 1));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i, j, k));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j, k));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i, j, k + 1));
+                        if (blockContainer.getBlock(new Coordinate(i, j - 1, k)) == null) {
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j, k)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j, k)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j, k + 1)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j, k + 1)));
                             addTextureCoords(texCoordsBlock, block.getTextureBottom(), false);
                             indicesBlock.add(indexBlock);
                             indicesBlock.add(indexBlock + 1);
@@ -177,21 +177,21 @@ public class LSFitting implements MeshCreator {
                             indicesBlock.add(indexBlock + 2);
                             indicesBlock.add(indexBlock + 3); // triangle 2
                             indexBlock = indexBlock + 4;
-                            light.add(lighting.calculateLight(blockContainer, i, j, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i, j, k + 1));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k + 1)));
                         }
                         //Check right
-                        if (blockContainer.getBlock(i + 1, j, k) == null) {
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j, k));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j + 1, k));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j + 1, k + 1));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j, k));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j + 1, k));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j + 1, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j, k + 1));
+                        if (blockContainer.getBlock(new Coordinate(i + 1, j, k)) == null) {
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j, k)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j + 1, k)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j + 1, k + 1)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j + 1, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j + 1, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j, k + 1)));
                             addTextureCoords(texCoordsBlock, block.getTextureRight(), true);
                             indicesBlock.add(indexBlock);
                             indicesBlock.add(indexBlock + 1);
@@ -200,21 +200,21 @@ public class LSFitting implements MeshCreator {
                             indicesBlock.add(indexBlock + 2);
                             indicesBlock.add(indexBlock + 3); // triangle 2
                             indexBlock = indexBlock + 4;
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k + 1));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k + 1)));
                         }
                         //Check left
-                        if (blockContainer.getBlock(i - 1, j, k) == null) {
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j, k));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j, k + 1));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j + 1, k + 1));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j + 1, k));
-                            normalsBlock.add(blockContainer.getNormal(i, j, k));
-                            normalsBlock.add(blockContainer.getNormal(i, j, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i, j + 1, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i, j + 1, k));
+                        if (blockContainer.getBlock(new Coordinate(i - 1, j, k)) == null) {
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j, k)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j, k + 1)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j + 1, k + 1)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j + 1, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j + 1, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j + 1, k)));
                             addTextureCoords(texCoordsBlock, block.getTextureLeft(), false);
                             indicesBlock.add(indexBlock);
                             indicesBlock.add(indexBlock + 1);
@@ -223,21 +223,21 @@ public class LSFitting implements MeshCreator {
                             indicesBlock.add(indexBlock + 2);
                             indicesBlock.add(indexBlock + 3); // triangle 2
                             indexBlock = indexBlock + 4;
-                            light.add(lighting.calculateLight(blockContainer, i, j, k));
-                            light.add(lighting.calculateLight(blockContainer, i, j, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k)));
                         }
                         //Check back
-                        if (blockContainer.getBlock(i, j, k + 1) == null) {
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j, k + 1));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j, k + 1));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j + 1, k + 1));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j + 1, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i, j, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j + 1, k + 1));
-                            normalsBlock.add(blockContainer.getNormal(i, j + 1, k + 1));
+                        if (blockContainer.getBlock(new Coordinate(i, j, k + 1)) == null) {
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j, k + 1)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j, k + 1)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j + 1, k + 1)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j + 1, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j + 1, k + 1)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j + 1, k + 1)));
                             addTextureCoords(texCoordsBlock, block.getTextureBack(), false);
                             indicesBlock.add(indexBlock);
                             indicesBlock.add(indexBlock + 1);
@@ -246,21 +246,21 @@ public class LSFitting implements MeshCreator {
                             indicesBlock.add(indexBlock + 2);
                             indicesBlock.add(indexBlock + 3); // triangle 2
                             indexBlock = indexBlock + 4;
-                            light.add(lighting.calculateLight(blockContainer, i, j, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k + 1));
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k + 1));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k + 1)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k + 1)));
                         }
                         //Check front
-                        if (blockContainer.getBlock(i, j, k - 1) == null) {
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j, k));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i, j + 1, k));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j + 1, k));
-                            verticesBlock.add(calculateVertexPosition(blockContainer, i + 1, j, k));
-                            normalsBlock.add(blockContainer.getNormal(i, j, k));
-                            normalsBlock.add(blockContainer.getNormal(i, j + 1, k));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j + 1, k));
-                            normalsBlock.add(blockContainer.getNormal(i + 1, j, k));
+                        if (blockContainer.getBlock(new Coordinate(i, j, k - 1)) == null) {
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j, k)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i, j + 1, k)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j + 1, k)));
+                            verticesBlock.add(calculateVertexPosition(blockContainer, new Coordinate(i + 1, j, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i, j + 1, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j + 1, k)));
+                            normalsBlock.add(blockContainer.getNormal(new Coordinate(i + 1, j, k)));
                             addTextureCoords(texCoordsBlock, block.getTextureFront(), true);
                             indicesBlock.add(indexBlock);
                             indicesBlock.add(indexBlock + 1);
@@ -269,10 +269,10 @@ public class LSFitting implements MeshCreator {
                             indicesBlock.add(indexBlock + 2);
                             indicesBlock.add(indexBlock + 3); // triangle 2
                             indexBlock = indexBlock + 4;
-                            light.add(lighting.calculateLight(blockContainer, i, j, k));
-                            light.add(lighting.calculateLight(blockContainer, i, j + 1, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j + 1, k));
-                            light.add(lighting.calculateLight(blockContainer, i + 1, j, k));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i, j + 1, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j + 1, k)));
+                            light.add(lighting.calculateLight(blockContainer, new Coordinate(i + 1, j, k)));
                         }
                         /*
                         //Check if 2 vertices are reasonably close to eachother, if so merge them, their normals & change the indices

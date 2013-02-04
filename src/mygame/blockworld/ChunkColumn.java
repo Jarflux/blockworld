@@ -17,14 +17,16 @@ public class ChunkColumn {
 
     private ChunkListener fLightMapUpdater = new ChunkListener() {
         public void blockAdded(Chunk chunk, Block block) {
-            if (fHightestBlockMap[MathUtil.PosMod(block.getX(), Chunk.CHUNK_SIZE)][MathUtil.PosMod(block.getZ(), Chunk.CHUNK_SIZE)] < block.getY()) {
-                fHightestBlockMap[MathUtil.PosMod(block.getX(), Chunk.CHUNK_SIZE)][MathUtil.PosMod(block.getZ(), Chunk.CHUNK_SIZE)] = block.getY();
+            Coordinate blockCoordinate = block.getCoordinate();
+            if (fHightestBlockMap[MathUtil.PosMod(blockCoordinate.x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(blockCoordinate.z, Chunk.CHUNK_SIZE)] < blockCoordinate.y) {
+                fHightestBlockMap[MathUtil.PosMod(blockCoordinate.x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(blockCoordinate.z, Chunk.CHUNK_SIZE)] = blockCoordinate.y;
             }
         }
 
         public void blockRemoved(Chunk chunk, Block block) {
-            if (fHightestBlockMap[MathUtil.PosMod(block.getX(), Chunk.CHUNK_SIZE)][MathUtil.PosMod(block.getZ(), Chunk.CHUNK_SIZE)] == block.getY()) {
-                fHightestBlockMap[MathUtil.PosMod(block.getX(), Chunk.CHUNK_SIZE)][MathUtil.PosMod(block.getZ(), Chunk.CHUNK_SIZE)] = findBlockHeightBelowMe(block.getX(), block.getY(), block.getZ());
+            Coordinate blockCoordinate = block.getCoordinate();
+            if (fHightestBlockMap[MathUtil.PosMod(blockCoordinate.x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(blockCoordinate.z, Chunk.CHUNK_SIZE)] == blockCoordinate.y) {
+                fHightestBlockMap[MathUtil.PosMod(blockCoordinate.y, Chunk.CHUNK_SIZE)][MathUtil.PosMod(blockCoordinate.z, Chunk.CHUNK_SIZE)] = findBlockHeightBelowMe(blockCoordinate);
             }
         }
     };
@@ -58,13 +60,13 @@ public class ChunkColumn {
 
     public void put(Chunk chunk) {
         chunk.addChunkListener(fLightMapUpdater);
-        fChunks.put((int) Math.floor((double) chunk.getY() / Chunk.CHUNK_SIZE), chunk);
+        fChunks.put((int) Math.floor((double) chunk.getCoordinate().y / Chunk.CHUNK_SIZE), chunk);
         for (int i = 0; i < Chunk.CHUNK_SIZE; i++) {
             for (int j = 0; j < Chunk.CHUNK_SIZE; j++) {
                 for (int k = 0; k < Chunk.CHUNK_SIZE; k++) {
-                    if (chunk.get(i, j, k) != null) {
-                        if (fHightestBlockMap[i][k] < (j + chunk.getY())) {
-                            fHightestBlockMap[i][k] = (j + chunk.getY());
+                    if (chunk.getBlock(new Coordinate(i, j, k)) != null) {
+                        if (fHightestBlockMap[i][k] < (j + chunk.getCoordinate().y)) {
+                            fHightestBlockMap[i][k] = (j + chunk.getCoordinate().y);
                         }
                     }
                 }
@@ -76,11 +78,11 @@ public class ChunkColumn {
         return fChunks.values();
     }
 
-    private int findBlockHeightBelowMe(int x, int y, int z) {
-        for (int i = y - 1; i > Lighting.TOTAL_DARKNESS_HEIGHT; i--) {
+    private int findBlockHeightBelowMe(Coordinate coordinate) {
+        for (int i = coordinate.y - 1; i > Lighting.TOTAL_DARKNESS_HEIGHT; i--) {
             Chunk chunk = get(i);
             if (chunk != null) {
-                if (chunk.get(x, i, z) != null) {
+                if (chunk.getBlock(new Coordinate(coordinate.x, i, coordinate.z)) != null) {
                     return i;
                 }
             }
@@ -88,27 +90,27 @@ public class ChunkColumn {
         return Lighting.TOTAL_DARKNESS_HEIGHT;
     }
 
-    protected float getDirectSunlight(int x, int y, int z) {
+    protected float getDirectSunlight(Coordinate coordinate) {
         // return de waarde van het zonlight op dit punt
         // zonlicht is steeds 1 hoger dan de hoogste block
         float lightValue = Lighting.MIN_LIGHT_VALUE;
-        int highestBlock = fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)];
-        if (y > highestBlock && y >= 0) {
+        int highestBlock = fHightestBlockMap[MathUtil.PosMod(coordinate.x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(coordinate.z, Chunk.CHUNK_SIZE)];
+        if (coordinate.y > highestBlock && coordinate.y >= 0) {
             lightValue = Lighting.MAX_LIGHT_VALUE;
         }
-        if (y > highestBlock && y < 0) {
-            lightValue = Math.max(Lighting.MIN_LIGHT_VALUE, (float) Math.pow(Lighting.SUNLIGHT_DEGRADING_CONSTANT, (-y)));
+        if (coordinate.y > highestBlock && coordinate.y < 0) {
+            lightValue = Math.max(Lighting.MIN_LIGHT_VALUE, (float) Math.pow(Lighting.SUNLIGHT_DEGRADING_CONSTANT, (-coordinate.y)));
         }
         return lightValue;
     }
 
-    public float getSunlightValue(int x, int y, int z) {
-        if(y > fHightestBlockMap[MathUtil.PosMod(x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(z, Chunk.CHUNK_SIZE)]) {
-            return getDirectSunlight(x, y, z);
+    public float getSunlightValue(Coordinate coordinate) {
+        if(coordinate.y > fHightestBlockMap[MathUtil.PosMod(coordinate.x, Chunk.CHUNK_SIZE)][MathUtil.PosMod(coordinate.z, Chunk.CHUNK_SIZE)]) {
+            return getDirectSunlight(coordinate);
         }
-        Chunk chunk = get(y);
+        Chunk chunk = get(coordinate.y);
         if (chunk != null) {
-            Float value = chunk.getSunlightValue(x, y, z);
+            Float value = chunk.getSunlightValue(coordinate);
             if (value != null) {
                 return value;
             }

@@ -5,6 +5,7 @@
 package mygame;
 
 import com.jme3.math.Vector4f;
+import mygame.blockworld.Coordinate;
 import mygame.blockworld.surfaceextraction.BlockContainer;
 
 /**
@@ -12,5 +13,5 @@ import mygame.blockworld.surfaceextraction.BlockContainer;
  * @author Fusion
  */
 public interface LightingCalculator {
-   Vector4f calculateLight(BlockContainer container, int x, int y , int z); 
+   Vector4f calculateLight(BlockContainer container, Coordinate coordinate); 
 }

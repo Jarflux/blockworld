@@ -3,6 +3,7 @@ package mygame;
 import com.jme3.math.Vector3f;
 import com.jme3.math.Vector4f;
 import mygame.blockworld.Block;
+import mygame.blockworld.Coordinate;
 import mygame.blockworld.surfaceextraction.BlockContainer;
 
 /**
@@ -18,15 +19,15 @@ public class Lighting implements LightingCalculator {
     private static final float DIFFUSION_DIVIDER = 1.5f;
     private static final int MAX_RECURSION_DEPTH = 8;
 
-    public static float[][][] calculateDiffuseMap(BlockContainer blockContainer, int xAbs, int yAbs, int zAbs, float lightValue) {
+    public static float[][][] calculateDiffuseMap(BlockContainer blockContainer, Coordinate absCoordinate, float lightValue) {
         // Lighting li = new Lighting(world, xAbs, yAbs, zAbs, lightValue);
         int arraySize = (MAX_RECURSION_DEPTH * 2) + 1;
         int middle = arraySize / 2;
         float[][][] lightValues = new float[arraySize][arraySize][arraySize];
         boolean[][][] isAlreadyAdjusted = new boolean[arraySize][arraySize][arraySize];
-        int fXOffset = xAbs - MAX_RECURSION_DEPTH;
-        int fYOffset = yAbs - MAX_RECURSION_DEPTH;
-        int fZOffset = zAbs - MAX_RECURSION_DEPTH;
+        int fXOffset = absCoordinate.x - MAX_RECURSION_DEPTH;
+        int fYOffset = absCoordinate.y - MAX_RECURSION_DEPTH;
+        int fZOffset = absCoordinate.z - MAX_RECURSION_DEPTH;
         Lighting.setLight(blockContainer, lightValues, isAlreadyAdjusted, MAX_RECURSION_DEPTH, middle, middle, middle, lightValue, fXOffset, fYOffset, fZOffset);
 
         //System.out.println("x:" + xAbs + " y:" + yAbs + " z:" + zAbs + " Light:"+ lightValue );
@@ -69,7 +70,7 @@ public class Lighting implements LightingCalculator {
     // uses relative coordinates for the light array
     private static void setLight(BlockContainer blockContainer, float[][][] lightValues, boolean[][][] isAlreadyAdjusted, int recursionDepth, int x, int y, int z,
             float value, int fXOffset, int fYOffset, int fZOffset) {
-        if ((value > MIN_LIGHT_VALUE) && (blockContainer.getBlock(x + fXOffset, y + fYOffset, z + fZOffset) == null)
+        if ((value > MIN_LIGHT_VALUE) && (blockContainer.getBlock(new Coordinate(x + fXOffset, y + fYOffset, z + fZOffset)) == null)
             || (recursionDepth == MAX_RECURSION_DEPTH)) {
             if (lightValues[x][y][z] < value) {
                 lightValues[x][y][z] = value;
@@ -91,11 +92,11 @@ public class Lighting implements LightingCalculator {
         }
     }
 
-    public Vector4f calculateLight(BlockContainer blockContainer, int x, int y, int z) {
-        return getAvgLight(blockContainer, x, y, z);
+    public Vector4f calculateLight(BlockContainer blockContainer, Coordinate coordinate) {
+        return getAvgLight(blockContainer, coordinate);
     }
 
-    public static Vector4f getAvgLight(BlockContainer blockContainer, int x, int y, int z) {
+    public static Vector4f getAvgLight(BlockContainer blockContainer, Coordinate coordinate) {
         int constantSamples = 0;
         int pulseSamples = 0;
         int sunSamples = 0;
@@ -107,26 +108,27 @@ public class Lighting implements LightingCalculator {
         float pulseLightColorBlue = 0;
         float sunlight = 0;
         Block b;
-        for (int i = x - 1; i <= x; i++) {
-            for (int j = y - 1; j <= y; j++) {
-                for (int k = z - 1; k <= z; k++) {
-                    b = blockContainer.getBlock(i, j, k);
+        for (int i = coordinate.x - 1; i <= coordinate.x; i++) {
+            for (int j = coordinate.y - 1; j <= coordinate.y; j++) {
+                for (int k = coordinate.z - 1; k <= coordinate.z; k++) {
+                    Coordinate blockCoordinate = new Coordinate(i,j,k);
+                    b = blockContainer.getBlock(blockCoordinate);
                     if (b == null) {
-                        Vector3f constantLightColor = blockContainer.getConstantLightColor(i, j, k);
+                        Vector3f constantLightColor = blockContainer.getConstantLightColor(blockCoordinate);
                         if (constantLightColor.x > 0.0f || constantLightColor.y > 0.0f || constantLightColor.z > 0.0f) {
                             constantLightColorRed += constantLightColor.x;
                             constantLightColorGreen += constantLightColor.y;
                             constantLightColorBlue += constantLightColor.z;
                             constantSamples++;
                         }
-                        Vector3f pulseLightColor = blockContainer.getPulseLightColor(i, j, k);
+                        Vector3f pulseLightColor = blockContainer.getPulseLightColor(blockCoordinate);
                         if (pulseLightColor.x > 0.0f || pulseLightColor.y > 0.0f || pulseLightColor.z > 0.0f) {
                             pulseLightColorRed += pulseLightColor.x;
                             pulseLightColorGreen += pulseLightColor.y;
                             pulseLightColorBlue += pulseLightColor.z;
                             pulseSamples++;
                         }
-                        sunlight = sunlight + blockContainer.getSunlightValue(i, j, k);
+                        sunlight = sunlight + blockContainer.getSunlightValue(blockCoordinate);
                         sunSamples++;
                     }
                 }

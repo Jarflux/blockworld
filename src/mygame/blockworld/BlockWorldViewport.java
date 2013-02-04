@@ -42,7 +42,7 @@ public class BlockWorldViewport {
             for (int i = xC - VIEW_WIDTH; i <= xC + VIEW_WIDTH; i++) {
                 for (int j = yC - VIEW_LENGTH; j <= yC + VIEW_LENGTH; j++) {
                     for (int k = zC - VIEW_HEIGHT; k <= zC + VIEW_HEIGHT; k++) {
-                        Chunk cnk = fWorld.getChunk(i * Chunk.CHUNK_SIZE, j * Chunk.CHUNK_SIZE, k * Chunk.CHUNK_SIZE, true);
+                        Chunk cnk = fWorld.getChunk(new Coordinate(i * Chunk.CHUNK_SIZE, j * Chunk.CHUNK_SIZE, k * Chunk.CHUNK_SIZE), true);
                         if (cnk != null) {
                             if (!previousChunks.remove(cnk)) {
                                 cnk.setVisible(true);

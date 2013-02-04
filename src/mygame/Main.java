@@ -36,6 +36,7 @@ import mygame.blockworld.BlockInfo.BlockType;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.BlockWorldViewport;
 import mygame.blockworld.Chunk;
+import mygame.blockworld.Coordinate;
 import mygame.blockworld.surfaceextraction.BasicTriangulation;
 import mygame.blockworld.surfaceextraction.MeshCreator;
 
@@ -357,7 +358,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 int x = Math.round(contactPoint.x - contactNormal.x * .5f);
                 int y = Math.round(contactPoint.y - contactNormal.y * .5f);
                 int z = Math.round(contactPoint.z - contactNormal.z * .5f);
-                fBlockWorld.removeBlock(x, y, z);
+                fBlockWorld.removeBlock(new Coordinate(x, y, z));
                 /*int sphereSize = 1;
                 for (int i = -sphereSize; i < sphereSize + 1; i++) {
                     for (int j = -sphereSize; j < sphereSize + 1; j++) {
@@ -388,7 +389,7 @@ public class Main extends SimpleApplication implements ActionListener {
                 int x = Math.round(contactPoint.x + contactNormal.x * .5f);
                 int y = Math.round(contactPoint.y + contactNormal.y * .5f);
                 int z = Math.round(contactPoint.z + contactNormal.z * .5f);
-                fBlockWorld.addBlock(new BasicBlock(x, y, z, BlockType.values()[fSelectedMaterial], contactDirection));
+                fBlockWorld.addBlock(new BasicBlock(new Coordinate(x, y, z), BlockType.values()[fSelectedMaterial], contactDirection));
                 /*int sphereSize = 1;
                 for (int i = -sphereSize; i < sphereSize + 1; i++) {
                     for (int j = -sphereSize; j < sphereSize + 1; j++) {

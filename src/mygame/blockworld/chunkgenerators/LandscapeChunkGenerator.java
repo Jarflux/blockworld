@@ -10,6 +10,7 @@ import mygame.blockworld.BasicBlock;
 import mygame.blockworld.BlockInfo.BlockType;
 import mygame.blockworld.BlockWorld;
 import mygame.blockworld.Chunk;
+import mygame.blockworld.Coordinate;
 
 /**
  *
@@ -31,18 +32,19 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
     public void fillChunk(BlockWorld world, Chunk cnk) {
         int offset = Chunk.CHUNK_SIZE;
         fChunkMap = new Float[offset + 1][offset + 1];
-
+        
+        Coordinate coordinate = cnk.getCoordinate();
         //check if map for that chunk not yet exsists
-        if (world.getHeightMap(cnk.getX(), cnk.getZ()) == null) {
+        if (world.getHeightMap(coordinate.x, coordinate.z) == null) {
 
-            Float[][] fChunkTop = world.getHeightMap(cnk.getX(), cnk.getZ() + offset);
-            Float[][] fChunkTopRight = world.getHeightMap(cnk.getX() + offset, cnk.getZ() + offset);
-            Float[][] fChunkRight = world.getHeightMap(cnk.getX() + offset, cnk.getZ());
-            Float[][] fChunkBottomRight = world.getHeightMap(cnk.getX() + offset, cnk.getZ() - offset);
-            Float[][] fChunkBottom = world.getHeightMap(cnk.getX(), cnk.getZ() - offset);
-            Float[][] fChunkBottomLeft = world.getHeightMap(cnk.getX() - offset, cnk.getZ() - offset);
-            Float[][] fChunkLeft = world.getHeightMap(cnk.getX() - offset, cnk.getZ());
-            Float[][] fChunkTopLeft = world.getHeightMap(cnk.getX() - offset, cnk.getZ() + offset);
+            Float[][] fChunkTop = world.getHeightMap(coordinate.x, coordinate.z + offset);
+            Float[][] fChunkTopRight = world.getHeightMap(coordinate.x + offset, coordinate.z + offset);
+            Float[][] fChunkRight = world.getHeightMap(coordinate.x + offset, coordinate.z);
+            Float[][] fChunkBottomRight = world.getHeightMap(coordinate.x + offset, coordinate.z - offset);
+            Float[][] fChunkBottom = world.getHeightMap(coordinate.x, coordinate.z - offset);
+            Float[][] fChunkBottomLeft = world.getHeightMap(coordinate.x - offset, coordinate.z - offset);
+            Float[][] fChunkLeft = world.getHeightMap(coordinate.x - offset, coordinate.z);
+            Float[][] fChunkTopLeft = world.getHeightMap(coordinate.x - offset, coordinate.z + offset);
 
             // does chunk to the top exsists?
             if (fChunkTop != null) {
@@ -109,19 +111,19 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
             // if still a corner is empty = randomFloat * Noise
             fNoiseZ = fRandom.nextFloat();
             if (fChunkMap[0][0] == null) {
-                fChunkMap[0][0] = fTerrainRoughness * ImprovedNoise.noise((((float) (cnk.getX() / offset)) + 0f) / fTerrainScale, (((float) (cnk.getX() / offset)) + 0f) / fTerrainScale, fNoiseZ);
+                fChunkMap[0][0] = fTerrainRoughness * ImprovedNoise.noise((((float) (coordinate.x / offset)) + 0f) / fTerrainScale, (((float) (coordinate.x / offset)) + 0f) / fTerrainScale, fNoiseZ);
             }
             if (fChunkMap[offset][0] == null) {
-                fChunkMap[offset][0] = fTerrainRoughness * ImprovedNoise.noise((((float) (cnk.getX() / offset)) + 1f) / fTerrainScale, (((float) (cnk.getX() / offset)) + 0f) / fTerrainScale, fNoiseZ);
+                fChunkMap[offset][0] = fTerrainRoughness * ImprovedNoise.noise((((float) (coordinate.x / offset)) + 1f) / fTerrainScale, (((float) (coordinate.x / offset)) + 0f) / fTerrainScale, fNoiseZ);
             }
             if (fChunkMap[offset][offset] == null) {
-                fChunkMap[offset][offset] = fTerrainRoughness * ImprovedNoise.noise((((float) (cnk.getX() / offset)) + 1f) / fTerrainScale, (((float) (cnk.getX() / offset)) + 1f) / fTerrainScale, fNoiseZ);
+                fChunkMap[offset][offset] = fTerrainRoughness * ImprovedNoise.noise((((float) (coordinate.x / offset)) + 1f) / fTerrainScale, (((float) (coordinate.x / offset)) + 1f) / fTerrainScale, fNoiseZ);
             }
             if (fChunkMap[0][offset] == null) {
-                fChunkMap[0][offset] = fTerrainRoughness * ImprovedNoise.noise((((float) (cnk.getX() / offset)) + 0f) / fTerrainScale, (((float) (cnk.getX() / offset)) + 1f) / fTerrainScale, fNoiseZ);
+                fChunkMap[0][offset] = fTerrainRoughness * ImprovedNoise.noise((((float) (coordinate.x / offset)) + 0f) / fTerrainScale, (((float) (coordinate.x / offset)) + 1f) / fTerrainScale, fNoiseZ);
             }
         } else {
-            fChunkMap = world.getHeightMap(cnk.getX(), cnk.getZ());
+            fChunkMap = world.getHeightMap(coordinate.x, coordinate.z);
         }
         // Calculate the complete fChunkMap with Diamond-Square algorithm
         float roughnessLocal = Math.max(Math.max(fChunkMap[0][0], fChunkMap[offset][0]), Math.max(fChunkMap[0][offset], fChunkMap[offset][offset]));
@@ -129,17 +131,17 @@ public class LandscapeChunkGenerator implements ChunkGenerator {
         diamond_Square(0, 0, offset, offset, Math.max(roughnessLocal, fMinLocalRoughness));
 
         // Loop over fChunkMap to create every block
-        for (int x = cnk.getX(); x < cnk.getX() + offset; x++) {
-            for (int z = cnk.getZ(); z < cnk.getZ() + offset; z++) {
-                int calculatedHeight = Math.round((fChunkMap[x - cnk.getX()][z - cnk.getZ()] + fChunkMap[x - cnk.getX()][z - cnk.getZ() + 1] + fChunkMap[x - cnk.getX() + 1][z - cnk.getZ()] + fChunkMap[x - cnk.getX() + 1][z - cnk.getZ() + 1]) / 4);
-                for (int y = cnk.getY(); y < cnk.getY() + offset; y++) {
+        for (int x = coordinate.x; x < coordinate.x + offset; x++) {
+            for (int z = coordinate.z; z < coordinate.z + offset; z++) {
+                int calculatedHeight = Math.round((fChunkMap[x - coordinate.x][z - coordinate.z] + fChunkMap[x - coordinate.x][z - coordinate.z + 1] + fChunkMap[x - coordinate.x + 1][z - coordinate.z] + fChunkMap[x - coordinate.x + 1][z - coordinate.z + 1]) / 4);
+                for (int y = coordinate.y; y < coordinate.y + offset; y++) {
                     if (getBlockType(y, calculatedHeight) != null) {
-                        cnk.addBlock(new BasicBlock(x, y, z, getBlockType(y, calculatedHeight)), false);
+                        cnk.addBlock(new BasicBlock(new Coordinate(x, y, z), getBlockType(y, calculatedHeight)), false);
                     }
                 }
             }
         }
-        world.setHeightMap(cnk.getX(), cnk.getZ(), fChunkMap);
+        world.setHeightMap(coordinate.x, coordinate.z, fChunkMap);
     }
 
     public void diamond_Square(int topLeftX, int topLeftY, int bottomRightX, int bottomRightY, float randomNumberRange) {

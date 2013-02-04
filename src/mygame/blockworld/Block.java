@@ -30,8 +30,7 @@ public interface Block extends Serializable {
     int getTextureFront();
     int getTextureBack();
     
-    int getX();
-    int getY();
-    int getZ();
+    //TODO: Replace by getCoordinate() ?
+    Coordinate getCoordinate();
     
 }
