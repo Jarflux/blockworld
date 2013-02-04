@@ -24,13 +24,15 @@ import java.util.logging.Logger;
 import jme3tools.optimize.TextureAtlas;
 import mygame.Lighting;
 import mygame.MathUtil;
+import mygame.blockworld.surfaceextraction.BlockContainer;
 
 /**
  *
  * @author Nathan & Ben
  */
-public class BlockWorld {
-
+public class BlockWorld implements BlockContainer{
+    
+    
     private static final Logger logger = Logger.getLogger(BlockWorld.class.getName());
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     private ChunkListener fGeneralListener = new ChunkListener() {
@@ -142,7 +144,7 @@ public class BlockWorld {
     }
 
     public Block getBlock(int x, int y, int z) {
-        return getBlock(x, y, z, false);
+        return getBlock(x, y, z, true);
     }
 
     public Block getBlock(int x, int y, int z, boolean createChunk) {
@@ -166,40 +168,40 @@ public class BlockWorld {
 
     public void saveWorld(String fileName) {
         /*try {
-            File file = new File(fileName);
-            file.createNewFile();
-            BufferedWriter fileWriter = new BufferedWriter(new FileWriter(file));
-            for (Map<Integer, ChunkColumn> mX : fChunkColumns.values()) {
-                for (ChunkColumn chunkColumn : mX.values()) {
-                    for (Chunk cnk : chunkColumn.values()) {
-                        cnk.save(fileWriter);
-                    }
-                }
-            }
-            fileWriter.close();
-        } catch (IOException ex) {
-            Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
+         File file = new File(fileName);
+         file.createNewFile();
+         BufferedWriter fileWriter = new BufferedWriter(new FileWriter(file));
+         for (Map<Integer, ChunkColumn> mX : fChunkColumns.values()) {
+         for (ChunkColumn chunkColumn : mX.values()) {
+         for (Chunk cnk : chunkColumn.values()) {
+         cnk.save(fileWriter);
+         }
+         }
+         }
+         fileWriter.close();
+         } catch (IOException ex) {
+         Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, null, ex);
+         }*/
     }
 
     public void loadWorld(String fileName) {
         /*try {
-            File file = new File(fileName);
-            if (file.exists()) {
-                BufferedReader fileReader = new BufferedReader(new FileReader(file));
-                while (fileReader.ready()) {
-                    String line = fileReader.readLine();
-                    String[] coords = line.split(":");
-                    int xC = Integer.valueOf(coords[0]);
-                    int yC = Integer.valueOf(coords[1]);
-                    int zC = Integer.valueOf(coords[2]);
-                    getChunk(xC, yC, zC, true, false).load(fileReader);
-                }
-                fileReader.close();
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, null, ex);
-        }*/
+         File file = new File(fileName);
+         if (file.exists()) {
+         BufferedReader fileReader = new BufferedReader(new FileReader(file));
+         while (fileReader.ready()) {
+         String line = fileReader.readLine();
+         String[] coords = line.split(":");
+         int xC = Integer.valueOf(coords[0]);
+         int yC = Integer.valueOf(coords[1]);
+         int zC = Integer.valueOf(coords[2]);
+         getChunk(xC, yC, zC, true, false).load(fileReader);
+         }
+         fileReader.close();
+         }
+         } catch (IOException ex) {
+         Logger.getLogger(BlockWorld.class.getName()).log(Level.SEVERE, null, ex);
+         }*/
     }
 
     public Float[][] getHeightMap(int x, int z) {
@@ -243,24 +245,57 @@ public class BlockWorld {
         }
     }
 
-    public Vector3f getLightColor(int x, int y, int z) {
+    public Vector3f getConstantLightColor(int x, int y, int z) {
         ChunkColumn column = getChunkColumn(x, z, false);
         if (column != null) {
             Chunk chunk = column.get(y);
             if (chunk != null) {
-                return chunk.getLightColor(x, y, z);
+                return chunk.getConstantLightColor(x, y, z);
             }
         }
-        return new Vector3f(0f,0f,0f);
+        return new Vector3f(0f, 0f, 0f);
     }
 
-    public void setLightColor(int x, int y, int z, Vector3f color) {
+    public void setConstantLightColor(int x, int y, int z, Vector3f color) {
         ChunkColumn column = getChunkColumn(x, z, false);
         if (column != null) {
             Chunk chunk = column.get(y);
             if (chunk != null) {
-                chunk.setLightColor(x, y, z, color);
+                chunk.setConstantLightColor(x, y, z, color);
             }
         }
-    }   
+    }
+
+    public Vector3f getPulseLightColor(int x, int y, int z) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if (column != null) {
+            Chunk chunk = column.get(y);
+            if (chunk != null) {
+                return chunk.getPulseLightColor(x, y, z);
+            }
+        }
+        return new Vector3f(0f, 0f, 0f);
+    }
+
+    public void setPulseLightColor(int x, int y, int z, Vector3f color) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if (column != null) {
+            Chunk chunk = column.get(y);
+            if (chunk != null) {
+                chunk.setPulseLightColor(x, y, z, color);
+            }
+        }
+    }
+
+    public Vector3f getNormal(int x, int y, int z) {
+        ChunkColumn column = getChunkColumn(x, z, false);
+        if (column != null) {
+            Chunk chunk = column.get(y);
+            if (chunk != null) {
+                return null;
+                //TODO return chunk.getNormal(x, y, z);
+            }
+        }
+        return null;
+    }
 }

@@ -28,6 +28,7 @@ import com.jme3.ui.Picture;
 import com.jme3.util.BufferUtils;
 import java.nio.ByteBuffer;
 import java.text.DecimalFormat;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import mygame.blockworld.BasicBlock;
@@ -52,7 +53,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private static final float PLAYER_STEPHEIGHT = 0.5f;// * 4f;
     private static final float PLAYER_HITBOX_HEIGHT = 0.75f;// * 4f;
     private static final float PLAYER_HITBOX_RADIUS = 0.25f;// * 4f;
-    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(0, 55, 0);
+    private static final Vector3f PLAYER_START_LOCATION = new Vector3f(3, 25, 15);
     private static final String SAVE_GAME_PATH = "Worlds/world0.dat";  
     
     private Material fBlockMat;
@@ -64,6 +65,7 @@ public class Main extends SimpleApplication implements ActionListener {
     private AudioNode audio_removeBlock;
     private FilterPostProcessor fpp;
     private float fDayAlpha;
+    private float fPulseLightAlpha;
     private FogFilter fog;
     private BitmapText hudPosition;
     private int fSelectedMaterial = 0;
@@ -94,7 +96,8 @@ public class Main extends SimpleApplication implements ActionListener {
         fBlockMat.setTexture("m_Terrain", fTerrainTexture);
         fBlockMat.setVector4("SunColor", new Vector4f(1f, 1f, 1f, 1f));
         fBlockMat.setVector4("MoonColor", new Vector4f(.01f, .01f, .05f, 1f));
-        */
+        fPulseLightAlpha = 0.0f;
+        
         /*
         Texture text = assetManager.loadTexture("Textures/dirt.png");
         text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
@@ -234,11 +237,19 @@ public class Main extends SimpleApplication implements ActionListener {
    }
    
    private void updateDayNightCycle(float value){
-       //fDayAlpha += value;
+       fDayAlpha += value;
        float newvalue = (float) Math.min(1, 2- Math.pow(2,Math.sin(fDayAlpha*2*Math.PI)));
 //       fBlockMat.setFloat("DayAlpha", newvalue);
        setBackground(newvalue);
    }
+   
+      private void updatePulseLightAlpha(float value){
+       fPulseLightAlpha += value;
+       float newvalue = (float) ((Math.sin(fPulseLightAlpha*2*Math.PI)+1)/2);
+       //float newvalue = (float) (Math.min(1, Math.sin(fDayAlpha*Math.PI*4*4)+1)/2);
+       fBlockMat.setFloat("PulseLightAlpha", newvalue);
+   }
+  
     private ColorRGBA mixColors(ColorRGBA colorNight, ColorRGBA colorDay, float alpha){
         ColorRGBA mixedColor = new ColorRGBA();
         mixedColor.interpolate(colorNight, colorDay, alpha);
@@ -438,6 +449,7 @@ public class Main extends SimpleApplication implements ActionListener {
         cam.setLocation(camPos);
         listener.setLocation(cam.getLocation());
         updateDayNightCycle(0.01f*tpf);
+        updatePulseLightAlpha(0.5f*tpf);
         //Vector3f camPos = cam.getLocation();
         fBlockWorldView.updatePosition(Math.round(camPos.x), Math.round(camPos.y), Math.round(camPos.z));
     }

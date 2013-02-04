@@ -17,18 +17,16 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 import mygame.Lighting;
+import mygame.LightingCalculator;
 import mygame.MathUtil;
 import mygame.blockworld.chunkgenerators.ChunkGenerator;
 import mygame.blockworld.chunkgenerators.FlatTerrainGenerator;
-import mygame.blockworld.chunkgenerators.LandscapeChunkGenerator;
-import mygame.blockworld.surfaceextraction.LSFitting;
+import mygame.blockworld.surfaceextraction.BasicTriangulation;
 import mygame.blockworld.surfaceextraction.MeshCreator;
 
 /**
@@ -44,7 +42,8 @@ public class Chunk {
     protected Block[][][] fBlocks = new Block[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
     private Vector3f[][][] fNormals = new Vector3f[CHUNK_SIZE][CHUNK_SIZE][CHUNK_SIZE];
     protected Map<String, Float> fSunLightMap = new HashMap<String, Float>();
-    protected Map<String, Vector3f> fLightMap = new HashMap<String, Vector3f>();
+    protected Map<String, Vector3f> fConstantLightMap = new HashMap<String, Vector3f>();
+    protected Map<String, Vector3f> fPulseLightMap = new HashMap<String, Vector3f>();
     protected List<Block> fLightSources = new ArrayList<Block>();
     private List<ChunkListener> fListeners = new LinkedList<ChunkListener>();
     protected Geometry fChunkMesh = null;
@@ -57,8 +56,9 @@ public class Chunk {
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
-    protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
-    protected static MeshCreator fMeshCreator = new LSFitting();
+    protected static ChunkGenerator fChunkGenerator = new FlatTerrainGenerator();
+    private static LightingCalculator fLightingCalculator = new Lighting();
+    protected static MeshCreator fMeshCreator = new BasicTriangulation();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
     public Chunk(BlockWorld world, ChunkColumn chunkColumn, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {
@@ -100,10 +100,11 @@ public class Chunk {
     }
 
     public void removeLight() {
-        if (fNeedsUpdate){
+        if (fNeedsUpdate) {
             fSunLightMap.clear();
-            fLightMap.clear();
-        }      
+            fConstantLightMap.clear();
+            fPulseLightMap.clear();
+        }
     }
 
     public void updateVisualMesh() {
@@ -122,7 +123,7 @@ public class Chunk {
 
     public void updateSunlight(int y) {
         if (fNeedsUpdate && y >= getY() && y < (getY() + Chunk.CHUNK_SIZE)) {
-            int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();  
+            int[][] highestBlockMap = fChunkColumn.getHighestBlockMap();
             for (int x = getX(); x < getX() + CHUNK_SIZE; x++) {
                 labeltest:
                 for (int z = getZ(); z < getZ() + CHUNK_SIZE; z++) {
@@ -134,7 +135,7 @@ public class Chunk {
                         setSunlightValue(x, y, z, lightValue);
                         continue labeltest;
                     }
-                    lightValue = fWorld.getSunlightValue(x, y, z); 
+                    lightValue = fWorld.getSunlightValue(x, y, z);
                     if (((fWorld.getBlock(x - 1, y, z) == null) || (fWorld.getBlock(x, y + 1, z) == null)) && fWorld.getSunlightValue(x - 1, y + 1, z) > Lighting.MIN_LIGHT_VALUE) {
                         lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x - 1, y + 1, z) * Lighting.SUNLIGHT_DEGRADING_CONSTANT));
                     }
@@ -148,7 +149,7 @@ public class Chunk {
                         lightValue = MathUtil.RelativeAdd(lightValue, (fWorld.getSunlightValue(x, y + 1, z + 1) * Lighting.SUNLIGHT_DEGRADING_CONSTANT));
                     }
                     fWorld.setSunlightValue(x, y, z, lightValue);
-                }  
+                }
             }
         }
     }
@@ -190,29 +191,61 @@ public class Chunk {
     public void updateLightSources() {
         if (fNeedsUpdate) {
             for (Block b : fLightSources) {
-                float[][][] RedDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getRedLightValue());
-                float[][][] GreenDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getGreenLightValue());
-                float[][][] BlueDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), b.getBlueLightValue());
-                for (int xd = 0; xd < RedDiffuseMap.length; xd++) {
-                    for (int yd = 0; yd < RedDiffuseMap.length; yd++) {
-                        for (int zd = 0; zd < RedDiffuseMap.length; zd++) {
-                            int xA = b.getX() + xd - (RedDiffuseMap.length / 2);
-                            int yA = b.getY() + yd - (RedDiffuseMap.length / 2);
-                            int zA = b.getZ() + zd - (RedDiffuseMap.length / 2);
-                            Vector3f lightColor = fWorld.getLightColor(xA, yA, zA);
-                            float newRedLightValue = lightColor.x;
-                            float newGreenLightValue = lightColor.y;
-                            float newBlueLightValue = lightColor.z;
-                            if (RedDiffuseMap[xd][yd][zd] > 0.001f) {
-                                newRedLightValue = (lightColor.x + RedDiffuseMap[xd][yd][zd]) / (1 + (lightColor.x * RedDiffuseMap[xd][yd][zd]));
+                if (b.isConstantLightSource()) {
+                    Vector3f blockColor = b.getConstantLightValue();
+                    float[][][] RedDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.x);
+                    float[][][] GreenDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.y);
+                    float[][][] BlueDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.z);
+                    for (int xd = 0; xd < RedDiffuseMap.length; xd++) {
+                        for (int yd = 0; yd < RedDiffuseMap.length; yd++) {
+                            for (int zd = 0; zd < RedDiffuseMap.length; zd++) {
+                                int xA = b.getX() + xd - (RedDiffuseMap.length / 2);
+                                int yA = b.getY() + yd - (RedDiffuseMap.length / 2);
+                                int zA = b.getZ() + zd - (RedDiffuseMap.length / 2);
+                                Vector3f lightColor = fWorld.getConstantLightColor(xA, yA, zA);
+                                float newRedLightValue = lightColor.x;
+                                float newGreenLightValue = lightColor.y;
+                                float newBlueLightValue = lightColor.z;
+                                if (RedDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newRedLightValue = (lightColor.x + RedDiffuseMap[xd][yd][zd]) / (1 + (lightColor.x * RedDiffuseMap[xd][yd][zd]));
+                                }
+                                if (GreenDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newGreenLightValue = (lightColor.y + GreenDiffuseMap[xd][yd][zd]) / (1 + (lightColor.y * GreenDiffuseMap[xd][yd][zd]));
+                                }
+                                if (BlueDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newBlueLightValue = (lightColor.z + BlueDiffuseMap[xd][yd][zd]) / (1 + (lightColor.z * BlueDiffuseMap[xd][yd][zd]));
+                                }
+                                fWorld.setConstantLightColor(xA, yA, zA, new Vector3f(newRedLightValue, newGreenLightValue, newBlueLightValue));
                             }
-                            if (GreenDiffuseMap[xd][yd][zd] > 0.001f) {
-                                newGreenLightValue = (lightColor.y + GreenDiffuseMap[xd][yd][zd]) / (1 + (lightColor.y * GreenDiffuseMap[xd][yd][zd]));
+                        }
+                    }
+                }
+                if (b.isPulseLightSource()) {
+                    Vector3f blockColor = b.getPulseLightValue();
+                    float[][][] RedDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.x);
+                    float[][][] GreenDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.y);
+                    float[][][] BlueDiffuseMap = Lighting.calculateDiffuseMap(fWorld, b.getX(), b.getY(), b.getZ(), blockColor.z);
+                    for (int xd = 0; xd < RedDiffuseMap.length; xd++) {
+                        for (int yd = 0; yd < RedDiffuseMap.length; yd++) {
+                            for (int zd = 0; zd < RedDiffuseMap.length; zd++) {
+                                int xA = b.getX() + xd - (RedDiffuseMap.length / 2);
+                                int yA = b.getY() + yd - (RedDiffuseMap.length / 2);
+                                int zA = b.getZ() + zd - (RedDiffuseMap.length / 2);
+                                Vector3f lightColor = fWorld.getPulseLightColor(xA, yA, zA);
+                                float newRedLightValue = lightColor.x;
+                                float newGreenLightValue = lightColor.y;
+                                float newBlueLightValue = lightColor.z;
+                                if (RedDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newRedLightValue = (lightColor.x + RedDiffuseMap[xd][yd][zd]) / (1 + (lightColor.x * RedDiffuseMap[xd][yd][zd]));
+                                }
+                                if (GreenDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newGreenLightValue = (lightColor.y + GreenDiffuseMap[xd][yd][zd]) / (1 + (lightColor.y * GreenDiffuseMap[xd][yd][zd]));
+                                }
+                                if (BlueDiffuseMap[xd][yd][zd] > 0.001f) {
+                                    newBlueLightValue = (lightColor.z + BlueDiffuseMap[xd][yd][zd]) / (1 + (lightColor.z * BlueDiffuseMap[xd][yd][zd]));
+                                }
+                                fWorld.setPulseLightColor(xA, yA, zA, new Vector3f(newRedLightValue, newGreenLightValue, newBlueLightValue));
                             }
-                            if (BlueDiffuseMap[xd][yd][zd] > 0.001f) {
-                                newBlueLightValue = (lightColor.z + BlueDiffuseMap[xd][yd][zd]) / (1 + (lightColor.z * BlueDiffuseMap[xd][yd][zd]));
-                            }
-                            fWorld.setLightColor(xA, yA, zA, new Vector3f(newRedLightValue, newGreenLightValue, newBlueLightValue));
                         }
                     }
                 }
@@ -228,7 +261,7 @@ public class Chunk {
         if (fChunkMesh != null) {
             fRootNode.detachChild(fChunkMesh);
         }
-        Mesh mesh = fMeshCreator.calculateMesh(fWorld, this);
+        Mesh mesh = fMeshCreator.calculateMesh(fWorld, fLightingCalculator, fXC, fYC, fZC, fXC + CHUNK_SIZE, fYC + CHUNK_SIZE, fZC + CHUNK_SIZE);
         if (mesh == null) {
             fChunkMesh = null;
             return;
@@ -254,11 +287,11 @@ public class Chunk {
             fChunkMesh.removeControl(fChunkPhysics);
         }
         /*Mesh shape = BasicTriangulation.basicTriangulation(fWorld, this);
-        if (shape == null) {
-            return;
-        }
-        Geometry nodeShape = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, shape);
-        */
+         if (shape == null) {
+         return;
+         }
+         Geometry nodeShape = new Geometry("Chunk:" + fXC + "." + fYC + "." + fZC, shape);
+         */
         CollisionShape chunkShape =
                 CollisionShapeFactory.createMeshShape(fChunkMesh/*nodeShape*/);
         fChunkPhysics = new RigidBodyControl(chunkShape, 0);
@@ -431,8 +464,8 @@ public class Chunk {
         fSunLightMap.put(generateKey(x, y, z), value);
     }
 
-    public Vector3f getLightColor(int x, int y, int z) {
-        Vector3f color = fLightMap.get(generateKey(x, y, z));
+    public Vector3f getConstantLightColor(int x, int y, int z) {
+        Vector3f color = fConstantLightMap.get(generateKey(x, y, z));
         if (color == null) {
             return new Vector3f(0f, 0f, 0f);
         } else {
@@ -440,8 +473,21 @@ public class Chunk {
         }
     }
 
-    public void setLightColor(int x, int y, int z, Vector3f color) {
-        fLightMap.put(generateKey(x, y, z), color);
+    public void setConstantLightColor(int x, int y, int z, Vector3f color) {
+        fConstantLightMap.put(generateKey(x, y, z), color);
+    }
+
+    public Vector3f getPulseLightColor(int x, int y, int z) {
+        Vector3f color = fPulseLightMap.get(generateKey(x, y, z));
+        if (color == null) {
+            return new Vector3f(0f, 0f, 0f);
+        } else {
+            return color;
+        }
+    }
+
+    public void setPulseLightColor(int x, int y, int z, Vector3f color) {
+        fPulseLightMap.put(generateKey(x, y, z), color);
     }
     
     public void scheduleUpdateBlockNormals(int x, int y, int z) {

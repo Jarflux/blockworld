@@ -3,6 +3,7 @@ MaterialDef Terrain{
 MaterialParameters {
 Texture2D m_Terrain
 Float DayAlpha
+Float PulseLightAlpha
 Vector4 SunColor
 Vector4 MoonColor
 }
