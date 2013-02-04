@@ -17,9 +17,11 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 import mygame.Lighting;
 import mygame.LightingCalculator;
@@ -27,6 +29,7 @@ import mygame.MathUtil;
 import mygame.blockworld.chunkgenerators.ChunkGenerator;
 import mygame.blockworld.chunkgenerators.FlatTerrainGenerator;
 import mygame.blockworld.surfaceextraction.BasicTriangulation;
+import mygame.blockworld.surfaceextraction.LSFitting;
 import mygame.blockworld.surfaceextraction.MeshCreator;
 
 /**
@@ -58,7 +61,7 @@ public class Chunk {
     protected boolean fNeedsUpdate = false;
     protected static ChunkGenerator fChunkGenerator = new FlatTerrainGenerator();
     private static LightingCalculator fLightingCalculator = new Lighting();
-    protected static MeshCreator fMeshCreator = new BasicTriangulation();
+    protected static MeshCreator fMeshCreator = new LSFitting();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
     public Chunk(BlockWorld world, ChunkColumn chunkColumn, Node rootNode, BulletAppState physicsState, int xC, int yC, int zC) {

@@ -292,8 +292,7 @@ public class BlockWorld implements BlockContainer{
         if (column != null) {
             Chunk chunk = column.get(y);
             if (chunk != null) {
-                return null;
-                //TODO return chunk.getNormal(x, y, z);
+                return chunk.getNormal(x, y, z);
             }
         }
         return null;
