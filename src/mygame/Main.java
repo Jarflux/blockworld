@@ -84,17 +84,17 @@ public class Main extends SimpleApplication implements ActionListener {
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
         //fBlockMat = new Material(assetManager, "Common/MatDefs/Terrain/TerrainLighting.j3md");
-        //fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
+        fBlockMat = new Material(assetManager, "Common/MatDefs/Misc/ShowNormals.j3md");
         
         fTerrainTexture = assetManager.loadTexture("Textures/terrain.png");
         fTerrainTexture.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
         fTerrainTexture.setMagFilter(Texture.MagFilter.Nearest);
-        
+        /*
         fBlockMat = new Material(assetManager, "MatDefs/Terrain.j3md");
         fBlockMat.setTexture("m_Terrain", fTerrainTexture);
         fBlockMat.setVector4("SunColor", new Vector4f(1f, 1f, 1f, 1f));
         fBlockMat.setVector4("MoonColor", new Vector4f(.01f, .01f, .05f, 1f));
-        
+        */
         /*
         Texture text = assetManager.loadTexture("Textures/dirt.png");
         text.setMinFilter(Texture.MinFilter.BilinearNoMipMaps);
@@ -223,7 +223,7 @@ public class Main extends SimpleApplication implements ActionListener {
 
    private void setUpDayNightCycle() {
         fDayAlpha = 1.0f; // set dayAlpha value to Day;
-        fBlockMat.setFloat("DayAlpha", 1.0f); // set shader to dayAlpha
+//        fBlockMat.setFloat("DayAlpha", 1.0f); // set shader to dayAlpha
         //viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f)); // Day Color
         //viewPort.setBackgroundColor(new ColorRGBA(0.0f, 0.0f, 0.0f, 1f)); // Night Color
         setBackground(1.0f);
@@ -236,7 +236,7 @@ public class Main extends SimpleApplication implements ActionListener {
    private void updateDayNightCycle(float value){
        //fDayAlpha += value;
        float newvalue = (float) Math.min(1, 2- Math.pow(2,Math.sin(fDayAlpha*2*Math.PI)));
-       fBlockMat.setFloat("DayAlpha", newvalue);
+//       fBlockMat.setFloat("DayAlpha", newvalue);
        setBackground(newvalue);
    }
     private ColorRGBA mixColors(ColorRGBA colorNight, ColorRGBA colorDay, float alpha){

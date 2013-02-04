@@ -20,24 +20,24 @@ public class FlatTerrainGenerator implements ChunkGenerator {
             for (int z = cnk.getZ(); z < cnk.getZ() + Chunk.CHUNK_SIZE; z++) {
                 for (int y = cnk.getY(); y < cnk.getY() + Chunk.CHUNK_SIZE; y++) {
                     if (y < -5) {
-                        cnk.addBlock(new BasicBlock(x, y, z, BlockType.STONE));
+                        cnk.addBlock(new BasicBlock(x, y, z, BlockType.STONE), false);
                     } else if (y < 0) {
-                        cnk.addBlock(new BasicBlock(x, y, z, BlockType.DIRT));
+                        cnk.addBlock(new BasicBlock(x, y, z, BlockType.DIRT), false);
                     } else if (y == 0) {
-                        cnk.addBlock(new BasicBlock(x, y, z, BlockType.SNOW));
+                        cnk.addBlock(new BasicBlock(x, y, z, BlockType.SNOW), false);
                     }
                     if (x == 0 && y == 0 && z == 00) {
                         for (int i = 0; i < 7; i++) {
                             for (int j = 1; j < 7; j++) {
                                 for (int k = 0; k < 7; k++) {
                                     if (j == 6) {
-                                        cnk.addBlock(new BasicBlock(i, j, k, BlockType.STONE));
+                                        cnk.addBlock(new BasicBlock(i, j, k, BlockType.STONE), false);
                                     } else {
                                         if (i == 0 || i == 6) {
-                                            cnk.addBlock(new BasicBlock(i, j, k, BlockType.STONE));
+                                            cnk.addBlock(new BasicBlock(i, j, k, BlockType.STONE), false);
                                         }
                                         if (k == 0 || k == 6) {
-                                            cnk.addBlock(new BasicBlock(i, j, k, BlockType.STONE));
+                                            cnk.addBlock(new BasicBlock(i, j, k, BlockType.STONE), false);
                                         }
                                     }
                                 }

@@ -38,14 +38,14 @@ public class Coordinate {
             return;
         }
         
-        int block000 = world.getBlock(start.x-1, start.y-1, start.z-1, true) != null ? 1 : 0;
-        int block001 = world.getBlock(start.x-1, start.y-1, start.z) != null ? 1 : 0;
-        int block010 = world.getBlock(start.x-1, start.y, start.z-1) != null ? 1 : 0;
-        int block011 = world.getBlock(start.x-1, start.y, start.z) != null ? 1 : 0;
-        int block100 = world.getBlock(start.x, start.y-1, start.z-1) != null ? 1 : 0;
-        int block101 = world.getBlock(start.x, start.y-1, start.z) != null ? 1 : 0;
-        int block110 = world.getBlock(start.x, start.y, start.z-1) != null ? 1 : 0;
-        int block111 = world.getBlock(start.x, start.y, start.z) != null ? 1 : 0;
+        int block000 = world.getBlock(start.x-1, start.y-1, start.z-1, false) != null ? 1 : 0;
+        int block001 = world.getBlock(start.x-1, start.y-1, start.z, false) != null ? 1 : 0;
+        int block010 = world.getBlock(start.x-1, start.y, start.z-1, false) != null ? 1 : 0;
+        int block011 = world.getBlock(start.x-1, start.y, start.z, false) != null ? 1 : 0;
+        int block100 = world.getBlock(start.x, start.y-1, start.z-1, false) != null ? 1 : 0;
+        int block101 = world.getBlock(start.x, start.y-1, start.z, false) != null ? 1 : 0;
+        int block110 = world.getBlock(start.x, start.y, start.z-1, false) != null ? 1 : 0;
+        int block111 = world.getBlock(start.x, start.y, start.z, false) != null ? 1 : 0;
         
         int edgeXNeg = block000 + block001 + block010 + block011;
         int edgeXPos = block100 + block101 + block110 + block111;

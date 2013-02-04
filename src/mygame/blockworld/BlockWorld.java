@@ -56,8 +56,7 @@ public class BlockWorld {
         }
 
         private void update(int x, int y, int z) {
-            Chunk cnk = getChunk(x, y, z, true);
-            cnk.updateNormal(x, y, z);
+            Chunk cnk;
             for (int i = (x - Chunk.CHUNK_SIZE); i <= (x + Chunk.CHUNK_SIZE); i = i + Chunk.CHUNK_SIZE) {
                 for (int j = (y - Chunk.CHUNK_SIZE); j <= (y + Chunk.CHUNK_SIZE); j = j + Chunk.CHUNK_SIZE) {
                     for (int k = (z - Chunk.CHUNK_SIZE); k <= (z + Chunk.CHUNK_SIZE); k = k + Chunk.CHUNK_SIZE) {

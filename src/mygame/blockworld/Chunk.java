@@ -57,7 +57,7 @@ public class Chunk {
     protected RigidBodyControl fChunkPhysics = null;
     protected Object fChunkGeneratorData = null;
     protected boolean fNeedsUpdate = false;
-    protected ChunkGenerator fChunkGenerator = new FlatTerrainGenerator();
+    protected ChunkGenerator fChunkGenerator = new LandscapeChunkGenerator();
     protected static MeshCreator fMeshCreator = new LSFitting();
     private MeshCreator fPreviousCreator = fMeshCreator;
 
@@ -324,6 +324,7 @@ public class Chunk {
         fChunkGenerator.fillChunk(fWorld, this);
     }
 
+    
     public void removeBlock(int x, int y, int z) {
         int xC, yC, zC;
         xC = MathUtil.PosMod(x, CHUNK_SIZE);
@@ -332,12 +333,17 @@ public class Chunk {
         if (fBlocks[xC][yC][zC] != null) {
             Block b = fBlocks[xC][yC][zC];
             fBlocks[xC][yC][zC] = null;
+            scheduleUpdateBlockNormals(x, y, z);
             blockRemoved(b);
             fNeedsUpdate = true;
         }
     }
 
     public boolean addBlock(Block b) {
+        return addBlock(b, true);
+    }
+    
+    public boolean addBlock(Block b, boolean updateNormals) {
         int xC, yC, zC;
         xC = MathUtil.PosMod(b.getX(), CHUNK_SIZE);
         yC = MathUtil.PosMod(b.getY(), CHUNK_SIZE);
@@ -346,6 +352,9 @@ public class Chunk {
             return false;
         } else {
             fBlocks[xC][yC][zC] = b;
+            if(updateNormals) {
+                scheduleUpdateBlockNormals(b.getX(), b.getY(), b.getZ());
+            }
             blockAdded(b);
             fNeedsUpdate = true;
             return true;
@@ -435,15 +444,38 @@ public class Chunk {
         fLightMap.put(generateKey(x, y, z), color);
     }
     
-    private Set<Coordinate> calculateNormal(int x, int y, int z) {
-        Vector3f position = new Vector3f(x, y, z);
+    public void scheduleUpdateBlockNormals(int x, int y, int z) {
+        scheduleUpdateNormal(x, y, z);
+        scheduleUpdateNormal(x, y, z + 1);
+        scheduleUpdateNormal(x, y + 1, z);
+        scheduleUpdateNormal(x, y + 1, z + 1);
+        scheduleUpdateNormal(x + 1, y, z);
+        scheduleUpdateNormal(x + 1, y, z + 1);
+        scheduleUpdateNormal(x + 1, y + 1, z);
+        scheduleUpdateNormal(x + 1, y + 1, z + 1);
+    }
+    
+    public void scheduleUpdateNormal(int x, int y, int z) {
+        Coordinate coordinate = new Coordinate(x, y, z);
+        Set<Coordinate> connectedCorners = calculateNormal(coordinate);
+        for(Coordinate corner : connectedCorners) {
+            Chunk cnk = fWorld.getChunk(corner.x, corner.y, corner.z, false);
+            if(cnk != null) {
+                //cnk.fNormalsToUpdate.add(corner);
+                cnk.fNormals[MathUtil.PosMod(corner.x, CHUNK_SIZE)][MathUtil.PosMod(corner.y, CHUNK_SIZE)][MathUtil.PosMod(corner.z, CHUNK_SIZE)] = null;
+            }
+        }
+    }
+    
+    private Set<Coordinate> calculateNormal(Coordinate coordinate) {
+        Vector3f position = new Vector3f(coordinate.x, coordinate.y, coordinate.z);
         Vector3f normal = new Vector3f(0,0,0);
         Set<Coordinate> connectedCorners = new HashSet<Coordinate>();
-        Coordinate.findConnectedCorners(fWorld, new Coordinate(x, y, z), true, false, false, NORMAL_SMOOTHNESS, connectedCorners);
+        Coordinate.findConnectedCorners(fWorld, coordinate, true, false, false, NORMAL_SMOOTHNESS, connectedCorners);
         boolean inverted = false;
         if(connectedCorners.size() <= 1) {
             inverted = true;
-            Coordinate.findConnectedCorners(fWorld, new Coordinate(x, y, z), false, true, false, NORMAL_SMOOTHNESS, connectedCorners);
+            Coordinate.findConnectedCorners(fWorld, coordinate, false, true, false, NORMAL_SMOOTHNESS, connectedCorners);
         }
         for(Coordinate corner : connectedCorners) {
             normal.addLocal(position.subtract(new Vector3f(corner.x, corner.y, corner.z)));
@@ -452,25 +484,26 @@ public class Chunk {
             normal = Vector3f.ZERO.subtract(normal);
         }
         normal.normalizeLocal();
-        fNormals[MathUtil.PosMod(x, CHUNK_SIZE)][MathUtil.PosMod(y, CHUNK_SIZE)][MathUtil.PosMod(z, CHUNK_SIZE)] = normal;
+        fNormals[MathUtil.PosMod(coordinate.x, CHUNK_SIZE)][MathUtil.PosMod(coordinate.y, CHUNK_SIZE)][MathUtil.PosMod(coordinate.z, CHUNK_SIZE)] = normal;
+        connectedCorners.remove(coordinate);
         return connectedCorners;
     }
     
-    public void updateNormal(int x, int y, int z) {
-        Set<Coordinate> connectedCorners = calculateNormal(x, y, z);
-        for(Coordinate corner : connectedCorners) {
-            if(!(corner.x == x && corner.y == y && corner.z == z)) {
-                fWorld.getChunk(corner.x, corner.y, corner.z, true).calculateNormal(corner.x, corner.y, corner.z);
-            }
+    //private List<Coordinate> fNormalsToUpdate = new LinkedList<Coordinate>();
+    /*
+    public void updateNormals() {
+        for(Coordinate toUpdate : fNormalsToUpdate) {
+            calculateNormal(toUpdate);
         }
+        fNormalsToUpdate.clear();
     }
-    
+    */
     public Vector3f getNormal(int x, int y, int z) {
         int xC = MathUtil.PosMod(x, CHUNK_SIZE);
         int yC = MathUtil.PosMod(y, CHUNK_SIZE);
         int zC = MathUtil.PosMod(z, CHUNK_SIZE);
         if(fNormals[xC][yC][zC] == null) {
-            calculateNormal(x, y, z);
+            calculateNormal(new Coordinate(x, y, z));
         }
         return fNormals[xC][yC][zC];
     }
