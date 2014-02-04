@@ -21,6 +21,7 @@ import com.jme3.math.Vector4f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FogFilter;
 import com.jme3.renderer.RenderManager;
+import com.jme3.system.AppSettings;
 import com.jme3.texture.Image;
 import com.jme3.texture.Texture;
 import com.jme3.texture.Texture2D;
@@ -77,7 +78,10 @@ public class Main extends SimpleApplication implements ActionListener {
     private static final Logger logger = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
+        AppSettings settings = new AppSettings(true);
+        //settings.setRenderer(AppSettings.LWJGL_OPENGL1);
         Main app = new Main();
+        app.setSettings(settings);
         app.startLogging();
         app.start();
     }
@@ -155,7 +159,7 @@ public class Main extends SimpleApplication implements ActionListener {
          cnk.setVisible(true);
          cnk.update();*/
         fBlockWorldView = new BlockWorldViewport(fBlockWorld);
-        setUpdAudio(); 
+        //setUpdAudio(); 
         setUpHud();
     }
     
@@ -269,7 +273,8 @@ public class Main extends SimpleApplication implements ActionListener {
         audio_nature.setLocalTranslation(Vector3f.ZERO.clone());
         audio_nature.setVolume(0.0f); //GOT SICK OF THE BIRDS =P
         rootNode.attachChild(audio_nature);
-        audio_nature.play(); // play continuously!
+        // DISABLED BECAUSE CAUSING ERRORS
+//        audio_nature.play(); // play continuously!
     }
 
     /**
@@ -369,7 +374,8 @@ public class Main extends SimpleApplication implements ActionListener {
                         }
                     }
                 }*/
-                audio_removeBlock.playInstance();
+                // DISABLED BECAUSE CAUSING ERRORS
+                //audio_removeBlock.playInstance();
             }
         } else if (binding.equals("AddBlock") && value) {
             // 1. Reset results list.
@@ -400,7 +406,8 @@ public class Main extends SimpleApplication implements ActionListener {
                         }
                     }
                 }*/
-                audio_removeBlock.playInstance();
+                // DISABLED BECAUSE CAUSING ERRORS
+               // audio_removeBlock.playInstance();
             }
         } else if (binding.equals("Save") && value) {
             fBlockWorld.saveWorld(SAVE_GAME_PATH);
